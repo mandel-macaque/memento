@@ -1,0 +1,277 @@
+# Git Memento Session
+
+- Provider: Codex
+- Session ID: 019ca698-59e5-7271-b066-358ce9fb8bd9
+- Session Title: # AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
+### Available skills
+- git-memento-workflow: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes. (file: /Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- skill-creator: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. (file: /Users/mandel/.codex/skills/.system/skill-creator/SKILL.md)
+- skill-installer: Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos). (file: /Users/mandel/.codex/skills/.system/skill-installer/SKILL.md)
+### How to use skills
+- Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths.
+- Trigger rules: If the user names a skill (with `$SkillName` or plain text) OR the task clearly matches a skill's description shown above, you must use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned.
+- Missing/blocked: If a named skill isn't in the list or the path can't be read, say so briefly and continue with the best fallback.
+- How to use a skill (progressive disclosure):
+  1) After deciding to use a skill, open its `SKILL.md`. Read only enough to follow the workflow.
+  2) When `SKILL.md` references relative paths (e.g., `scripts/foo.py`), resolve them relative to the skill directory listed above first, and only consider other paths if needed.
+  3) If `SKILL.md` points to extra folders such as `references/`, load only the specific files needed for the request; don't bulk-load everything.
+  4) If `scripts/` exist, prefer running or patching them instead of retyping large code blocks.
+  5) If `assets/` or templates exist, reuse them instead of recreating from scratch.
+- Coordination and sequencing:
+  - If multiple skills apply, choose the minimal set that covers the request and state the order you'll use them.
+  - Announce which skill(s) you're using and why (one short line). If you skip an obvious skill, say why.
+- Context hygiene:
+  - Keep context small: summarize long sections instead of pasting them; only load extra files when needed.
+  - Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
+  - When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
+- Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+</INSTRUCTIONS>
+- Committer: Manuel de la Pena
+- Captured At (UTC): 2026-02-28T23:41:46.3167260+00:00
+
+## Conversation
+
+### Manuel de la Pena
+
+# AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
+### Available skills
+- git-memento-workflow: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes. (file: /Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- skill-creator: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. (file: /Users/mandel/.codex/skills/.system/skill-creator/SKILL.md)
+- skill-installer: Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos). (file: /Users/mandel/.codex/skills/.system/skill-installer/SKILL.md)
+### How to use skills
+- Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths.
+- Trigger rules: If the user names a skill (with `$SkillName` or plain text) OR the task clearly matches a skill's description shown above, you must use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned.
+- Missing/blocked: If a named skill isn't in the list or the path can't be read, say so briefly and continue with the best fallback.
+- How to use a skill (progressive disclosure):
+1) After deciding to use a skill, open its `SKILL.md`. Read only enough to follow the workflow.
+2) When `SKILL.md` references relative paths (e.g., `scripts/foo.py`), resolve them relative to the skill directory listed above first, and only consider other paths if needed.
+3) If `SKILL.md` points to extra folders such as `references/`, load only the specific files needed for the request; don't bulk-load everything.
+4) If `scripts/` exist, prefer running or patching them instead of retyping large code blocks.
+5) If `assets/` or templates exist, reuse them instead of recreating from scratch.
+- Coordination and sequencing:
+- If multiple skills apply, choose the minimal set that covers the request and state the order you'll use them.
+- Announce which skill(s) you're using and why (one short line). If you skip an obvious skill, say why.
+- Context hygiene:
+- Keep context small: summarize long sections instead of pasting them; only load extra files when needed.
+- Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
+- When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
+- Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+</INSTRUCTIONS>
+
+### Manuel de la Pena
+
+<environment_context>
+<cwd>/Users/mandel/Work/memento</cwd>
+<shell>zsh</shell>
+</environment_context>
+
+### Manuel de la Pena
+
+We want to be able to integrate the information that memento has stored for a commit in a note as part of the revview process. To do that we want to create an action that will run per commit and pr pr that will add a new github comment on a commit with the data stored in the notes for that commit.
+
+The new comment will have the following information:
+
+- The AI agent used
+- The note that was attach with the session
+
+Ideally something like:
+
+```
+This commit has a prompt attached to it created with agent <Agent ID>:
+<summary>
+The note attached to the commit
+</summary>
+```
+
+This way the information will be visiable in the commit without the need to access the notes but it can be colapsed in case the session is very large
+
+### Codex
+
+I’ll inspect the repository for existing GitHub Actions and note-handling scripts, then add a workflow that reads commit notes and posts/updates a commit comment with the agent and note body. I’ll start by locating current CI/action patterns so this integrates cleanly.
+
+### Codex
+
+I found only `ci` and `release` workflows, so I’ll add a new workflow from scratch and reuse the note format already generated by `git-memento`. Next I’m checking the markdown format to reliably extract the agent/provider and body text for the comment.
+
+### Codex
+
+I confirmed notes include structured metadata (`Provider` and `Session ID`), so I can parse the “agent used” directly from the note header. I’m now adding a dedicated workflow that runs on `push` and `pull_request`, fetches git notes, and creates or updates a single commit comment per SHA.
+
+### Codex
+
+I’m implementing the workflow now with an idempotent marker so reruns update the same commit comment instead of spamming duplicates. After creating it, I’ll validate YAML syntax and summarize exactly how it behaves on push vs PR events.
+
+### Codex
+
+Implemented a new GitHub Action that posts memento note content as commit comments, with collapsible note bodies.
+
+### Added workflow
+- [.github/workflows/memento-note-comments.yml](/Users/mandel/Work/memento/.github/workflows/memento-note-comments.yml)
+
+### What it does
+1. Runs on:
+1. `push`
+2. `pull_request` (`opened`, `synchronize`, `reopened`)
+2. Checks out full history (`fetch-depth: 0`) and fetches `refs/notes/*`.
+3. Collects commit SHAs:
+1. Push: all commits in `before..after`
+2. PR: all commits in the PR via GitHub API
+4. For each commit:
+1. Reads note with `git notes show <sha>`
+2. Extracts `Provider` and `Session ID` from the note header
+3. Creates/updates one commit comment (idempotent marker) with format:
+- “This commit has a prompt attached to it created with agent `<provider/session-id>`”
+- `<details><summary>The note attached to the commit</summary> ... </details>`
+5. Truncates oversized comments to stay within GitHub comment size limits.
+
+### Notes
+- It updates existing memento comment on reruns (no duplicate spam).
+- I didn’t run this in GitHub yet, so behavior is validated by static inspection only.
+
+If you want, I can also add a short README section documenting this workflow and required token permissions.
+
+### Manuel de la Pena
+
+Update the README for that. I also want to be able to share this workflow in the github store for others to use. Take care of it
+
+### Codex
+
+I’ll add documentation plus package this as a reusable GitHub Action (`action.yml`) so it can be published to GitHub Marketplace, then update the workflow to use that action. I’m checking the current release/docs structure first to fit it cleanly.
+
+### Codex
+
+I have enough context and I’m going to make it Marketplace-ready in three changes:
+1. Add a reusable root `action.yml` (with branding/inputs) that posts memento note commit comments.
+2. Refactor the workflow to call that action instead of embedding the script.
+3. Update README with usage and explicit GitHub Marketplace publishing steps (tagging `v1`, listing, permissions). I’ll apply these edits now.
+
+### Codex
+
+I added the reusable action definition with Marketplace metadata and the same note-to-comment behavior. Next I’ll simplify the workflow to invoke this action, then document both internal use and Marketplace publishing in README.
+
+### Codex
+
+I’ve switched the workflow to consume a reusable local action, which also makes external reuse straightforward. I’m now updating README with two parts: how to use the action in any repo, and exact Marketplace publishing steps.
+
+### Codex
+
+Implemented. I made the commit-note commenter both documented and Marketplace-ready.
+
+### Changes made
+- Added a reusable root GitHub Action: [action.yml](/Users/mandel/Work/memento/action.yml)
+- Updated workflow to use that reusable action: [.github/workflows/memento-note-comments.yml](/Users/mandel/Work/memento/.github/workflows/memento-note-comments.yml)
+- Updated docs with usage + Marketplace publishing steps: [README.md](/Users/mandel/Work/memento/README.md)
+
+### What this enables
+- Other repos can use it as: `uses: mandel-macaque/memento@v1`
+- Action now has Marketplace metadata (`name`, `description`, `author`, `branding`)
+- README now includes:
+1. Example workflow
+2. Inputs
+3. “Publish This Action To GitHub Marketplace” checklist
+
+### Notes
+- I did not publish/tag from here (that needs your repo release/tag action).
+- Current local git status includes:
+1. `README.md` modified
+2. `.github/workflows/memento-note-comments.yml` added
+3. `action.yml` added
+
+Next steps:
+1. Create and push `v1.0.0` + `v1` tags, then publish a release.
+2. Submit the action in GitHub Marketplace from the repo UI.
+
+### Manuel de la Pena
+
+Update the version of the compiled tool to be 1.0.0 so that we can tag it correctly. Once you have done that use the $git-memento-workflow to add a new commit with a one liner title and a longer explanation. Once you have pushed and synced the notes create and push v1.0.0 + v1 tags
+
+### Manuel de la Pena
+
+<skill>
+<name>git-memento-workflow</name>
+<path>/Users/mandel/.codex/skills/git-memento-workflow/SKILL.md</path>
+---
+name: git-memento-workflow
+description: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes.
+---
+
+# Git Memento Workflow
+
+Run this workflow whenever work must be committed with an AI session note.
+
+## 1. Preflight
+
+- Confirm repository status with `git status --short` and branch with `git branch --show-current`.
+- Confirm `git memento` is available: `git memento help`.
+- If unavailable, install `git-memento` into a directory on `PATH` and re-check.
+
+## 2. Initialize Once Per Repository
+
+- Check configuration: `git config --local --get memento.provider`.
+- If missing, run `git memento init codex` or `git memento init claude`.
+- If provider CLI shape differs from expected `sessions get/list --json`, configure adapter command in local git config:
+- `git config --local memento.<provider>.bin <adapter-or-cli-path>`
+- `git config --local memento.<provider>.getArgs '<args with {id} placeholder>'`
+- `git config --local memento.<provider>.listArgs '<list args>'`
+
+## 3. Resolve Session ID
+
+- Prefer explicit session id from the user.
+- For Codex in this environment, default to `CODEX_THREAD_ID` when present.
+- Validate retrieval before commit by running provider command manually if needed.
+
+## 4. Create Memento Commit
+
+- Stage files as needed (`git add ...`).
+- Run commit through memento so note attachment happens in the same flow:
+- `git memento commit <session-id> -m "<subject>"`
+- For longer body, use embedded newlines in `-m` or omit `-m` to use editor.
+
+## 5. Verify Note Attachment
+
+- Read latest commit: `git log -1 --pretty=fuller`.
+- Show note on that commit: `git notes show <commit-hash>`.
+- If note is missing, inspect provider command config and rerun commit flow after fixing.
+
+## 6. Push Code and Sync Notes
+
+- Push commit branch: `git push <remote> <branch>`.
+- Sync notes with memento: `git memento share-notes <remote>`.
+- Verify notes exist remotely: `git ls-remote <remote> 'refs/notes/*'`.
+
+## 7. Failure Handling Checklist
+
+- `git-memento is not configured`: run `git memento init ...`.
+- Provider command fails: verify `memento.<provider>.*` git config and executable permissions.
+- Session not found: list sessions using provider list command and retry with exact id.
+- Note push missing on remote: rerun `git memento share-notes <remote>` and confirm remote ref output.
+
+</skill>
+
+### Codex
+
+I’m using the `git-memento-workflow` skill now because you requested a memento commit/push/tag flow. First I’ll locate the tool version metadata and set it to `1.0.0`, then I’ll run the preflight and complete the memento commit sequence with notes, push, and tags.
+
+### Codex
+
+Preflight checks passed and `git-memento` is available. I found no explicit project version yet, so I’m adding `Version=1.0.0` in the CLI project file now, then I’ll run the memento commit flow.
+
+### Codex
+
+The repo is already initialized for `codex`, and I found `CODEX_THREAD_ID`, so I can use it directly for the memento commit. I’m staging the files and creating one memento commit with a one-line subject plus a longer body next.
+
+### Codex
+
+The memento commit succeeded and attached a note to commit `23d86f8db31228bb2be2c00cd70be92761bccd0c`. I’m now verifying commit metadata and note content, then I’ll push branch, sync notes, and create/push `v1.0.0` + `v1` tags.
+
+### Codex
+
+I found that `git memento commit` kept only one paragraph from the two `-m` flags, so the previous commit message isn’t split into title/body. I’m making a tiny README clarification change and creating one additional memento commit using a single `-m` with embedded newline so it has the exact one-line subject plus longer body format you requested.
