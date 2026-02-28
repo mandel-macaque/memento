@@ -114,7 +114,7 @@ git memento commit <session-id> -m "message"
 Install from latest GitHub release:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/<YOUR_ORG>/<YOUR_REPO>/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/mandel-macaque/memento/main/install.sh | sh
 ```
 
 ## Test
