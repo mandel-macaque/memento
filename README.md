@@ -185,7 +185,7 @@ git push -f origin v1
 
 3. In GitHub, open your repository page:
    - `Releases` -> `Draft a new release` -> choose `v1.0.0` -> publish.
-4. Open the `Marketplace` publishing flow from the repository and submit listing metadata.
+4. Open the `Marketplace` (GitHub Store) publishing flow from the repository and submit listing metadata.
 5. Keep the major tag (`v1`) updated to the latest compatible release.
 
 ## Notes
