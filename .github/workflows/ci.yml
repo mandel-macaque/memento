@@ -4,6 +4,11 @@ on:
   push:
     branches: [ main ]
   pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   build-and-test:
@@ -24,4 +29,96 @@ jobs:
         run: dotnet build GitMemento.slnx -c Release --no-restore
 
       - name: Test
-        run: dotnet test GitMemento.slnx -c Release --no-build
+        id: test
+        continue-on-error: true
+        run: dotnet test GitMemento.slnx -c Release --no-build --logger "trx;LogFileName=test-results.trx" --results-directory test-results
+
+      - name: Summarize Test Results
+        if: always()
+        run: |
+          set -eu
+          trx_file="$(find test-results -name '*.trx' | head -n1 || true)"
+          if [ -z "$trx_file" ]; then
+            total=0
+            passed=0
+            failed=0
+            skipped=0
+            duration="n/a"
+          else
+            total="$(sed -n 's/.*<Counters[^>]*total="\([0-9]\+\)".*/\1/p' "$trx_file" | head -n1)"
+            passed="$(sed -n 's/.*<Counters[^>]*passed="\([0-9]\+\)".*/\1/p' "$trx_file" | head -n1)"
+            failed="$(sed -n 's/.*<Counters[^>]*failed="\([0-9]\+\)".*/\1/p' "$trx_file" | head -n1)"
+            not_executed="$(sed -n 's/.*<Counters[^>]*notExecuted="\([0-9]\+\)".*/\1/p' "$trx_file" | head -n1)"
+            skipped="${not_executed:-0}"
+            duration="$(sed -n 's/.*<ResultSummary[^>]*duration="\([^"]*\)".*/\1/p' "$trx_file" | head -n1)"
+            total="${total:-0}"
+            passed="${passed:-0}"
+            failed="${failed:-0}"
+            duration="${duration:-n/a}"
+          fi
+
+          status="PASS"
+          if [ "${failed}" -gt 0 ] || [ "${total}" -eq 0 ]; then
+            status="FAIL"
+          fi
+
+          {
+            echo "### CI Test Results"
+            echo ""
+            echo "| Status | Total | Passed | Failed | Skipped | Duration |"
+            echo "|---|---:|---:|---:|---:|---:|"
+            echo "| ${status} | ${total} | ${passed} | ${failed} | ${skipped} | ${duration} |"
+          } | tee pr-test-summary.md
+
+          cat pr-test-summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            test-results/**/*.trx
+            pr-test-summary.md
+          if-no-files-found: warn
+
+      - name: Comment PR With Test Summary
+        if: always() && github.event_name == 'pull_request'
+        continue-on-error: true
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const summaryPath = "pr-test-summary.md";
+            const marker = "<!-- ci-test-summary -->";
+            const body = `${marker}\n${fs.readFileSync(summaryPath, "utf8")}`;
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100
+            });
+            const existing = comments.find((c) => c.user.type === "Bot" && c.body && c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body
+              });
+            }
+
+      - name: Fail Job If Tests Failed
+        if: steps.test.outcome != 'success'
+        run: exit 1

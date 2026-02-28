@@ -1,15 +1,19 @@
 name: release
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
 
 permissions:
   contents: write
 
 jobs:
   publish:
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main'
     strategy:
       matrix:
         include:
@@ -30,6 +34,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -73,6 +79,15 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: commit-${{ github.event.workflow_run.head_sha }}
+          name: Commit Build ${{ github.event.workflow_run.head_sha }}
+          target_commitish: ${{ github.event.workflow_run.head_sha }}
+          generate_release_notes: false
+          body: |
+            Automated NativeAOT build for commit `${{ github.event.workflow_run.head_sha }}` from `main`.
+          fail_on_unmatched_files: true
+          make_latest: true
+          overwrite_files: true
           files: |
             git-memento-*.tar.gz
             git-memento-*.zip

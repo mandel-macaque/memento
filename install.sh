@@ -27,7 +27,10 @@ case "$uname_s" in
     esac
     ;;
   MINGW*|MSYS*|CYGWIN*|Windows_NT)
-    asset="git-memento-win-x64.zip"
+    case "$uname_m" in
+      x86_64|amd64|AMD64) asset="git-memento-win-x64.zip" ;;
+      *) echo "Unsupported Windows architecture: $uname_m (only x64 release asset is published)." >&2; exit 1 ;;
+    esac
     ;;
   *)
     echo "Unsupported OS: $uname_s" >&2
@@ -35,19 +38,16 @@ case "$uname_s" in
     ;;
 esac
 
-api_url="https://api.github.com/repos/$REPO/releases/latest"
-download_url="$(curl -fsSL "$api_url" | sed -n "s/.*\"browser_download_url\": \"\\([^\"]*${asset}\\)\".*/\\1/p" | head -n1)"
-
-if [ -z "$download_url" ]; then
-  echo "Could not find asset $asset in latest release of $REPO" >&2
-  exit 1
-fi
+download_url="https://github.com/$REPO/releases/latest/download/$asset"
 
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
 
 archive="$tmpdir/$asset"
-curl -fsSL "$download_url" -o "$archive"
+if ! curl -fsSL "$download_url" -o "$archive"; then
+  echo "Could not download $asset from latest release in $REPO" >&2
+  exit 1
+fi
 
 mkdir -p "$INSTALL_DIR"
 
