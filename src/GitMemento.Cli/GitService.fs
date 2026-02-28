@@ -8,7 +8,7 @@ type IGitService =
     abstract member GetLocalConfigValueAsync: key: string -> Task<Result<string option, string>>
     abstract member SetLocalConfigValueAsync: key: string * value: string -> Task<Result<unit, string>>
     abstract member GetCommitterAliasAsync: unit -> Task<string>
-    abstract member CommitAsync: message: string option -> Task<Result<unit, string>>
+    abstract member CommitAsync: messages: string list -> Task<Result<unit, string>>
     abstract member GetHeadHashAsync: unit -> Task<Result<string, string>>
     abstract member AddNoteAsync: hash: string * note: string -> Task<Result<unit, string>>
     abstract member EnsureNotesFetchConfiguredAsync: remote: string -> Task<Result<unit, string>>
@@ -65,16 +65,19 @@ type GitService(runner: ICommandRunner) =
                         return "Developer"
             }
 
-        member _.CommitAsync(message: string option) =
+        member _.CommitAsync(messages: string list) =
             task {
-                match message with
-                | Some msg ->
-                    let! result = runner.RunCaptureAsync("git", [ "commit"; "-m"; msg ])
+                if not (List.isEmpty messages) then
+                    let args =
+                        [ "commit" ]
+                        @ (messages |> List.collect (fun msg -> [ "-m"; msg ]))
+
+                    let! result = runner.RunCaptureAsync("git", args)
                     if result.ExitCode = 0 then
                         return Ok()
                     else
                         return Error(failWith result.StdErr result.StdOut)
-                | None ->
+                else
                     let! exitCode = runner.RunStreamingAsync("git", [ "commit" ])
                     if exitCode = 0 then
                         return Ok()

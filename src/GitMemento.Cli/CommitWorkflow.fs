@@ -27,7 +27,7 @@ type CommitWorkflow(git: IGitService, provider: IAiSessionProvider, output: IUse
                 | Some title -> output.Error($"- {item.Id} ({title})")
                 | None -> output.Error($"- {item.Id}"))
 
-    member _.ExecuteAsync(sessionId: string, commitMessage: string option) : Task<CommandResult> =
+    member _.ExecuteAsync(sessionId: string, commitMessages: string list) : Task<CommandResult> =
         task {
             Log.Debug("Validating git repository")
             let! repoCheck = git.EnsureInRepositoryAsync()
@@ -61,7 +61,7 @@ type CommitWorkflow(git: IGitService, provider: IAiSessionProvider, output: IUse
                         summary |> List.iter output.Info
 
                     Log.Debug("Creating git commit")
-                    let! commitResult = git.CommitAsync(commitMessage)
+                    let! commitResult = git.CommitAsync(commitMessages)
                     match commitResult with
                     | Error commitError -> return CommandResult.Failed commitError
                     | Ok _ ->

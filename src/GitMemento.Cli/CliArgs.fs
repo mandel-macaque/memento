@@ -6,7 +6,7 @@ module CliArgs =
     let usage =
         "Usage:\n"
         + "  git memento init [codex|claude]\n"
-        + "  git memento commit <session-id> [-m \"commit message\"]\n"
+        + "  git memento commit <session-id> [-m \"commit message\"]...\n"
         + "  git memento share-notes [remote]\n"
         + "  git memento help"
 
@@ -35,13 +35,13 @@ module CliArgs =
                     Error "Usage: git memento init [codex|claude]"
             | "commit" ->
                 if args.Length < 2 then
-                    Error "Missing <session-id>. Usage: git memento commit <session-id> [-m \"commit message\"]"
+                    Error "Missing <session-id>. Usage: git memento commit <session-id> [-m \"commit message\"]..."
                 else
                     let sessionId = args[1].Trim()
                     if String.IsNullOrWhiteSpace sessionId then
                         Error "Session id cannot be empty."
                     else
-                        let mutable message: string option = None
+                        let mutable messages: string list = []
                         let mutable i = 2
                         let mutable parseError: string option = None
 
@@ -51,22 +51,22 @@ module CliArgs =
                                 if i + 1 >= args.Length then
                                     parseError <- Some "Flag -m requires a non-empty commit message."
                                 else
-                                    message <- trimToOption args[i + 1]
-                                    if message.IsNone then
-                                        parseError <- Some "Flag -m requires a non-empty commit message."
+                                    match trimToOption args[i + 1] with
+                                    | Some message -> messages <- message :: messages
+                                    | None -> parseError <- Some "Flag -m requires a non-empty commit message."
                                     i <- i + 2
                             elif current.StartsWith("-m", StringComparison.Ordinal) then
                                 let inlineValue = current.AsSpan(2).ToString()
-                                message <- trimToOption inlineValue
-                                if message.IsNone then
-                                    parseError <- Some "Flag -m requires a non-empty commit message."
+                                match trimToOption inlineValue with
+                                | Some message -> messages <- message :: messages
+                                | None -> parseError <- Some "Flag -m requires a non-empty commit message."
                                 i <- i + 1
                             else
                                 parseError <- Some $"Unknown argument: {current}"
 
                         match parseError with
                         | Some err -> Error err
-                        | None -> Ok(Command.Commit(sessionId, message))
+                        | None -> Ok(Command.Commit(sessionId, List.rev messages))
             | "share-notes" ->
                 if args.Length = 1 then
                     Ok(Command.ShareNotes("origin"))

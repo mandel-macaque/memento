@@ -25,6 +25,7 @@ git memento init claude
 
 ```bash
 git memento commit <session-id> -m "Normal commit message"
+git memento commit <session-id> -m "Subject line" -m "Body paragraph"
 ```
 
 Or:
@@ -33,6 +34,7 @@ Or:
 git memento commit <session-id>
 ```
 
+You can pass `-m` multiple times, and each value is forwarded to `git commit` in order.
 When `-m` is omitted, `git commit` opens your default editor.
 
 Share notes with the repository remote (default: `origin`):

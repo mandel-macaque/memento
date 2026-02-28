@@ -86,11 +86,21 @@ if [ "$cmd" = "config" ]; then
 fi
 
 if [ "$cmd" = "commit" ]; then
-  msg=""
-  if [ "${2:-}" = "-m" ]; then
-    msg="${3:-}"
-  fi
-  echo "$msg" > "$state/commit-message"
+  : > "$state/commit-messages"
+  shift
+  while [ $# -gt 0 ]; do
+    if [ "$1" = "-m" ]; then
+      if [ $# -lt 2 ]; then
+        echo "missing message for -m" >&2
+        exit 2
+      fi
+      printf "%s\n" "$2" >> "$state/commit-messages"
+      shift
+      shift
+    else
+      shift
+    fi
+  done
   n=0
   if [ -f "$state/counter" ]; then
     n=$(cat "$state/counter")
@@ -193,15 +203,56 @@ let ``integration commit flow writes note using fake git and codex binaries`` ()
     let output = CaptureOutput()
     let workflow = CommitWorkflow(git, provider, output :> IUserOutput)
 
-    let result = workflow.ExecuteAsync("good-session", Some("ship it")).Result
+    let result = workflow.ExecuteAsync("good-session", [ "ship it" ]).Result
 
     Assert.Equal(CommandResult.Completed, result)
+    let commitMessages = File.ReadAllLines(Path.Combine(stateDir, "commit-messages"))
+    Assert.Equal<string array>([| "ship it" |], commitMessages)
     let note = File.ReadAllText(Path.Combine(stateDir, "note.md"))
     Assert.Contains("# Git Memento Session", note)
     Assert.Contains("### Test Dev", note)
     Assert.Contains("### Codex", note)
     Assert.Contains("Build feature", note)
     Assert.Contains("Done and tested", note)
+
+[<Fact>]
+let ``integration commit flow forwards multiple -m message parts`` () =
+    let temp = Path.Combine(Path.GetTempPath(), $"memento-it-{Guid.NewGuid():N}")
+    Directory.CreateDirectory(temp) |> ignore
+    let binDir = Path.Combine(temp, "bin")
+    let stateDir = Path.Combine(temp, "state")
+    Directory.CreateDirectory(binDir) |> ignore
+    Directory.CreateDirectory(stateDir) |> ignore
+
+    let gitPath = Path.Combine(binDir, "git")
+    let codexPath = Path.Combine(binDir, "codex")
+    writeExecutable gitPath (buildFakeGitScript stateDir)
+    writeExecutable codexPath buildFakeCodexScript
+
+    let originalPath = Environment.GetEnvironmentVariable("PATH") |> Option.ofObj |> Option.defaultValue ""
+    use _env =
+        new EnvScope(
+            [ "PATH", Some($"{binDir}{Path.PathSeparator}{originalPath}")
+              "MEMENTO_AI_PROVIDER", Some("codex")
+              "MEMENTO_CODEX_BIN", Some("codex") ]
+        )
+
+    let runner = ProcessCommandRunner() :> ICommandRunner
+    let git = GitService(runner) :> IGitService
+    let providerSettings =
+        { Provider = "codex"
+          Executable = "codex"
+          GetArgs = "sessions get {id} --json"
+          ListArgs = "sessions list --json" }
+    let provider = AiProviderFactory.createFromSettings runner providerSettings
+    let output = CaptureOutput()
+    let workflow = CommitWorkflow(git, provider, output :> IUserOutput)
+
+    let result = workflow.ExecuteAsync("good-session", [ "subject"; "body paragraph" ]).Result
+
+    Assert.Equal(CommandResult.Completed, result)
+    let commitMessages = File.ReadAllLines(Path.Combine(stateDir, "commit-messages"))
+    Assert.Equal<string array>([| "subject"; "body paragraph" |], commitMessages)
 
 [<Fact>]
 let ``integration share-notes pushes notes and configures fetch mapping`` () =

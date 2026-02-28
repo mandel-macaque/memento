@@ -10,17 +10,37 @@ open Xunit
 let ``parse commit with explicit message`` () =
     let result = CliArgs.parse [| "commit"; "sess-123"; "-m"; "ship feature" |]
     match result with
-    | Ok(Command.Commit(id, Some message)) ->
+    | Ok(Command.Commit(id, messages)) ->
         Assert.Equal("sess-123", id)
-        Assert.Equal("ship feature", message)
+        Assert.Equal<string list>([ "ship feature" ], messages)
     | _ -> failwith "Expected parsed commit command."
 
 [<Fact>]
 let ``parse commit without message`` () =
     let result = CliArgs.parse [| "commit"; "sess-123" |]
     match result with
-    | Ok(Command.Commit(id, None)) -> Assert.Equal("sess-123", id)
+    | Ok(Command.Commit(id, messages)) ->
+        Assert.Equal("sess-123", id)
+        Assert.Empty(messages)
     | _ -> failwith "Expected parsed commit command without message."
+
+[<Fact>]
+let ``parse commit with multiple messages preserves order`` () =
+    let result =
+        CliArgs.parse
+            [| "commit"
+               "sess-123"
+               "-m"
+               "subject"
+               "-m"
+               "body paragraph"
+               "-mfooter" |]
+
+    match result with
+    | Ok(Command.Commit(id, messages)) ->
+        Assert.Equal("sess-123", id)
+        Assert.Equal<string list>([ "subject"; "body paragraph"; "footer" ], messages)
+    | _ -> failwith "Expected parsed commit command with multiple messages."
 
 [<Fact>]
 let ``parse rejects unknown argument`` () =
@@ -127,7 +147,7 @@ type private InMemoryGitService() =
             config[key] <- value
             Task.FromResult(Ok())
         member _.GetCommitterAliasAsync() = Task.FromResult("Dev")
-        member _.CommitAsync(_) = Task.FromResult(Ok())
+        member _.CommitAsync(_messages) = Task.FromResult(Ok())
         member _.GetHeadHashAsync() = Task.FromResult(Ok("hash"))
         member _.AddNoteAsync(_, _) = Task.FromResult(Ok())
         member _.EnsureNotesFetchConfiguredAsync(_) = Task.FromResult(Ok())

@@ -24,7 +24,7 @@ type SessionRef =
       Title: string option }
 
 type Command =
-    | Commit of sessionId: string * message: string option
+    | Commit of sessionId: string * messages: string list
     | ShareNotes of remote: string
     | Init of provider: string option
     | Help
