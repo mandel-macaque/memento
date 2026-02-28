@@ -1,0 +1,24 @@
+name: memento-note-comments
+
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  comment-memento-notes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create or update commit comments from memento notes
+        uses: ./
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
