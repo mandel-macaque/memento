@@ -1,0 +1,239 @@
+# Git Memento Session
+
+- Provider: Codex
+- Session ID: 019ca6a9-19eb-7af1-bf3a-f064261f17f3
+- Session Title: # AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
+### Available skills
+- git-memento-workflow: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes. (file: /Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- skill-creator: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. (file: /Users/mandel/.codex/skills/.system/skill-creator/SKILL.md)
+- skill-installer: Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos). (file: /Users/mandel/.codex/skills/.system/skill-installer/SKILL.md)
+### How to use skills
+- Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths.
+- Trigger rules: If the user names a skill (with `$SkillName` or plain text) OR the task clearly matches a skill's description shown above, you must use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned.
+- Missing/blocked: If a named skill isn't in the list or the path can't be read, say so briefly and continue with the best fallback.
+- How to use a skill (progressive disclosure):
+  1) After deciding to use a skill, open its `SKILL.md`. Read only enough to follow the workflow.
+  2) When `SKILL.md` references relative paths (e.g., `scripts/foo.py`), resolve them relative to the skill directory listed above first, and only consider other paths if needed.
+  3) If `SKILL.md` points to extra folders such as `references/`, load only the specific files needed for the request; don't bulk-load everything.
+  4) If `scripts/` exist, prefer running or patching them instead of retyping large code blocks.
+  5) If `assets/` or templates exist, reuse them instead of recreating from scratch.
+- Coordination and sequencing:
+  - If multiple skills apply, choose the minimal set that covers the request and state the order you'll use them.
+  - Announce which skill(s) you're using and why (one short line). If you skip an obvious skill, say why.
+- Context hygiene:
+  - Keep context small: summarize long sections instead of pasting them; only load extra files when needed.
+  - Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
+  - When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
+- Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+</INSTRUCTIONS>
+- Committer: Manuel de la Pena
+- Captured At (UTC): 2026-02-28T23:55:32.3028910+00:00
+
+## Conversation
+
+### Manuel de la Pena
+
+# AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
+### Available skills
+- git-memento-workflow: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes. (file: /Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- skill-creator: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. (file: /Users/mandel/.codex/skills/.system/skill-creator/SKILL.md)
+- skill-installer: Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos). (file: /Users/mandel/.codex/skills/.system/skill-installer/SKILL.md)
+### How to use skills
+- Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths.
+- Trigger rules: If the user names a skill (with `$SkillName` or plain text) OR the task clearly matches a skill's description shown above, you must use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned.
+- Missing/blocked: If a named skill isn't in the list or the path can't be read, say so briefly and continue with the best fallback.
+- How to use a skill (progressive disclosure):
+1) After deciding to use a skill, open its `SKILL.md`. Read only enough to follow the workflow.
+2) When `SKILL.md` references relative paths (e.g., `scripts/foo.py`), resolve them relative to the skill directory listed above first, and only consider other paths if needed.
+3) If `SKILL.md` points to extra folders such as `references/`, load only the specific files needed for the request; don't bulk-load everything.
+4) If `scripts/` exist, prefer running or patching them instead of retyping large code blocks.
+5) If `assets/` or templates exist, reuse them instead of recreating from scratch.
+- Coordination and sequencing:
+- If multiple skills apply, choose the minimal set that covers the request and state the order you'll use them.
+- Announce which skill(s) you're using and why (one short line). If you skip an obvious skill, say why.
+- Context hygiene:
+- Keep context small: summarize long sections instead of pasting them; only load extra files when needed.
+- Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
+- When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
+- Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+</INSTRUCTIONS>
+
+### Manuel de la Pena
+
+<environment_context>
+<cwd>/Users/mandel/Work/memento</cwd>
+<shell>zsh</shell>
+</environment_context>
+
+### Manuel de la Pena
+
+Our cli has a bug. git commit support to pass "-m" several times. It looks like memento does not, this is a problem when using a ai agent to perform a commit with the memento workflow.
+
+- Add support to this scenarion in which -m can be passed more than once
+- Add unit tests
+- Add integration tests
+- Update the README accordingly
+
+### Codex
+
+I’ll locate the CLI argument parsing for `commit` first, then patch it so repeated `-m` flags are accepted and combined like git. After that I’ll add unit + integration coverage and update the README usage docs.
+
+### Codex
+
+I found the relevant files; next I’m inspecting `CliArgs` and commit workflow to identify where single-message handling is enforced, then I’ll patch parsing behavior.
+
+### Codex
+
+I confirmed parsing currently stores only one message (`string option`) and overwrites on repeated `-m`. I’m now checking `Domain`, `GitService`, and current tests to apply the minimal shape change consistently.
+
+### Codex
+
+I have enough context and will make a coordinated shape change to support repeated `-m` end-to-end.
+
+Plan:
+1. Change command/domain and workflow/git service signatures from `string option` to `string list` for commit messages.
+2. Update CLI parsing to collect every `-m` occurrence (including `-mVALUE`) in order, erroring on empty values just like now.
+3. Update unit tests for parsing: keep existing single-message behavior and add explicit multi-`-m` coverage.
+4. Update integration tests by enhancing the fake git script to capture all commit `-m` values, then add an integration case that asserts multiple messages are forwarded.
+5. Update README usage and examples to document repeated `-m` support, then run the test suite.
+
+### Codex
+
+I’m now applying the core code edits: switching commit message handling to a list across parser/domain/workflow/service/program, then I’ll update tests to match and add multi-`-m` coverage.
+
+### Codex
+
+Core implementation changes are in. Next I’m updating unit/integration tests, including fake git parsing for repeated `-m`, and then I’ll refresh README examples.
+
+### Codex
+
+I’m updating README command examples now to explicitly document repeated `-m` behavior with a concrete example matching git semantics.
+
+### Codex
+
+Code and tests are updated; I’m running the test suite now to verify unit and integration coverage passes with the new multi-`-m` behavior.
+
+### Codex
+
+Implemented end-to-end support for multiple `-m` values on `git memento commit`, with tests and docs updated.
+
+**What changed**
+- CLI parsing now accepts repeated `-m` (and inline `-mVALUE`) and preserves order.
+- Commit command shape changed from optional single message to list of messages.
+- Git commit execution now forwards all messages as repeated `-m` args, or opens editor when list is empty.
+
+Updated files:
+- [src/GitMemento.Cli/CliArgs.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/CliArgs.fs)
+- [src/GitMemento.Cli/Domain.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/Domain.fs)
+- [src/GitMemento.Cli/GitService.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/GitService.fs)
+- [src/GitMemento.Cli/CommitWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/CommitWorkflow.fs)
+- [src/GitMemento.Cli/Program.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/Program.fs)
+
+**Tests added/updated**
+- Unit:
+- [tests/GitMemento.Tests/Tests.fs:10](/Users/mandel/Work/memento/tests/GitMemento.Tests/Tests.fs:10) single-message parse updated
+- [tests/GitMemento.Tests/Tests.fs:19](/Users/mandel/Work/memento/tests/GitMemento.Tests/Tests.fs:19) no-message parse updated
+- [tests/GitMemento.Tests/Tests.fs:28](/Users/mandel/Work/memento/tests/GitMemento.Tests/Tests.fs:28) new multi-`-m` parse test
+- Integration:
+- fake git now captures all `-m` values in order ([tests/GitMemento.Tests/IntegrationTests.fs:89](/Users/mandel/Work/memento/tests/GitMemento.Tests/IntegrationTests.fs:89))
+- existing commit integration updated to assert captured messages ([tests/GitMemento.Tests/IntegrationTests.fs:206](/Users/mandel/Work/memento/tests/GitMemento.Tests/IntegrationTests.fs:206))
+- new integration test for multiple message parts ([tests/GitMemento.Tests/IntegrationTests.fs:219](/Users/mandel/Work/memento/tests/GitMemento.Tests/IntegrationTests.fs:219))
+
+**README**
+- Added multi-`-m` example and explicit behavior note:
+- [README.md:27](/Users/mandel/Work/memento/README.md:27)
+
+**Verification**
+- Ran: `dotnet test GitMemento.slnx`
+- Result: Passed (`14` tests, `0` failed).
+
+### Manuel de la Pena
+
+Using the $git-memento-workflow create a new commit with a one liner title and a longer commit with the changes. Then push the commit and sync the notes accordingly
+
+### Manuel de la Pena
+
+<skill>
+<name>git-memento-workflow</name>
+<path>/Users/mandel/.codex/skills/git-memento-workflow/SKILL.md</path>
+---
+name: git-memento-workflow
+description: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes.
+---
+
+# Git Memento Workflow
+
+Run this workflow whenever work must be committed with an AI session note.
+
+## 1. Preflight
+
+- Confirm repository status with `git status --short` and branch with `git branch --show-current`.
+- Confirm `git memento` is available: `git memento help`.
+- If unavailable, install `git-memento` into a directory on `PATH` and re-check.
+
+## 2. Initialize Once Per Repository
+
+- Check configuration: `git config --local --get memento.provider`.
+- If missing, run `git memento init codex` or `git memento init claude`.
+- If provider CLI shape differs from expected `sessions get/list --json`, configure adapter command in local git config:
+- `git config --local memento.<provider>.bin <adapter-or-cli-path>`
+- `git config --local memento.<provider>.getArgs '<args with {id} placeholder>'`
+- `git config --local memento.<provider>.listArgs '<list args>'`
+
+## 3. Resolve Session ID
+
+- Prefer explicit session id from the user.
+- For Codex in this environment, default to `CODEX_THREAD_ID` when present.
+- Validate retrieval before commit by running provider command manually if needed.
+
+## 4. Create Memento Commit
+
+- Stage files as needed (`git add ...`).
+- Run commit through memento so note attachment happens in the same flow:
+- `git memento commit <session-id> -m "<subject>"`
+- For longer body, use embedded newlines in `-m` or omit `-m` to use editor.
+
+## 5. Verify Note Attachment
+
+- Read latest commit: `git log -1 --pretty=fuller`.
+- Show note on that commit: `git notes show <commit-hash>`.
+- If note is missing, inspect provider command config and rerun commit flow after fixing.
+
+## 6. Push Code and Sync Notes
+
+- Push commit branch: `git push <remote> <branch>`.
+- Sync notes with memento: `git memento share-notes <remote>`.
+- Verify notes exist remotely: `git ls-remote <remote> 'refs/notes/*'`.
+
+## 7. Failure Handling Checklist
+
+- `git-memento is not configured`: run `git memento init ...`.
+- Provider command fails: verify `memento.<provider>.*` git config and executable permissions.
+- Session not found: list sessions using provider list command and retry with exact id.
+- Note push missing on remote: rerun `git memento share-notes <remote>` and confirm remote ref output.
+
+</skill>
+
+### Codex
+
+Using the `git-memento-workflow` skill now. I’ll run preflight checks (`git` status/branch and `git memento` availability), confirm memento config + session id, then create the memento commit with subject + body and push code plus notes.
+
+### Codex
+
+Preflight passed and I found `CODEX_THREAD_ID`, so I’ll stage these changes next. I’ll also confirm which `git-memento` binary is being used before committing, since the help text suggests an older installed build.
+
+### Codex
+
+I’m proceeding to stage all modified files and create the memento commit using the current `CODEX_THREAD_ID` with two `-m` flags (subject + detailed body). I’ll run through the project entrypoint to ensure the new multi-`-m` behavior is used.
+
+### Codex
+
+Staging was blocked by sandbox permissions on `.git/index.lock`; I’m requesting elevated execution for the git add/commit/push steps so I can complete the workflow end-to-end.
