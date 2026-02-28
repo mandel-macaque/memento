@@ -1,0 +1,78 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+            archive: tar.gz
+          - os: macos-latest
+            rid: osx-arm64
+            archive: tar.gz
+          - os: macos-13
+            rid: osx-x64
+            archive: tar.gz
+          - os: windows-latest
+            rid: win-x64
+            archive: zip
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Publish NativeAOT
+        run: dotnet publish src/GitMemento.Cli/GitMemento.Cli.fsproj -c Release -r ${{ matrix.rid }} -p:PublishAot=true --self-contained true -o out/${{ matrix.rid }}
+
+      - name: Package (tar.gz)
+        if: matrix.archive == 'tar.gz'
+        run: |
+          cd out/${{ matrix.rid }}
+          tar -czf ../../git-memento-${{ matrix.rid }}.tar.gz git-memento
+
+      - name: Package (zip)
+        if: matrix.archive == 'zip'
+        shell: pwsh
+        run: |
+          Compress-Archive -Path out/${{ matrix.rid }}/git-memento.exe -DestinationPath git-memento-${{ matrix.rid }}.zip
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact-${{ matrix.rid }}
+          path: |
+            git-memento-${{ matrix.rid }}.tar.gz
+            git-memento-${{ matrix.rid }}.zip
+          if-no-files-found: ignore
+
+  release:
+    runs-on: ubuntu-latest
+    needs: publish
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: artifact-*
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            git-memento-*.tar.gz
+            git-memento-*.zip

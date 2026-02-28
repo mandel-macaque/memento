@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/GitMemento.Cli/GitMemento.Cli.fsproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/GitMemento.Tests/GitMemento.Tests.fsproj" />
+  </Folder>
+</Solution>

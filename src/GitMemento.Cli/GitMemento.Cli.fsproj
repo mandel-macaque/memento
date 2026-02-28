@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>git-memento</AssemblyName>
+    <PublishAot Condition="'$(PublishAot)' == ''">false</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Domain.fs" />
+    <Compile Include="CliArgs.fs" />
+    <Compile Include="TextCleaning.fs" />
+    <Compile Include="Markdown.fs" />
+    <Compile Include="ProcessRunner.fs" />
+    <Compile Include="GitService.fs" />
+    <Compile Include="AiProvider.fs" />
+    <Compile Include="CommitWorkflow.fs" />
+    <Compile Include="ShareNotesWorkflow.fs" />
+    <Compile Include="InitWorkflow.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Serilog" Version="4.3.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+  </ItemGroup>
+
+</Project>
