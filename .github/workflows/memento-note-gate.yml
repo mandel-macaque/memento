@@ -1,0 +1,25 @@
+name: memento-note-gate
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  enforce-memento-notes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Enforce memento note coverage
+        uses: ./
+        with:
+          mode: gate
+          strict: "true"

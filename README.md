@@ -298,6 +298,7 @@ jobs:
 Local workflow in this repository:
 
 - `.github/workflows/memento-note-comments.yml`
+- `.github/workflows/memento-note-gate.yml`
 
 ### Publish This Action To GitHub Marketplace
 
