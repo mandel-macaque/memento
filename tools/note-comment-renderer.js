@@ -2,7 +2,7 @@
 
 const marker = "<!-- git-memento-note-comment -->";
 const markdownFileHeadingPattern = /^#{1,6}\s+([^\s]+\.md\b.*)$/i;
-const speakerHeadingPattern = /^###\s+/;
+const speakerHeadingPattern = /^###\s+(.+?)\s*$/;
 
 const normalizeLineEndings = (value) => (value || "").replace(/\r\n/g, "\n");
 
@@ -15,9 +15,11 @@ const escapeHtml = (value) =>
 const parseNote = (note) => {
   const providerMatch = note.match(/^- Provider:\s*(.+)$/m);
   const sessionIdMatch = note.match(/^- Session ID:\s*(.+)$/m);
+  const committerMatch = note.match(/^- Committer:\s*(.+)$/m);
   const provider = providerMatch ? providerMatch[1].trim() : "unknown";
   const sessionId = sessionIdMatch ? sessionIdMatch[1].trim() : "";
-  return { provider, sessionId };
+  const committer = committerMatch ? committerMatch[1].trim() : "";
+  return { provider, sessionId, committer };
 };
 
 const formatMarkdownSectionContent = (value) => {
@@ -52,10 +54,31 @@ const formatMarkdownSectionContent = (value) => {
     .trim();
 };
 
-const extractMarkdownFileSections = (note) => {
+const isConversationSpeakerHeading = (line, speakers) => {
+  const match = line.trim().match(speakerHeadingPattern);
+  if (!match) {
+    return false;
+  }
+
+  return speakers.has(match[1].trim().toLowerCase());
+};
+
+const extractMarkdownFileSectionsForProvider = (note, provider, committer) => {
+  const normalizedProvider = (provider || "").trim().toLowerCase();
+  const providerRenderers = {
+    codex: { formatSection: formatMarkdownSectionContent },
+    claude: { formatSection: formatMarkdownSectionContent },
+  };
+  const renderer = providerRenderers[normalizedProvider] || { formatSection: (value) => normalizeLineEndings(value).trim() };
+
   const lines = normalizeLineEndings(note).split("\n");
   const sections = [];
   const remaining = [];
+  const speakers = new Set(
+    [provider, committer, "System", "Tool"]
+      .filter(Boolean)
+      .map((name) => name.trim().toLowerCase()),
+  );
 
   for (let i = 0; i < lines.length; i += 1) {
     const currentLine = lines[i];
@@ -68,19 +91,32 @@ const extractMarkdownFileSections = (note) => {
 
     const title = headingMatch[1].trim();
     let end = i + 1;
+    let insideInstructions = false;
+    let hadInstructions = false;
 
     while (end < lines.length) {
       const candidate = lines[end].trim();
-      if (/^<\/INSTRUCTIONS>$/i.test(candidate)) {
+      if (/^<INSTRUCTIONS>$/i.test(candidate)) {
+        insideInstructions = true;
+        hadInstructions = true;
         end += 1;
+        continue;
+      }
+
+      if (insideInstructions && /^<\/INSTRUCTIONS>$/i.test(candidate)) {
+        insideInstructions = false;
+        end += 1;
+        if (hadInstructions) {
+          break;
+        }
+        continue;
+      }
+
+      if (!insideInstructions && candidate && markdownFileHeadingPattern.test(candidate) && end > i + 1) {
         break;
       }
 
-      if (candidate && markdownFileHeadingPattern.test(candidate) && end > i + 1) {
-        break;
-      }
-
-      if (candidate && speakerHeadingPattern.test(candidate) && end > i + 1) {
+      if (!insideInstructions && candidate && isConversationSpeakerHeading(candidate, speakers) && end > i + 1) {
         break;
       }
 
@@ -88,8 +124,7 @@ const extractMarkdownFileSections = (note) => {
     }
 
     const sectionContent = lines.slice(i + 1, end).join("\n").trim();
-    sections.push({ title, content: formatMarkdownSectionContent(sectionContent) });
-    remaining.push(`> Embedded markdown moved below: ${title}`);
+    sections.push({ title, content: renderer.formatSection(sectionContent) });
     i = end - 1;
   }
 
@@ -117,10 +152,10 @@ const renderMarkdownSections = (sections) => {
 const buildNoSessionBody = () => `${marker}\nNo AI session was attached to this commit.`;
 
 const buildBody = (note, maxBodyLength) => {
-  const { provider, sessionId } = parseNote(note);
+  const { provider, sessionId, committer } = parseNote(note);
   const agentId = sessionId ? `${provider} / ${sessionId}` : provider;
   const normalizedNote = normalizeLineEndings(note).trim();
-  const { noteBody, sections } = extractMarkdownFileSections(normalizedNote);
+  const { noteBody, sections } = extractMarkdownFileSectionsForProvider(normalizedNote, provider, committer);
   const renderedNote = noteBody || normalizedNote;
   const renderedSections = renderMarkdownSections(sections);
   const heading = `${marker}\nThis commit has a prompt attached to it created with agent ${agentId}:`;
