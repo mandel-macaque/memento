@@ -175,6 +175,21 @@ Install from latest GitHub release:
 curl -fsSL https://raw.githubusercontent.com/mandel-macaque/memento/main/install.sh | sh
 ```
 
+## Release Automation
+
+- Release assets are built with NativeAOT (`PublishAot=true`) and packaged as a single executable per platform.
+- If the workflow runs from a tag push (for example `v1.2.3`), that tag is used as the GitHub release tag/name.
+- If the workflow runs from `main` without a tag, the release tag becomes `<Version>-<shortSha>` (for example `1.0.0-a1b2c3d4`).
+- `install.sh` always downloads from `releases/latest`, so the installer follows the latest published GitHub release.
+
+## Install Script CI Coverage
+
+CI runs install smoke tests on Linux, macOS, and Windows that verify:
+
+- `install.sh` downloads the latest release asset for the current OS/architecture.
+- The binary is installed for the current user into the configured install directory.
+- `git memento --version` and `git memento help` both execute after installation.
+
 ## Test
 
 ```bash

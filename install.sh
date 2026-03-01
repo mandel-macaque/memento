@@ -44,8 +44,18 @@ tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
 
 archive="$tmpdir/$asset"
-if ! curl -fsSL "$download_url" -o "$archive"; then
-  echo "Could not download $asset from latest release in $REPO" >&2
+if command -v curl >/dev/null 2>&1; then
+  if ! curl -fsSL "$download_url" -o "$archive"; then
+    echo "Could not download $asset from latest release in $REPO" >&2
+    exit 1
+  fi
+elif command -v wget >/dev/null 2>&1; then
+  if ! wget -qO "$archive" "$download_url"; then
+    echo "Could not download $asset from latest release in $REPO" >&2
+    exit 1
+  fi
+else
+  echo "Neither curl nor wget is available to download release assets." >&2
   exit 1
 fi
 
@@ -58,11 +68,14 @@ case "$asset" in
     chmod +x "$INSTALL_DIR/git-memento"
     ;;
   *.zip)
-    if ! command -v unzip >/dev/null 2>&1; then
-      echo "unzip is required on Windows-like shells." >&2
+    if command -v unzip >/dev/null 2>&1; then
+      unzip -q "$archive" -d "$tmpdir"
+    elif command -v powershell.exe >/dev/null 2>&1; then
+      powershell.exe -NoProfile -Command "Expand-Archive -Path '$archive' -DestinationPath '$tmpdir' -Force" >/dev/null
+    else
+      echo "zip extraction requires unzip or powershell.exe." >&2
       exit 1
     fi
-    unzip -q "$archive" -d "$tmpdir"
     cp "$tmpdir/git-memento.exe" "$INSTALL_DIR/git-memento.exe"
     ;;
 esac

@@ -9,11 +9,64 @@ permissions:
   contents: write
 
 jobs:
-  publish:
+  metadata:
     if: >
       github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push' &&
-      github.event.workflow_run.head_branch == 'main'
+      github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      release_tag: ${{ steps.meta.outputs.release_tag }}
+      release_name: ${{ steps.meta.outputs.release_name }}
+      target_sha: ${{ steps.meta.outputs.target_sha }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Compute release metadata
+        id: meta
+        shell: bash
+        env:
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          set -eu
+          target_sha="${{ github.event.workflow_run.head_sha }}"
+          short_sha="$(printf '%s' "$target_sha" | cut -c1-8)"
+          release_tag=""
+          release_name=""
+
+          current_tag=""
+          if [ "${HEAD_BRANCH:-}" != "main" ]; then
+            current_tag="$(git tag --points-at "$target_sha" | grep '^v' | head -n1 || true)"
+          fi
+
+          if [ -n "$current_tag" ]; then
+            release_tag="$current_tag"
+            release_name="$current_tag"
+          else
+            version="$(dotnet msbuild src/GitMemento.Cli/GitMemento.Cli.fsproj -nologo -getProperty:Version | tr -d '\r' | tail -n1)"
+            if [ -z "$version" ]; then
+              echo "Failed to resolve Version from project file." >&2
+              exit 1
+            fi
+            release_tag="${version}-${short_sha}"
+            release_name="Build ${release_tag}"
+          fi
+
+          echo "target_sha=$target_sha" >> "$GITHUB_OUTPUT"
+          echo "release_tag=$release_tag" >> "$GITHUB_OUTPUT"
+          echo "release_name=$release_name" >> "$GITHUB_OUTPUT"
+
+  publish:
+    needs: metadata
     strategy:
       matrix:
         include:
@@ -35,7 +88,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ needs.metadata.outputs.target_sha }}
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -44,6 +97,34 @@ jobs:
 
       - name: Publish NativeAOT
         run: dotnet publish src/GitMemento.Cli/GitMemento.Cli.fsproj -c Release -r ${{ matrix.rid }} -p:PublishAot=true --self-contained true -o out/${{ matrix.rid }}
+
+      - name: Validate NativeAOT output (Unix)
+        if: matrix.archive == 'tar.gz'
+        shell: bash
+        run: |
+          set -eu
+          out_dir="out/${{ matrix.rid }}"
+          if find "$out_dir" -maxdepth 1 -type f -name '*.dll' | grep -q .; then
+            echo "Publish output contains .dll files, expected NativeAOT single-binary output." >&2
+            exit 1
+          fi
+          if [ ! -f "$out_dir/git-memento" ]; then
+            echo "Missing expected executable $out_dir/git-memento." >&2
+            exit 1
+          fi
+
+      - name: Validate NativeAOT output (Windows)
+        if: matrix.archive == 'zip'
+        shell: pwsh
+        run: |
+          $outDir = "out/${{ matrix.rid }}"
+          $dlls = Get-ChildItem -Path $outDir -Filter *.dll -File -ErrorAction SilentlyContinue
+          if ($dlls.Count -gt 0) {
+            throw "Publish output contains .dll files, expected NativeAOT single-binary output."
+          }
+          if (-not (Test-Path "$outDir/git-memento.exe")) {
+            throw "Missing expected executable $outDir/git-memento.exe."
+          }
 
       - name: Package (tar.gz)
         if: matrix.archive == 'tar.gz'
@@ -57,6 +138,36 @@ jobs:
         run: |
           Compress-Archive -Path out/${{ matrix.rid }}/git-memento.exe -DestinationPath git-memento-${{ matrix.rid }}.zip
 
+      - name: Validate archive contents (tar.gz)
+        if: matrix.archive == 'tar.gz'
+        shell: bash
+        run: |
+          set -eu
+          archive="git-memento-${{ matrix.rid }}.tar.gz"
+          entries="$(tar -tzf "$archive")"
+          if [ "$entries" != "git-memento" ]; then
+            echo "Unexpected archive contents for $archive:" >&2
+            printf '%s\n' "$entries" >&2
+            exit 1
+          fi
+
+      - name: Validate archive contents (zip)
+        if: matrix.archive == 'zip'
+        shell: pwsh
+        run: |
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $archive = "git-memento-${{ matrix.rid }}.zip"
+          $zip = [System.IO.Compression.ZipFile]::OpenRead($archive)
+          try {
+            if ($zip.Entries.Count -ne 1 -or $zip.Entries[0].FullName -ne "git-memento.exe") {
+              $names = ($zip.Entries | ForEach-Object { $_.FullName }) -join ", "
+              throw "Unexpected archive contents for $archive: $names"
+            }
+          }
+          finally {
+            $zip.Dispose()
+          }
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -68,7 +179,7 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
-    needs: publish
+    needs: [metadata, publish]
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -79,12 +190,12 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: commit-${{ github.event.workflow_run.head_sha }}
-          name: Commit Build ${{ github.event.workflow_run.head_sha }}
-          target_commitish: ${{ github.event.workflow_run.head_sha }}
+          tag_name: ${{ needs.metadata.outputs.release_tag }}
+          name: ${{ needs.metadata.outputs.release_name }}
+          target_commitish: ${{ needs.metadata.outputs.target_sha }}
           generate_release_notes: false
           body: |
-            Automated NativeAOT build for commit `${{ github.event.workflow_run.head_sha }}` from `main`.
+            Automated NativeAOT build for `${{ needs.metadata.outputs.target_sha }}`.
           fail_on_unmatched_files: true
           make_latest: true
           overwrite_files: true
