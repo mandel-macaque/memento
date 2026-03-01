@@ -31,6 +31,15 @@ jobs:
       - name: Install JS dependencies
         run: npm ci
 
+      - name: Install Pester
+        shell: pwsh
+        run: |
+          if (-not (Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue)) {
+            Register-PSRepository -Default
+          }
+          Set-PSRepository PSGallery -InstallationPolicy Trusted
+          Install-Module -Name Pester -Scope CurrentUser -Force -SkipPublisherCheck
+
       - name: Restore
         run: dotnet restore GitMemento.slnx
 
@@ -39,6 +48,11 @@ jobs:
 
       - name: Test JS Comment Renderer
         run: node --test tests-js/*.test.js
+
+      - name: Test PowerShell Release Scripts
+        shell: pwsh
+        run: |
+          Invoke-Pester -Path tests/powershell -CI
 
       - name: Test
         id: test

@@ -52,3 +52,7 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# Keep release automation scripts tracked.
+!scripts/release/
+!scripts/release/**
