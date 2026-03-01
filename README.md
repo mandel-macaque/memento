@@ -55,6 +55,40 @@ git memento push upstream
 
 This runs `git push <remote>` and then performs the same notes sync as `share-notes`.
 
+Sync and merge notes from a remote safely (default remote: `origin`, default strategy: `cat_sort_uniq`):
+
+```bash
+git memento notes-sync
+git memento notes-sync upstream
+git memento notes-sync upstream --strategy union
+```
+
+This command:
+- Ensures notes fetch mapping is configured.
+- Creates a backup ref under `refs/notes/memento-backups/<timestamp>`.
+- Fetches remote notes into `refs/notes/remote/<remote>/*`.
+- Merges remote notes into local notes and pushes synced notes back to the remote.
+
+Configure automatic note carry-over for rewritten commits (`rebase` / `commit --amend`):
+
+```bash
+git memento notes-rewrite-setup
+```
+
+This sets local git config:
+- `notes.rewriteRef=refs/notes/commits`
+- `notes.rewriteMode=concatenate`
+- `notes.rewrite.rebase=true`
+- `notes.rewrite.amend=true`
+
+Carry notes from a rewritten range (for squash/rewrite flows) onto a new target commit:
+
+```bash
+git memento notes-carry --onto <new-commit> --from-range <base>..<head>
+```
+
+This reads notes from commits in `<base>..<head>` and appends a provenance block to `<new-commit>`.
+
 Show command help:
 
 ```bash
@@ -82,7 +116,7 @@ Provider defaults can come from env vars, and `init` persists the selected provi
 Set `MEMENTO_AI_PROVIDER=claude` to use Claude Code.
 
 Runtime behavior:
-- If the repository is not configured yet, `commit`, `push`, and `share-notes` fail with a message to run `git memento init` first.
+- If the repository is not configured yet, `commit`, `push`, `share-notes`, `notes-sync`, `notes-rewrite-setup`, and `notes-carry` fail with a message to run `git memento init` first.
 - Stored git metadata keys include:
   - `memento.provider`
   - `memento.codex.bin`, `memento.codex.getArgs`, `memento.codex.listArgs`

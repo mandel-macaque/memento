@@ -21,6 +21,9 @@
     <Compile Include="CommitWorkflow.fs" />
     <Compile Include="ShareNotesWorkflow.fs" />
     <Compile Include="PushWorkflow.fs" />
+    <Compile Include="NotesSyncWorkflow.fs" />
+    <Compile Include="NotesRewriteSetupWorkflow.fs" />
+    <Compile Include="NotesCarryWorkflow.fs" />
     <Compile Include="InitWorkflow.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

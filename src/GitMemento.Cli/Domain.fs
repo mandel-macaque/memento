@@ -27,6 +27,9 @@ type Command =
     | Commit of sessionId: string * messages: string list
     | ShareNotes of remote: string
     | Push of remote: string
+    | NotesSync of remote: string * strategy: string
+    | NotesRewriteSetup
+    | NotesCarry of onto: string * fromRange: string
     | Init of provider: string option
     | Version
     | Help

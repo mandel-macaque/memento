@@ -53,6 +53,35 @@ if [ "$cmd" = "rev-parse" ]; then
     echo true
     exit 0
   fi
+  if [ "${2:-}" = "--verify" ] && [ "${3:-}" = "--quiet" ]; then
+    ref="${4:-}"
+    case "$ref" in
+      refs/notes/commits)
+        if [ -f "$state/ref-refs-notes-commits" ]; then
+          cat "$state/ref-refs-notes-commits"
+          exit 0
+        fi
+        exit 1
+        ;;
+      refs/notes/remote/origin/commits)
+        if [ -f "$state/ref-refs-notes-remote-origin-commits" ]; then
+          cat "$state/ref-refs-notes-remote-origin-commits"
+          exit 0
+        fi
+        exit 1
+        ;;
+    esac
+    exit 1
+  fi
+  if [ "${2:-}" = "--verify" ]; then
+    rev="${3:-}"
+    if [ "$rev" = "squash-target^{commit}" ]; then
+      echo "resolved-squash-target"
+      exit 0
+    fi
+    echo "unknown revision: $rev" >&2
+    exit 1
+  fi
   if [ "${2:-}" = "HEAD" ]; then
     if [ -f "$state/head" ]; then
       cat "$state/head"
@@ -64,6 +93,13 @@ if [ "$cmd" = "rev-parse" ]; then
 fi
 
 if [ "$cmd" = "config" ]; then
+  if [ "${2:-}" = "--local" ]; then
+    key="${3:-}"
+    value="${4:-}"
+    safe_key=$(echo "$key" | tr '.-' '__')
+    printf "%s" "$value" > "$state/local-config-$safe_key"
+    exit 0
+  fi
   if [ "${2:-}" = "--get" ] && [ "${3:-}" = "user.name" ]; then
     echo "Test Dev"
     exit 0
@@ -83,6 +119,45 @@ if [ "$cmd" = "config" ]; then
     echo "${4:-}" >> "$state/remote-origin-fetch"
     exit 0
   fi
+fi
+
+if [ "$cmd" = "update-ref" ]; then
+  ref="${2:-}"
+  oid="${3:-}"
+  if [ "$ref" = "refs/notes/commits" ]; then
+    printf "%s" "$oid" > "$state/ref-refs-notes-commits"
+  fi
+  case "$ref" in
+    refs/notes/memento-backups/*)
+      printf "%s" "$oid" > "$state/backup-ref-oid"
+      printf "%s" "$ref" > "$state/backup-ref-name"
+      ;;
+  esac
+  exit 0
+fi
+
+if [ "$cmd" = "fetch" ]; then
+  remote="${2:-}"
+  spec="${3:-}"
+  echo "$remote $spec" > "$state/fetch-args"
+  # Simulate remote notes arriving in namespaced ref.
+  if [ "$spec" = "refs/notes/*:refs/notes/remote/$remote/*" ]; then
+    if [ -f "$state/remote-notes-oid" ]; then
+      cat "$state/remote-notes-oid" > "$state/ref-refs-notes-remote-origin-commits"
+    else
+      echo "remote-notes-oid" > "$state/ref-refs-notes-remote-origin-commits"
+    fi
+  fi
+  exit 0
+fi
+
+if [ "$cmd" = "rev-list" ] && [ "${2:-}" = "--reverse" ]; then
+  range="${3:-}"
+  if [ "$range" = "main..feature" ]; then
+    printf "c1\nc2\nc3\n"
+    exit 0
+  fi
+  exit 0
 fi
 
 if [ "$cmd" = "commit" ]; then
@@ -134,6 +209,51 @@ if [ "$cmd" = "notes" ] && [ "${2:-}" = "add" ]; then
   done
   printf "%s" "$note" > "$state/note.md"
   printf "%s" "$hash" > "$state/note-hash"
+  exit 0
+fi
+
+if [ "$cmd" = "notes" ] && [ "${2:-}" = "show" ]; then
+  hash="${3:-}"
+  if [ "$hash" = "c1" ]; then
+    printf "source note one"
+    exit 0
+  fi
+  if [ "$hash" = "c2" ]; then
+    printf "source note two"
+    exit 0
+  fi
+  exit 1
+fi
+
+if [ "$cmd" = "notes" ] && [ "${2:-}" = "append" ]; then
+  shift
+  shift
+  note=""
+  hash=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -m)
+        note="$2"
+        shift
+        shift
+        ;;
+      *)
+        hash="$1"
+        shift
+        ;;
+    esac
+  done
+  printf "%s" "$hash" > "$state/append-note-hash"
+  printf "%s" "$note" > "$state/append-note.md"
+  exit 0
+fi
+
+if [ "$cmd" = "notes" ] && [ "${2:-}" = "merge" ]; then
+  # git notes merge -s <strategy> <notes-ref>
+  strategy="${4:-}"
+  source_ref="${5:-}"
+  printf "%s" "$strategy" > "$state/notes-merge-strategy"
+  printf "%s" "$source_ref" > "$state/notes-merge-source-ref"
   exit 0
 fi
 
@@ -310,3 +430,100 @@ let ``integration push workflow pushes branch then notes`` () =
     Assert.Equal<string array>([| "push origin"; "push origin refs/notes/*" |], pushLog)
     let fetchConfig = File.ReadAllText(Path.Combine(stateDir, "remote-origin-fetch")).Trim()
     Assert.Contains("+refs/notes/*:refs/notes/*", fetchConfig)
+
+[<Fact>]
+let ``integration notes-sync workflow backs up merges and shares notes`` () =
+    let temp = Path.Combine(Path.GetTempPath(), $"memento-it-{Guid.NewGuid():N}")
+    Directory.CreateDirectory(temp) |> ignore
+    let binDir = Path.Combine(temp, "bin")
+    let stateDir = Path.Combine(temp, "state")
+    Directory.CreateDirectory(binDir) |> ignore
+    Directory.CreateDirectory(stateDir) |> ignore
+
+    File.WriteAllText(Path.Combine(stateDir, "ref-refs-notes-commits"), "local-notes-oid")
+    File.WriteAllText(Path.Combine(stateDir, "remote-notes-oid"), "remote-notes-oid")
+
+    let gitPath = Path.Combine(binDir, "git")
+    writeExecutable gitPath (buildFakeGitScript stateDir)
+
+    let originalPath = Environment.GetEnvironmentVariable("PATH") |> Option.ofObj |> Option.defaultValue ""
+    use _env = new EnvScope([ "PATH", Some($"{binDir}{Path.PathSeparator}{originalPath}") ])
+
+    let runner = ProcessCommandRunner() :> ICommandRunner
+    let git = GitService(runner) :> IGitService
+    let output = CaptureOutput()
+    let workflow = NotesSyncWorkflow(git, output :> IUserOutput)
+
+    let result = workflow.ExecuteAsync("origin", "cat_sort_uniq").Result
+
+    Assert.Equal(CommandResult.Completed, result)
+    let fetchArgs = File.ReadAllText(Path.Combine(stateDir, "fetch-args")).Trim()
+    Assert.Equal("origin refs/notes/*:refs/notes/remote/origin/*", fetchArgs)
+    let mergeStrategy = File.ReadAllText(Path.Combine(stateDir, "notes-merge-strategy")).Trim()
+    Assert.Equal("cat_sort_uniq", mergeStrategy)
+    let mergeSource = File.ReadAllText(Path.Combine(stateDir, "notes-merge-source-ref")).Trim()
+    Assert.Equal("refs/notes/remote/origin/commits", mergeSource)
+    let pushLog = File.ReadAllLines(Path.Combine(stateDir, "push-log"))
+    Assert.Equal<string array>([| "push origin refs/notes/*" |], pushLog)
+    let backupOid = File.ReadAllText(Path.Combine(stateDir, "backup-ref-oid")).Trim()
+    Assert.Equal("local-notes-oid", backupOid)
+
+[<Fact>]
+let ``integration notes-rewrite-setup stores rewrite config in local git metadata`` () =
+    let temp = Path.Combine(Path.GetTempPath(), $"memento-it-{Guid.NewGuid():N}")
+    Directory.CreateDirectory(temp) |> ignore
+    let binDir = Path.Combine(temp, "bin")
+    let stateDir = Path.Combine(temp, "state")
+    Directory.CreateDirectory(binDir) |> ignore
+    Directory.CreateDirectory(stateDir) |> ignore
+
+    let gitPath = Path.Combine(binDir, "git")
+    writeExecutable gitPath (buildFakeGitScript stateDir)
+
+    let originalPath = Environment.GetEnvironmentVariable("PATH") |> Option.ofObj |> Option.defaultValue ""
+    use _env = new EnvScope([ "PATH", Some($"{binDir}{Path.PathSeparator}{originalPath}") ])
+
+    let runner = ProcessCommandRunner() :> ICommandRunner
+    let git = GitService(runner) :> IGitService
+    let output = CaptureOutput()
+    let workflow = NotesRewriteSetupWorkflow(git, output :> IUserOutput)
+
+    let result = workflow.ExecuteAsync().Result
+
+    Assert.Equal(CommandResult.Completed, result)
+    Assert.Equal("refs/notes/commits", File.ReadAllText(Path.Combine(stateDir, "local-config-notes_rewriteRef")))
+    Assert.Equal("concatenate", File.ReadAllText(Path.Combine(stateDir, "local-config-notes_rewriteMode")))
+    Assert.Equal("true", File.ReadAllText(Path.Combine(stateDir, "local-config-notes_rewrite_rebase")))
+    Assert.Equal("true", File.ReadAllText(Path.Combine(stateDir, "local-config-notes_rewrite_amend")))
+
+[<Fact>]
+let ``integration notes-carry appends source notes to target commit`` () =
+    let temp = Path.Combine(Path.GetTempPath(), $"memento-it-{Guid.NewGuid():N}")
+    Directory.CreateDirectory(temp) |> ignore
+    let binDir = Path.Combine(temp, "bin")
+    let stateDir = Path.Combine(temp, "state")
+    Directory.CreateDirectory(binDir) |> ignore
+    Directory.CreateDirectory(stateDir) |> ignore
+
+    let gitPath = Path.Combine(binDir, "git")
+    writeExecutable gitPath (buildFakeGitScript stateDir)
+
+    let originalPath = Environment.GetEnvironmentVariable("PATH") |> Option.ofObj |> Option.defaultValue ""
+    use _env = new EnvScope([ "PATH", Some($"{binDir}{Path.PathSeparator}{originalPath}") ])
+
+    let runner = ProcessCommandRunner() :> ICommandRunner
+    let git = GitService(runner) :> IGitService
+    let output = CaptureOutput()
+    let workflow = NotesCarryWorkflow(git, output :> IUserOutput)
+
+    let result = workflow.ExecuteAsync("squash-target", "main..feature").Result
+
+    Assert.Equal(CommandResult.Completed, result)
+    let appendedHash = File.ReadAllText(Path.Combine(stateDir, "append-note-hash")).Trim()
+    Assert.Equal("resolved-squash-target", appendedHash)
+    let appendedNote = File.ReadAllText(Path.Combine(stateDir, "append-note.md"))
+    Assert.Contains("# Git Memento Carried Notes", appendedNote)
+    Assert.Contains("## Source Commit c1", appendedNote)
+    Assert.Contains("source note one", appendedNote)
+    Assert.Contains("## Source Commit c2", appendedNote)
+    Assert.Contains("source note two", appendedNote)

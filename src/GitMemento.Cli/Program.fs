@@ -100,6 +100,9 @@ let main args =
             let output = ConsoleOutput() :> IUserOutput
             let shareNotesWorkflow = ShareNotesWorkflow(git, output)
             let pushWorkflow = PushWorkflow(git, output)
+            let notesSyncWorkflow = NotesSyncWorkflow(git, output)
+            let notesRewriteSetupWorkflow = NotesRewriteSetupWorkflow(git, output)
+            let notesCarryWorkflow = NotesCarryWorkflow(git, output)
             let initWorkflow = InitWorkflow(git, output)
 
             match command with
@@ -151,6 +154,42 @@ let main args =
                     1
                 | Ok _ ->
                     pushWorkflow.ExecuteAsync(remote).Result
+                    |> function
+                        | CommandResult.Completed -> 0
+                        | CommandResult.Failed message ->
+                            Console.Error.WriteLine(message)
+                            1
+            | Command.NotesSync(remote, strategy) ->
+                match requireConfigured git with
+                | Error configError ->
+                    Console.Error.WriteLine(configError)
+                    1
+                | Ok _ ->
+                    notesSyncWorkflow.ExecuteAsync(remote, strategy).Result
+                    |> function
+                        | CommandResult.Completed -> 0
+                        | CommandResult.Failed message ->
+                            Console.Error.WriteLine(message)
+                            1
+            | Command.NotesRewriteSetup ->
+                match requireConfigured git with
+                | Error configError ->
+                    Console.Error.WriteLine(configError)
+                    1
+                | Ok _ ->
+                    notesRewriteSetupWorkflow.ExecuteAsync().Result
+                    |> function
+                        | CommandResult.Completed -> 0
+                        | CommandResult.Failed message ->
+                            Console.Error.WriteLine(message)
+                            1
+            | Command.NotesCarry(onto, fromRange) ->
+                match requireConfigured git with
+                | Error configError ->
+                    Console.Error.WriteLine(configError)
+                    1
+                | Ok _ ->
+                    notesCarryWorkflow.ExecuteAsync(onto, fromRange).Result
                     |> function
                         | CommandResult.Completed -> 0
                         | CommandResult.Failed message ->

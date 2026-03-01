@@ -14,6 +14,14 @@ type IGitService =
     abstract member PushAsync: remote: string -> Task<Result<unit, string>>
     abstract member EnsureNotesFetchConfiguredAsync: remote: string -> Task<Result<unit, string>>
     abstract member ShareNotesAsync: remote: string -> Task<Result<unit, string>>
+    abstract member GetRefObjectIdAsync: refName: string -> Task<Result<string option, string>>
+    abstract member UpdateRefAsync: refName: string * objectId: string -> Task<Result<unit, string>>
+    abstract member FetchNotesToNamespaceAsync: remote: string * namespaceRoot: string -> Task<Result<unit, string>>
+    abstract member MergeNotesAsync: notesRef: string * strategy: string -> Task<Result<unit, string>>
+    abstract member ResolveCommitAsync: revision: string -> Task<Result<string, string>>
+    abstract member GetCommitsInRangeAsync: rangeSpec: string -> Task<Result<string list, string>>
+    abstract member GetNoteAsync: hash: string -> Task<Result<string option, string>>
+    abstract member AppendNoteAsync: hash: string * note: string -> Task<Result<unit, string>>
 
 type GitService(runner: ICommandRunner) =
     let failWith stderr fallback =
@@ -136,6 +144,96 @@ type GitService(runner: ICommandRunner) =
         member _.ShareNotesAsync(remote: string) =
             task {
                 let! result = runner.RunCaptureAsync("git", [ "push"; remote; "refs/notes/*" ])
+                if result.ExitCode = 0 then
+                    return Ok()
+                else
+                    return Error(failWith result.StdErr result.StdOut)
+            }
+
+        member _.GetRefObjectIdAsync(refName: string) =
+            task {
+                let! result = runner.RunCaptureAsync("git", [ "rev-parse"; "--verify"; "--quiet"; refName ])
+                if result.ExitCode = 0 then
+                    let value = result.StdOut.Trim()
+                    if String.IsNullOrWhiteSpace value then
+                        return Ok None
+                    else
+                        return Ok(Some value)
+                elif result.ExitCode = 1 then
+                    return Ok None
+                else
+                    return Error(failWith result.StdErr result.StdOut)
+            }
+
+        member _.UpdateRefAsync(refName: string, objectId: string) =
+            task {
+                let! result = runner.RunCaptureAsync("git", [ "update-ref"; refName; objectId ])
+                if result.ExitCode = 0 then
+                    return Ok()
+                else
+                    return Error(failWith result.StdErr result.StdOut)
+            }
+
+        member _.FetchNotesToNamespaceAsync(remote: string, namespaceRoot: string) =
+            task {
+                let spec = $"refs/notes/*:{namespaceRoot}/*"
+                let! result = runner.RunCaptureAsync("git", [ "fetch"; remote; spec ])
+                if result.ExitCode = 0 then
+                    return Ok()
+                else
+                    return Error(failWith result.StdErr result.StdOut)
+            }
+
+        member _.MergeNotesAsync(notesRef: string, strategy: string) =
+            task {
+                let! result = runner.RunCaptureAsync("git", [ "notes"; "merge"; "-s"; strategy; notesRef ])
+                if result.ExitCode = 0 then
+                    return Ok()
+                else
+                    return Error(failWith result.StdErr result.StdOut)
+            }
+
+        member _.ResolveCommitAsync(revision: string) =
+            task {
+                let! result = runner.RunCaptureAsync("git", [ "rev-parse"; "--verify"; $"{revision}^{{commit}}" ])
+                if result.ExitCode = 0 then
+                    let value = result.StdOut.Trim()
+                    if String.IsNullOrWhiteSpace value then
+                        return Error $"Unable to resolve commit '{revision}'."
+                    else
+                        return Ok value
+                else
+                    return Error(failWith result.StdErr result.StdOut)
+            }
+
+        member _.GetCommitsInRangeAsync(rangeSpec: string) =
+            task {
+                let! result = runner.RunCaptureAsync("git", [ "rev-list"; "--reverse"; rangeSpec ])
+                if result.ExitCode = 0 then
+                    let commits =
+                        result.StdOut.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                        |> Array.map (fun value -> value.Trim())
+                        |> Array.filter (String.IsNullOrWhiteSpace >> not)
+                        |> Array.toList
+                    return Ok commits
+                else
+                    return Error(failWith result.StdErr result.StdOut)
+            }
+
+        member _.GetNoteAsync(hash: string) =
+            task {
+                let! result = runner.RunCaptureAsync("git", [ "notes"; "show"; hash ])
+                if result.ExitCode = 0 then
+                    return Ok(Some result.StdOut)
+                elif result.ExitCode = 1 then
+                    return Ok None
+                else
+                    return Error(failWith result.StdErr result.StdOut)
+            }
+
+        member _.AppendNoteAsync(hash: string, note: string) =
+            task {
+                let! result = runner.RunCaptureAsync("git", [ "notes"; "append"; "-m"; note; hash ])
                 if result.ExitCode = 0 then
                     return Ok()
                 else
