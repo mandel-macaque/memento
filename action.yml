@@ -65,6 +65,7 @@ runs:
         if [ -z "$RANGE" ]; then
           if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
             BASE="${{ inputs.base-ref }}"
+            PR_HEAD_SHA="${{ github.event.pull_request.head.sha }}"
             if [ -z "$BASE" ]; then
               BASE="${{ github.base_ref }}"
             fi
@@ -72,8 +73,15 @@ runs:
               echo "Unable to infer base ref for pull_request event."
               exit 2
             fi
+            if [ -z "$PR_HEAD_SHA" ]; then
+              echo "Unable to infer PR head SHA for pull_request event."
+              exit 2
+            fi
             git fetch origin "$BASE"
-            RANGE="origin/$BASE..HEAD"
+            if ! git rev-parse --verify --quiet "${PR_HEAD_SHA}^{commit}" >/dev/null; then
+              git fetch origin "$PR_HEAD_SHA"
+            fi
+            RANGE="origin/$BASE..$PR_HEAD_SHA"
           elif [ "${GITHUB_EVENT_NAME}" = "push" ]; then
             BEFORE="${{ github.event.before }}"
             AFTER="${{ github.sha }}"
