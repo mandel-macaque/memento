@@ -1,0 +1,498 @@
+<!-- git-memento-sessions:v1 -->
+
+<!-- git-memento-note-version:1 -->
+
+<!-- git-memento-session:start -->
+# Git Memento Session
+
+- Provider: Codex
+- Session ID: 019cab85-94fc-7bb0-9a1c-b8f93262055e
+- Session Title: # AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
+### Available skills
+- git-memento-workflow: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes. (file: /Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- skill-creator: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. (file: /Users/mandel/.codex/skills/.system/skill-creator/SKILL.md)
+- skill-installer: Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos). (file: /Users/mandel/.codex/skills/.system/skill-installer/SKILL.md)
+### How to use skills
+- Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths.
+- Trigger rules: If the user names a skill (with `$SkillName` or plain text) OR the task clearly matches a skill's description shown above, you must use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned.
+- Missing/blocked: If a named skill isn't in the list or the path can't be read, say so briefly and continue with the best fallback.
+- How to use a skill (progressive disclosure):
+  1) After deciding to use a skill, open its `SKILL.md`. Read only enough to follow the workflow.
+  2) When `SKILL.md` references relative paths (e.g., `scripts/foo.py`), resolve them relative to the skill directory listed above first, and only consider other paths if needed.
+  3) If `SKILL.md` points to extra folders such as `references/`, load only the specific files needed for the request; don't bulk-load everything.
+  4) If `scripts/` exist, prefer running or patching them instead of retyping large code blocks.
+  5) If `assets/` or templates exist, reuse them instead of recreating from scratch.
+- Coordination and sequencing:
+  - If multiple skills apply, choose the minimal set that covers the request and state the order you'll use them.
+  - Announce which skill(s) you're using and why (one short line). If you skip an obvious skill, say why.
+- Context hygiene:
+  - Keep context small: summarize long sections instead of pasting them; only load extra files when needed.
+  - Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
+  - When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
+- Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+</INSTRUCTIONS>
+- Committer: Manuel de la Pena
+- Captured At (UTC): 2026-03-01T23:45:29.5515190+00:00
+
+## Conversation
+
+### Manuel de la Pena
+
+# AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
+### Available skills
+- git-memento-workflow: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes. (file: /Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- skill-creator: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. (file: /Users/mandel/.codex/skills/.system/skill-creator/SKILL.md)
+- skill-installer: Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos). (file: /Users/mandel/.codex/skills/.system/skill-installer/SKILL.md)
+### How to use skills
+- Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths.
+- Trigger rules: If the user names a skill (with `$SkillName` or plain text) OR the task clearly matches a skill's description shown above, you must use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned.
+- Missing/blocked: If a named skill isn't in the list or the path can't be read, say so briefly and continue with the best fallback.
+- How to use a skill (progressive disclosure):
+1) After deciding to use a skill, open its `SKILL.md`. Read only enough to follow the workflow.
+2) When `SKILL.md` references relative paths (e.g., `scripts/foo.py`), resolve them relative to the skill directory listed above first, and only consider other paths if needed.
+3) If `SKILL.md` points to extra folders such as `references/`, load only the specific files needed for the request; don't bulk-load everything.
+4) If `scripts/` exist, prefer running or patching them instead of retyping large code blocks.
+5) If `assets/` or templates exist, reuse them instead of recreating from scratch.
+- Coordination and sequencing:
+- If multiple skills apply, choose the minimal set that covers the request and state the order you'll use them.
+- Announce which skill(s) you're using and why (one short line). If you skip an obvious skill, say why.
+- Context hygiene:
+- Keep context small: summarize long sections instead of pasting them; only load extra files when needed.
+- Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
+- When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
+- Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+</INSTRUCTIONS>
+
+### Manuel de la Pena
+
+<environment_context>
+<cwd>/Users/mandel/Work/memento</cwd>
+<shell>zsh</shell>
+</environment_context>
+
+### Manuel de la Pena
+
+In a previous session we agreed in the following enhancements:
+
+Using git-memento-workflow as requested, here are the most useful additions for auditability.
+
+1. Add a quick local “missing note” audit command.
+
+git fetch origin 'refs/notes/*:refs/notes/*' || true
+git rev-list --max-count=100 HEAD | while read c; do
+git notes show "$c" >/dev/null 2>&1 || echo "missing-note $c"
+done
+
+2. Add a “note contents sanity” check (provider/session markers present).
+
+git rev-list --max-count=100 HEAD | while read c; do
+n="$(git notes show "$c" 2>/dev/null || true)"
+[ -z "$n" ] && continue
+echo "$n" | rg -q "^- Provider:|<!-- git-memento-sessions:v1 -->|^- Session ID:" || echo "invalid-note $c"
+done
+
+3. Add a PR CI gate: every commit in PR range must have a note.
+
+git fetch origin "${{ github.base_ref }}"
+git fetch origin 'refs/notes/*:refs/notes/*' || true
+for c in $(git rev-list "origin/${{ github.base_ref }}..HEAD"); do
+git notes show "$c" >/dev/null 2>&1 || { echo "Missing memento note: $c"; exit 1; }
+done
+
+4. Add a history view alias that always shows notes.
+
+git config --local alias.lgn "log --graph --decorate --oneline --show-notes=commits"
+
+5. Add a release/audit artifact exporter (JSON) for compliance records.
+
+git rev-list --max-count=200 HEAD | while read c; do
+note="$(git notes show "$c" 2>/dev/null || true)"
+printf '{"commit":"%s","has_note":%s}\n' "$c" "$( [ -n "$note" ] && echo true || echo false )"
+done
+
+6. Add two high-value git-memento commands (future enhancement).
+7. git memento audit [--range A..B] to report missing/invalid notes.
+8. git memento doctor to validate provider config, note refs, and remote sync state.
+
+If you want, I can implement the PR CI gate plus a reusable scripts/audit-notes.sh in this repo next.
+
+Add the two high-value git-mement commands that will be used to audit the use of AI agents. We want to be able to:
+
+- Audit any range of commits and validate all notes are present. Report those commits with no notes
+- doctor to validate the provider, notes etc..
+- Add an action that we will distribute via the Gihbub market place that will be a CI gate to verify that every commit has a note with the AI agent session. Implement that gate using an command from memento. get-session might be a good new verb, but I am open for sugentions
+
+Create  a clear plan of the needed changes, how you can leverage current commands from both memento and git as well as any needed refactor to share logic between commands.
+
+### Codex
+
+I’ll map this into an implementation plan by first checking the `git-memento-workflow` skill instructions and the current repo command structure, then I’ll propose concrete command/API changes, shared refactors, and the GitHub Action packaging approach.
+
+### Codex
+
+I’ve loaded the skill guidance and confirmed this repo already has a structured F# CLI. Next I’m inspecting the command surface and workflows so the plan can be specific about reuse/refactors rather than greenfield additions.
+
+### Codex
+
+I found where commands, note parsing, and git wrappers live. I’ll quickly inspect existing docs/tests/action packaging so the plan includes rollout details for both CLI and Marketplace CI gate.
+
+### Codex
+
+I have enough context to draft a concrete implementation plan. I’ll base it on the existing command/workflow patterns (`CliArgs` + `Program` + `*Workflow` + `IGitService`) and include how to expose a marketplace CI gate through the action interface.
+
+### Codex
+
+I’m doing one final read of the note comment renderer before drafting the plan, so I can suggest whether the CI gate should share parsing logic with the existing action or call new CLI output directly.
+
+### Codex
+
+Using `git-memento-workflow` because this is a git-memento command/action design task.
+
+**Plan**
+
+1. **Add new CLI verbs and contracts**
+1. Add `Command.Audit` and `Command.Doctor` to `Domain.fs`.
+2. Extend `CliArgs.usage` and parsing:
+- `git memento audit [--range <A..B>] [--remote <name>] [--format text|json] [--strict]`
+- `git memento doctor [--remote <name>] [--format text|json]`
+3. Wire both in `Program.fs`.
+
+2. **Refactor shared runtime/config logic first (to avoid duplication)**
+1. Extract current `requireConfigured` + `loadProviderSettings` from `Program.fs` into a reusable module (for `commit`, `amend`, `doctor`).
+2. Add a shared audit core module (example: `AuditCore.fs`) used by both `audit` and `doctor`:
+- Resolve commit list from range
+- Read note per commit
+- Validate note structure/session metadata
+- Emit typed results (missing, invalid, ok)
+
+3. **Implement `git memento audit` (high-value command #1)**
+1. Core behavior:
+- Enumerate commits with `git rev-list` (default range can be required or inferred from `HEAD`).
+- For each commit: `git notes show <sha>`.
+- Report commits with missing notes.
+2. Validation behavior:
+- Parse note with existing `SessionNotes.parseEntries`.
+- Validate entry-level fields (at minimum `- Provider:` and `- Session ID:`).
+- `--strict` fails for missing or invalid notes; non-strict reports only.
+3. Exit codes:
+- `0`: no violations
+- `1`: violations found
+- `2`: command/runtime/config error
+4. Output:
+- Human-readable summary by default.
+- `--format json` for CI/action consumption.
+
+4. **Implement `git memento doctor` (high-value command #2)**
+1. Validate repository and config:
+- inside git repo
+- `memento.provider` exists and is supported
+- provider keys exist (`bin`, `getArgs`, `listArgs`)
+2. Validate provider runtime:
+- attempt lightweight provider call (prefer `list`); mark FAIL/WARN clearly.
+3. Validate notes health:
+- local `refs/notes/commits` status
+- remote notes fetch config (`remote.<name>.fetch` includes `refs/notes/*`)
+- optional remote visibility check (`git ls-remote <remote> refs/notes/*`) via new git-service method
+4. Validate auditability defaults:
+- optional check for `notes.rewrite*` settings (warn if absent)
+5. Exit codes:
+- `0`: healthy
+- `1`: failed checks
+- `2`: execution error
+6. Include machine-readable JSON mode for automation.
+
+5. **GitService enhancements (minimal, targeted)**
+1. Add only what `audit`/`doctor` need:
+- `GetCommitsInRangeAsync` reuse (already exists)
+- new remote notes inspection method (`ListRemoteNotesRefsAsync` or `HasRemoteNotesAsync`)
+2. Keep git command wrappers centralized in `GitService` (no ad hoc shell in workflows).
+
+6. **Marketplace CI gate action (uses memento command, as requested)**
+1. Extend root `action.yml` into multi-mode action:
+- `mode: comment|gate` (default `comment` to preserve current behavior)
+2. Add gate mode inputs:
+- `base-ref` (for PR range), `range` (optional override), `strict`, `format`
+3. Gate mode steps:
+- checkout with full history
+- fetch notes refs
+- ensure `git memento` is available (install from release in action step)
+- run `git memento audit --range <computed> --strict --format text`
+- fail job on non-zero
+4. Keep current comment mode behavior unchanged.
+
+7. **Range strategy for CI gate**
+1. PR: `origin/${{ github.base_ref }}..HEAD`
+2. Push: `${{ github.event.before }}..${{ github.sha }}`
+3. If base SHA is zero (new branch), fall back to `HEAD~1..HEAD` or explicit user-provided `range`.
+
+8. **Naming recommendation (`get-session` suggestion)**
+1. I recommend **not** `get-session` for this feature because it conflicts conceptually with provider session retrieval.
+2. Better optional future verb: `git memento inspect-note <commit> --format json` (or `note-get`) if you want low-level note metadata extraction for tooling.
+3. For the CI gate, `audit` should be the canonical command.
+
+9. **Tests and docs**
+1. Unit tests:
+- CLI parsing for new verbs/flags
+- audit result classification (missing/invalid/ok)
+- doctor check matrix (pass/fail/warn paths)
+2. Integration tests:
+- fake git + fake provider scripts for audit/doctor
+3. Docs:
+- README command docs + examples
+- README action docs for `mode: gate`
+- sample workflow snippet for required CI status check.
+
+10. **Implementation order**
+1. Shared refactor + domain/arg plumbing
+2. `audit` end-to-end
+3. `doctor` end-to-end
+4. action `mode: gate`
+5. tests + README updates
+
+If you want, I can implement this in that exact order and keep each step as a separate commit so the rollout is easy to review.
+
+### Manuel de la Pena
+
+Implement each of them, for every commit I want you to the $git-memento-workflow to attach the current session, this way we will be able to rollback but also keep track of the session
+
+### Manuel de la Pena
+
+<skill>
+<name>git-memento-workflow</name>
+<path>/Users/mandel/.codex/skills/git-memento-workflow/SKILL.md</path>
+---
+name: git-memento-workflow
+description: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes.
+---
+
+# Git Memento Workflow
+
+Run this workflow whenever work must be committed with an AI session note.
+
+## 1. Preflight
+
+- Confirm repository status with `git status --short` and branch with `git branch --show-current`.
+- Confirm `git memento` is available: `git memento help`.
+- If unavailable, install `git-memento` into a directory on `PATH` and re-check.
+
+## 2. Initialize Once Per Repository
+
+- Check configuration: `git config --local --get memento.provider`.
+- If missing, run `git memento init codex` or `git memento init claude`.
+- If provider CLI shape differs from expected `sessions get/list --json`, configure adapter command in local git config:
+- `git config --local memento.<provider>.bin <adapter-or-cli-path>`
+- `git config --local memento.<provider>.getArgs '<args with {id} placeholder>'`
+- `git config --local memento.<provider>.listArgs '<list args>'`
+
+## 3. Resolve Session ID
+
+- Prefer explicit session id from the user.
+- For Codex in this environment, default to `CODEX_THREAD_ID` when present.
+- Validate retrieval before commit by running provider command manually if needed.
+
+## 4. Create Memento Commit or Amend
+
+- Stage files as needed (`git add ...`).
+- Run commit through memento so note attachment happens in the same flow:
+- `git memento commit <session-id> -m "<subject>"`
+- For amend flows:
+- `git memento amend -m "<amended-subject>"` to carry forward existing note(s) onto the amended commit.
+- `git memento amend <session-id> -m "<amended-subject>"` to carry forward existing note(s) and append a new session.
+- Backward compatibility:
+- Legacy single-session notes are preserved.
+- When append is needed, legacy notes are upgraded into the versioned multi-session envelope so no prior session content is lost.
+- For longer body, use embedded newlines in `-m` or omit `-m` to use editor.
+
+## 5. Verify Note Attachment
+
+- Read latest commit: `git log -1 --pretty=fuller`.
+- Show note on that commit: `git notes show <commit-hash>`.
+- For multi-session notes, expect envelope/version headers and separators:
+- `<!-- git-memento-sessions:v1 -->`
+- `<!-- git-memento-note-version:1 -->`
+- `<!-- git-memento-session:start -->`
+- `<!-- git-memento-session:end -->`
+- If note is missing, inspect provider command config and rerun commit flow after fixing.
+
+## 6. Push Code and Sync Notes
+
+- Push commit branch and sync notes in one step: `git memento push <remote>`.
+- For default remote, run `git memento push`.
+- Optional fallback: `git push <remote> <branch>` then `git memento share-notes <remote>`.
+- Verify notes exist remotely: `git ls-remote <remote> 'refs/notes/*'`.
+
+## 7. Failure Handling Checklist
+
+- `git-memento is not configured`: run `git memento init ...`.
+- Provider command fails: verify `memento.<provider>.*` git config and executable permissions.
+- Session not found: list sessions using provider list command and retry with exact id.
+- Note push missing on remote: rerun `git memento push <remote>` (or `git memento share-notes <remote>`) and confirm remote ref output.
+
+</skill>
+
+### Codex
+
+I’ll implement all requested features end-to-end and commit in small steps using `git memento commit` so each commit gets a session note. I’m starting with preflight checks (`git status`, branch, memento availability/config, and session id resolution).
+
+### Codex
+
+I’m now implementing the CLI/workflow changes in code: new `audit` and `doctor` commands, shared config loading, and git service helpers so logic is reused cleanly. After that I’ll run tests and commit in incremental memento commits.
+
+### Codex
+
+I’ve added the new core/workflow files and am now wiring them into `Program.fs` plus project compile order. After wiring, I’ll update tests/stubs for the expanded git service interface and then run the full suite.
+
+### Codex
+
+Next I’m updating docs and workflow examples so the new `audit`/`doctor` commands and the new action `mode: gate` are usable immediately in CI.
+
+### Codex
+
+I’ve validated the new commands and tests; I’m now creating incremental commits via `git memento commit` (with your current `CODEX_THREAD_ID`) so each commit has an attached session note.
+
+### Codex
+
+Implemented end-to-end, with two `git memento` commits (both annotated with the current session `019cab85-94fc-7bb0-9a1c-b8f93262055e`).
+
+**Commits**
+1. `f0d1713` - Add audit/doctor commands + shared logic
+2. `e62224d` - Add Marketplace gate mode in action + docs
+
+**What was added**
+
+- New CLI verbs:
+- `git memento audit [--range <A..B>] [--strict] [--format text|json]`
+- `git memento doctor [remote] [--format text|json]`
+- Shared config loading moved to a reusable module.
+- Shared audit validation core for note presence and marker sanity (`- Provider:`, `- Session ID:`).
+- `audit` supports CI-friendly behavior and JSON output.
+- `doctor` checks repo/config/provider runtime/notes refs/remote notes/rewrite config.
+- Action now supports:
+- `mode: comment` (existing behavior)
+- `mode: gate` (installs `git-memento` and runs `git memento audit` as CI gate)
+
+**Key files**
+- [Domain.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/Domain.fs)
+- [CliArgs.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/CliArgs.fs)
+- [MementoConfig.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/MementoConfig.fs)
+- [AuditCore.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/AuditCore.fs)
+- [AuditWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/AuditWorkflow.fs)
+- [DoctorWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/DoctorWorkflow.fs)
+- [GitService.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/GitService.fs)
+- [Program.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/Program.fs)
+- [action.yml](/Users/mandel/Work/memento/action.yml)
+- [README.md](/Users/mandel/Work/memento/README.md)
+- [Tests.fs](/Users/mandel/Work/memento/tests/GitMemento.Tests/Tests.fs)
+
+**Validation run**
+- `dotnet test GitMemento.slnx` passed (`50` tests)
+- `npm run test:js` passed
+- Manual command smoke tests for `audit` and `doctor` executed successfully
+
+If you want, next I can add a dedicated CI workflow file in this repo that demonstrates `mode: gate` as a required PR check.
+
+### Manuel de la Pena
+
+Please do, and also make it run for the project
+
+### Codex
+
+I’m adding a dedicated repository workflow that enforces `mode: gate` on PRs (and `main` pushes) so it runs as a project CI check, then I’ll commit it with `git memento` using this session ID.
+
+### Codex
+
+I’ve added the new workflow and updated docs; next I’ll commit this as a memento commit and verify the note markers on the new commit.
+
+### Codex
+
+Added and wired for this project.
+
+- New workflow: [.github/workflows/memento-note-gate.yml](/Users/mandel/Work/memento/.github/workflows/memento-note-gate.yml)
+- Runs on:
+- `pull_request` (`opened`, `synchronize`, `reopened`)
+- `push` to `main`
+- Uses local action with:
+- `mode: gate`
+- `strict: "true"`
+- `fetch-depth: 0` is enabled for full commit range evaluation.
+
+- README updated to list the new local workflow:
+- [README.md](/Users/mandel/Work/memento/README.md)
+
+Committed with `git memento` and attached session note:
+- `28ec0e2` - Add repository CI workflow to enforce memento note coverage gate
+
+Working tree is clean, and note markers are present on the new commit.
+
+### Manuel de la Pena
+
+git st
+
+### Codex
+
+Running `git st` in the repo now to show current status.
+
+### Codex
+
+On `main`, clean working tree.
+
+Your branch is ahead of `origin/main` by 3 commits.
+
+### Manuel de la Pena
+
+<user_action>
+<context>User initiated a review task. Here's the full review output from reviewer model. User may select one or more comments to resolve.</context>
+<action>review</action>
+<results>
+There are no code changes relative to the provided merge base commit (`git diff` is empty and `HEAD` equals the base SHA), so there are no actionable issues to flag.
+</results>
+</user_action>
+
+### Codex
+
+There are no code changes relative to the provided merge base commit (`git diff` is empty and `HEAD` equals the base SHA), so there are no actionable issues to flag.
+
+### Manuel de la Pena
+
+<user_action>
+<context>User initiated a review task. Here's the full review output from reviewer model. User may select one or more comments to resolve.</context>
+<action>review</action>
+<results>
+The new CI gate logic for pull_request events audits a range ending at `HEAD`, which is typically the synthetic merge commit in GitHub Actions and causes false missing-note failures. This makes the gate unreliable in common PR configurations.
+
+Review comment:
+
+- [P1] Exclude synthetic PR merge commit from gate audit range — /Users/mandel/Work/memento/action.yml:76-76
+In pull_request runs this computes `RANGE="origin/$BASE..HEAD"`, but `actions/checkout` defaults to checking out GitHub’s synthetic merge commit for PRs, not the PR head commit. That merge commit will not have a git-memento note, so gate mode can fail even when every authored PR commit is correctly noted. This is reproducible on standard PR workflows using default checkout settings.
+</results>
+</user_action>
+
+### Codex
+
+The new CI gate logic for pull_request events audits a range ending at `HEAD`, which is typically the synthetic merge commit in GitHub Actions and causes false missing-note failures. This makes the gate unreliable in common PR configurations.
+
+Review comment:
+
+- [P1] Exclude synthetic PR merge commit from gate audit range — /Users/mandel/Work/memento/action.yml:76-76
+In pull_request runs this computes `RANGE="origin/$BASE..HEAD"`, but `actions/checkout` defaults to checking out GitHub’s synthetic merge commit for PRs, not the PR head commit. That merge commit will not have a git-memento note, so gate mode can fail even when every authored PR commit is correctly noted. This is reproducible on standard PR workflows using default checkout settings.
+
+### Manuel de la Pena
+
+Fix the issue when working with PR on github
+
+### Codex
+
+I’m fixing the PR gate range computation in `action.yml` so it audits PR head commits instead of the synthetic merge commit. After patching, I’ll run a quick validation and commit with `git memento`.
+
+### Codex
+
+Patch is in place and scoped to PR handling. I’ll commit this fix now with `git memento` so the session note is attached.
+<!-- git-memento-session:end -->
