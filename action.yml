@@ -1,18 +1,38 @@
 name: git-memento-note-comment
-description: Post or update commit comments from git-memento notes (provider and session transcripts).
+description: Post commit comments from git-memento notes, or enforce note coverage in CI.
 author: git-memento contributors
 branding:
   icon: message-square
   color: blue
 inputs:
+  mode:
+    description: Action mode. Use "comment" to post commit comments, "gate" to enforce note coverage.
+    required: false
+    default: comment
   github-token:
     description: GitHub token used to read/write commit comments.
     required: false
     default: ${{ github.token }}
+  memento-repo:
+    description: Repository used by install.sh when mode=gate.
+    required: false
+    default: mandel-macaque/memento
   notes-fetch-refspec:
     description: Refspec used to fetch git notes.
     required: false
     default: refs/notes/*:refs/notes/*
+  audit-range:
+    description: Explicit rev-list range for mode=gate. If empty, range is inferred from event context.
+    required: false
+    default: ""
+  base-ref:
+    description: Optional base branch name for pull_request range inference in mode=gate.
+    required: false
+    default: ""
+  strict:
+    description: Whether invalid note structure should fail mode=gate.
+    required: false
+    default: "true"
   max-comment-length:
     description: Maximum comment body length to emit.
     required: false
@@ -24,11 +44,63 @@ runs:
       shell: bash
       run: git fetch origin '${{ inputs.notes-fetch-refspec }}' || true
 
+    - name: Install git-memento for gate mode
+      if: inputs.mode == 'gate'
+      shell: bash
+      env:
+        GIT_MEMENTO_REPO: ${{ inputs.memento-repo }}
+        GIT_MEMENTO_INSTALL_DIR: ${{ runner.temp }}/git-memento-bin
+      run: |
+        set -eu
+        sh "$GITHUB_ACTION_PATH/install.sh"
+        echo "$GIT_MEMENTO_INSTALL_DIR" >> "$GITHUB_PATH"
+        git memento --version
+
+    - name: Enforce git-memento note coverage
+      if: inputs.mode == 'gate'
+      shell: bash
+      run: |
+        set -eu
+        RANGE="${{ inputs.audit-range }}"
+        if [ -z "$RANGE" ]; then
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            BASE="${{ inputs.base-ref }}"
+            if [ -z "$BASE" ]; then
+              BASE="${{ github.base_ref }}"
+            fi
+            if [ -z "$BASE" ]; then
+              echo "Unable to infer base ref for pull_request event."
+              exit 2
+            fi
+            git fetch origin "$BASE"
+            RANGE="origin/$BASE..HEAD"
+          elif [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+            BEFORE="${{ github.event.before }}"
+            AFTER="${{ github.sha }}"
+            if [ -n "$BEFORE" ] && ! printf '%s' "$BEFORE" | grep -Eq '^0+$'; then
+              RANGE="$BEFORE..$AFTER"
+            else
+              RANGE="$AFTER"
+            fi
+          else
+            RANGE="HEAD"
+          fi
+        fi
+
+        echo "Running git memento audit on range: $RANGE"
+        if [ "${{ inputs.strict }}" = "true" ]; then
+          git memento audit --range "$RANGE" --strict --format text
+        else
+          git memento audit --range "$RANGE" --format text
+        fi
+
     - name: Install note renderer dependencies
+      if: inputs.mode == 'comment'
       shell: bash
       run: npm --prefix "$GITHUB_ACTION_PATH" ci --omit=dev
 
     - name: Create or update commit comments from memento notes
+      if: inputs.mode == 'comment'
       uses: actions/github-script@v7
       with:
         github-token: ${{ inputs.github-token }}

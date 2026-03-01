@@ -28,6 +28,8 @@ git memento commit <session-id> -m "Normal commit message"
 git memento commit <session-id> -m "Subject line" -m "Body paragraph"
 git memento amend -m "Amended subject"
 git memento amend <new-session-id> -m "Amended subject" -m "Amended body"
+git memento audit --range main..HEAD --strict
+git memento doctor
 ```
 
 Or:
@@ -95,6 +97,24 @@ git memento notes-carry --onto <new-commit> --from-range <base>..<head>
 ```
 
 This reads notes from commits in `<base>..<head>` and appends a provenance block to `<new-commit>`.
+
+Audit note coverage and note metadata in a commit range:
+
+```bash
+git memento audit --range main..HEAD
+git memento audit --range origin/main..HEAD --strict --format json
+```
+
+- Reports commits with missing notes (`missing-note <sha>`).
+- Validates note metadata markers (`- Provider:` and `- Session ID:`).
+- In `--strict` mode, invalid note structure fails the command.
+
+Run repository diagnostics for provider config, notes refs, and remote sync posture:
+
+```bash
+git memento doctor
+git memento doctor upstream --format json
+```
 
 Show command help:
 
@@ -197,12 +217,12 @@ dotnet test GitMemento.slnx
 npm run test:js
 ```
 
-## Commit Note Comments (GitHub Action)
+## Commit Note Comments + CI Gate (GitHub Action)
 
-This repository includes a reusable action that reads `git notes` created by `git-memento` and posts a commit comment with:
+This repository includes a reusable marketplace action with two modes:
 
-- The AI agent(s) used (provider + session id when available).
-- The attached note body in a collapsible `<details>` block.
+- `mode: comment` (default): reads `git notes` created by `git-memento` and posts a commit comment.
+- `mode: gate`: runs `git memento audit` as a CI gate and fails if note coverage checks fail.
 
 Action definition:
 
@@ -234,14 +254,46 @@ jobs:
 
       - uses: mandel-macaque/memento@v1
         with:
+          mode: comment
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 Inputs:
 
 - `github-token` (default: `${{ github.token }}`)
+- `mode` (default: `comment`) - `comment` or `gate`
 - `notes-fetch-refspec` (default: `refs/notes/*:refs/notes/*`)
 - `max-comment-length` (default: `65000`)
+- `audit-range` (optional, gate mode)
+- `base-ref` (optional, gate mode pull request inference)
+- `strict` (default: `true`, gate mode)
+- `memento-repo` (default: `mandel-macaque/memento`, gate mode installer source)
+
+CI gate example:
+
+```yaml
+name: memento-note-gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  enforce-memento-notes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: mandel-macaque/memento@v1
+        with:
+          mode: gate
+          strict: "true"
+```
 
 Local workflow in this repository:
 
