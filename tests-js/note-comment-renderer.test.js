@@ -3,7 +3,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const { buildBody, marker } = require("../tools/note-comment-renderer");
+const { buildBody, buildNoSessionBody, marker } = require("../tools/note-comment-renderer");
 
 const baseHeader = `# Git Memento Session\n\n- Provider: Codex\n- Session ID: sess-123\n- Committer: Mandel\n`;
 
@@ -48,4 +48,11 @@ test("truncates note body when still above max limit", () => {
 
   assert.match(body, /_Note truncated due to GitHub comment size limits\._/);
   assert.ok(body.length <= 300);
+});
+
+test("renders fallback body when no AI session note exists", () => {
+  const body = buildNoSessionBody();
+
+  assert.match(body, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.match(body, /No AI session was attached to this commit\./);
 });

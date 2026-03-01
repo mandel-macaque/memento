@@ -114,6 +114,8 @@ const renderMarkdownSections = (sections) => {
   return `\n\n### Markdown files\n\n${rendered}`;
 };
 
+const buildNoSessionBody = () => `${marker}\nNo AI session was attached to this commit.`;
+
 const buildBody = (note, maxBodyLength) => {
   const { provider, sessionId } = parseNote(note);
   const agentId = sessionId ? `${provider} / ${sessionId}` : provider;
@@ -142,5 +144,6 @@ const buildBody = (note, maxBodyLength) => {
 
 module.exports = {
   buildBody,
+  buildNoSessionBody,
   marker,
 };
