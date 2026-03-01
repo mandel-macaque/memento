@@ -24,6 +24,10 @@ runs:
       shell: bash
       run: git fetch origin '${{ inputs.notes-fetch-refspec }}' || true
 
+    - name: Install note renderer dependencies
+      shell: bash
+      run: npm --prefix "$GITHUB_ACTION_PATH" ci --omit=dev
+
     - name: Create or update commit comments from memento notes
       uses: actions/github-script@v7
       with:

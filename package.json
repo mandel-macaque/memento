@@ -1,0 +1,10 @@
+{
+  "name": "git-memento",
+  "private": true,
+  "scripts": {
+    "test:js": "node --test tests-js/note-comment-renderer.test.js"
+  },
+  "dependencies": {
+    "markdown-it": "^14.1.1"
+  }
+}

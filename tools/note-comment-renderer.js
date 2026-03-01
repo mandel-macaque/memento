@@ -1,8 +1,11 @@
 "use strict";
 
+const MarkdownIt = require("markdown-it");
+
 const marker = "<!-- git-memento-note-comment -->";
 const markdownFileHeadingPattern = /^#{1,6}\s+([^\s]+\.md\b.*)$/i;
 const speakerHeadingPattern = /^###\s+(.+?)\s*$/;
+const markdownParser = new MarkdownIt({ html: true, linkify: false, typographer: false });
 
 const normalizeLineEndings = (value) => (value || "").replace(/\r\n/g, "\n");
 
@@ -65,6 +68,48 @@ const isConversationSpeakerHeading = (line, speakers) => {
 
 const normalizeMarkdownTitle = (value) => (value || "").replace(/^#+\s*/, "").trim();
 
+const getParsedTokens = (value) => {
+  try {
+    return markdownParser.parse(value || "", {});
+  } catch {
+    return [];
+  }
+};
+
+const getFencedLineRanges = (value) =>
+  getParsedTokens(value)
+    .filter((token) => (token.type === "fence" || token.type === "code_block") && token.map && token.map.length === 2)
+    .map((token) => ({ start: token.map[0], end: token.map[1] }));
+
+const isLineInsideRanges = (lineIndex, ranges) => ranges.some((range) => lineIndex >= range.start && lineIndex < range.end);
+
+const getMarkdownFileHeadings = (value) => {
+  const tokens = getParsedTokens(value);
+  const headings = [];
+
+  for (let i = 0; i < tokens.length; i += 1) {
+    const token = tokens[i];
+    if (token.type !== "heading_open" || !token.map || token.map.length !== 2) {
+      continue;
+    }
+
+    const inline = tokens[i + 1];
+    if (!inline || inline.type !== "inline") {
+      continue;
+    }
+
+    const line = `# ${inline.content || ""}`.trim();
+    const headingMatch = line.match(markdownFileHeadingPattern);
+    if (!headingMatch) {
+      continue;
+    }
+
+    headings.push({ line: token.map[0], title: headingMatch[1].trim() });
+  }
+
+  return headings;
+};
+
 const resolveSectionTitle = (lines, startIndex, fallbackTitle) => {
   for (let i = startIndex - 1; i >= 0; i -= 1) {
     const line = lines[i].trim();
@@ -95,10 +140,16 @@ const extractTopLevelInstructionSections = (noteBody, fallbackTitle, formatSecti
   const lines = normalizeLineEndings(noteBody).split("\n");
   const sections = [];
   const remaining = [];
+  const fencedRanges = getFencedLineRanges(noteBody);
 
   for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i];
     const trimmed = line.trim();
+    if (isLineInsideRanges(i, fencedRanges)) {
+      remaining.push(line);
+      continue;
+    }
+
     if (!/^<INSTRUCTIONS>$/i.test(trimmed)) {
       remaining.push(line);
       continue;
@@ -130,10 +181,18 @@ const extractTopLevelInstructionSections = (noteBody, fallbackTitle, formatSecti
 };
 
 const dedupeSections = (sections) => {
+  const normalizeForKey = (value) =>
+    normalizeLineEndings(value)
+      .split("\n")
+      .map((line) => line.trimEnd())
+      .join("\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+
   const seen = new Set();
   const deduped = [];
   for (const section of sections) {
-    const key = `${section.title}\n---\n${section.content}`;
+    const key = `${normalizeForKey(section.title).toLowerCase()}\n---\n${normalizeForKey(section.content)}`;
     if (seen.has(key)) {
       continue;
     }
@@ -152,30 +211,31 @@ const extractMarkdownFileSectionsForProvider = (note, provider, committer) => {
   const renderer = providerRenderers[normalizedProvider] || { formatSection: (value) => normalizeLineEndings(value).trim() };
 
   const lines = normalizeLineEndings(note).split("\n");
+  const headingEntries = getMarkdownFileHeadings(note).sort((a, b) => a.line - b.line);
+  const headingStartLines = new Set(headingEntries.map((entry) => entry.line));
+  const fencedRanges = getFencedLineRanges(note);
   const sections = [];
-  const remaining = [];
   const speakers = new Set(
     [provider, committer, "System", "Tool"]
       .filter(Boolean)
       .map((name) => name.trim().toLowerCase()),
   );
+  const keepLine = Array.from({ length: lines.length }, () => true);
 
-  for (let i = 0; i < lines.length; i += 1) {
-    const currentLine = lines[i];
-    const headingMatch = currentLine.trim().match(markdownFileHeadingPattern);
-
-    if (!headingMatch) {
-      remaining.push(currentLine);
-      continue;
-    }
-
-    const title = headingMatch[1].trim();
-    let end = i + 1;
+  for (const heading of headingEntries) {
+    const start = heading.line;
+    const title = heading.title;
+    let end = start + 1;
     let insideInstructions = false;
     let hadInstructions = false;
 
     while (end < lines.length) {
       const candidate = lines[end].trim();
+      if (isLineInsideRanges(end, fencedRanges)) {
+        end += 1;
+        continue;
+      }
+
       if (/^<INSTRUCTIONS>$/i.test(candidate)) {
         insideInstructions = true;
         hadInstructions = true;
@@ -192,22 +252,25 @@ const extractMarkdownFileSectionsForProvider = (note, provider, committer) => {
         continue;
       }
 
-      if (!insideInstructions && candidate && markdownFileHeadingPattern.test(candidate) && end > i + 1) {
+      if (!insideInstructions && candidate && headingStartLines.has(end) && end > start + 1) {
         break;
       }
 
-      if (!insideInstructions && candidate && isConversationSpeakerHeading(candidate, speakers) && end > i + 1) {
+      if (!insideInstructions && candidate && isConversationSpeakerHeading(candidate, speakers) && end > start + 1) {
         break;
       }
 
       end += 1;
     }
 
-    const sectionContent = lines.slice(i + 1, end).join("\n").trim();
+    const sectionContent = lines.slice(start + 1, end).join("\n").trim();
     sections.push({ title, content: renderer.formatSection(sectionContent) });
-    i = end - 1;
+    for (let lineIndex = start; lineIndex < end; lineIndex += 1) {
+      keepLine[lineIndex] = false;
+    }
   }
 
+  const remaining = lines.filter((_, index) => keepLine[index]);
   const baseNoteBody = remaining.join("\n").trim();
   const topLevelFallbackTitle = note.match(/^- Session Title:\s*(.+)$/m)
     ? normalizeMarkdownTitle(note.match(/^- Session Title:\s*(.+)$/m)[1])

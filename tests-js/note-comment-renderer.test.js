@@ -6,6 +6,7 @@ const assert = require("node:assert/strict");
 const { buildBody, buildNoSessionBody, marker } = require("../tools/note-comment-renderer");
 
 const baseHeader = `# Git Memento Session\n\n- Provider: Codex\n- Session ID: sess-123\n- Committer: Mandel\n`;
+const countMatches = (value, pattern) => (value.match(pattern) || []).length;
 
 test("renders markdown file sections in collapsible details blocks", () => {
   const flattenedAgents =
@@ -89,4 +90,81 @@ test("renders fallback body when no AI session note exists", () => {
 
   assert.match(body, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.match(body, /No AI session was attached to this commit\./);
+});
+
+test("renders markdown files heading once and at the end section", () => {
+  const note = `${baseHeader}
+### Codex
+
+# AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+- git-memento-workflow
+</INSTRUCTIONS>
+
+### Mandel
+
+Please review.`;
+  const body = buildBody(note, 65000);
+  const markdownHeading = "\n\n### Markdown files\n\n";
+  const headingIndex = body.indexOf(markdownHeading);
+
+  assert.ok(headingIndex > body.indexOf("<summary>The note attached to the commit</summary>"));
+  assert.equal(countMatches(body, /### Markdown files/g), 1);
+});
+
+test("ignores markdown blocks inside fenced code and avoids repetitive markdown data", () => {
+  const note = `# Git Memento Session
+
+- Provider: Codex
+- Session ID: sess-dup
+- Session Title: # AGENTS.md instructions for /Users/mandel/Work/memento
+<INSTRUCTIONS>
+## Skills
+- git-memento-workflow
+</INSTRUCTIONS>
+- Committer: Mandel
+
+## Conversation
+
+### Manuel
+
+\`\`\`markdown
+# AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+A skill is a set of local instructions.
+</INSTRUCTIONS>
+\`\`\`
+
+\`\`\`markdown
+# AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+  A skill is a set of local instructions.
+</INSTRUCTIONS>
+\`\`\``;
+  const body = buildBody(note, 65000);
+
+  assert.equal(countMatches(body, /<summary>AGENTS\.md instructions for \/Users\/mandel\/Work\/memento<\/summary>/g), 1);
+  assert.equal(countMatches(body, /### Markdown files/g), 1);
+  assert.equal(countMatches(body, /~~~markdown/g), 1);
+});
+
+test("renders markdown sections with expected details and fenced markdown format", () => {
+  const note = `${baseHeader}
+### Codex
+
+# PROMPT.md
+
+<INSTRUCTIONS>
+## Context
+- Keep this markdown.
+</INSTRUCTIONS>`;
+  const body = buildBody(note, 65000);
+
+  assert.match(body, /### Markdown files\n\n<details>\n<summary>PROMPT\.md<\/summary>\n\n~~~markdown\n[\s\S]*\n~~~\n\n<\/details>/);
 });
