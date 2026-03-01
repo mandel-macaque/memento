@@ -1,0 +1,245 @@
+# Git Memento Session
+
+- Provider: Codex
+- Session ID: 019ca6ee-dc8d-7030-82f0-b925bb95922a
+- Session Title: # AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
+### Available skills
+- git-memento-workflow: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes. (file: /Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- skill-creator: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. (file: /Users/mandel/.codex/skills/.system/skill-creator/SKILL.md)
+- skill-installer: Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos). (file: /Users/mandel/.codex/skills/.system/skill-installer/SKILL.md)
+### How to use skills
+- Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths.
+- Trigger rules: If the user names a skill (with `$SkillName` or plain text) OR the task clearly matches a skill's description shown above, you must use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned.
+- Missing/blocked: If a named skill isn't in the list or the path can't be read, say so briefly and continue with the best fallback.
+- How to use a skill (progressive disclosure):
+  1) After deciding to use a skill, open its `SKILL.md`. Read only enough to follow the workflow.
+  2) When `SKILL.md` references relative paths (e.g., `scripts/foo.py`), resolve them relative to the skill directory listed above first, and only consider other paths if needed.
+  3) If `SKILL.md` points to extra folders such as `references/`, load only the specific files needed for the request; don't bulk-load everything.
+  4) If `scripts/` exist, prefer running or patching them instead of retyping large code blocks.
+  5) If `assets/` or templates exist, reuse them instead of recreating from scratch.
+- Coordination and sequencing:
+  - If multiple skills apply, choose the minimal set that covers the request and state the order you'll use them.
+  - Announce which skill(s) you're using and why (one short line). If you skip an obvious skill, say why.
+- Context hygiene:
+  - Keep context small: summarize long sections instead of pasting them; only load extra files when needed.
+  - Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
+  - When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
+- Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+</INSTRUCTIONS>
+- Committer: Manuel de la Pena
+- Captured At (UTC): 2026-03-01T01:09:52.0416180+00:00
+
+## Conversation
+
+### Manuel de la Pena
+
+# AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
+### Available skills
+- git-memento-workflow: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes. (file: /Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- skill-creator: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. (file: /Users/mandel/.codex/skills/.system/skill-creator/SKILL.md)
+- skill-installer: Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos). (file: /Users/mandel/.codex/skills/.system/skill-installer/SKILL.md)
+### How to use skills
+- Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths.
+- Trigger rules: If the user names a skill (with `$SkillName` or plain text) OR the task clearly matches a skill's description shown above, you must use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned.
+- Missing/blocked: If a named skill isn't in the list or the path can't be read, say so briefly and continue with the best fallback.
+- How to use a skill (progressive disclosure):
+1) After deciding to use a skill, open its `SKILL.md`. Read only enough to follow the workflow.
+2) When `SKILL.md` references relative paths (e.g., `scripts/foo.py`), resolve them relative to the skill directory listed above first, and only consider other paths if needed.
+3) If `SKILL.md` points to extra folders such as `references/`, load only the specific files needed for the request; don't bulk-load everything.
+4) If `scripts/` exist, prefer running or patching them instead of retyping large code blocks.
+5) If `assets/` or templates exist, reuse them instead of recreating from scratch.
+- Coordination and sequencing:
+- If multiple skills apply, choose the minimal set that covers the request and state the order you'll use them.
+- Announce which skill(s) you're using and why (one short line). If you skip an obvious skill, say why.
+- Context hygiene:
+- Keep context small: summarize long sections instead of pasting them; only load extra files when needed.
+- Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
+- When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
+- Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+</INSTRUCTIONS>
+
+### Manuel de la Pena
+
+<environment_context>
+<cwd>/Users/mandel/Work/memento</cwd>
+<shell>zsh</shell>
+</environment_context>
+
+### Manuel de la Pena
+
+Currently the ci is failing the js tests with:
+
+TAP version 13
+# node:internal/modules/cjs/loader:1210
+#   throw err;
+#   ^
+# Error: Cannot find module 'markdown-it'
+# Require stack:
+# - /home/runner/work/memento/memento/tools/note-comment-renderer.js
+# - /home/runner/work/memento/memento/tests-js/note-comment-renderer.test.js
+#     at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+#     at Module._load (node:internal/modules/cjs/loader:1038:27)
+#     at Module.require (node:internal/modules/cjs/loader:1289:19)
+#     at require (node:internal/modules/helpers:182:18)
+#     at Object.<anonymous> (/home/runner/work/memento/memento/tools/note-comment-renderer.js:3:20)
+#     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+#     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+#     at Module.load (node:internal/modules/cjs/loader:1266:32)
+#     at Module._load (node:internal/modules/cjs/loader:1091:12)
+#     at Module.require (node:internal/modules/cjs/loader:1289:19) {
+#   code: 'MODULE_NOT_FOUND',
+#   requireStack: [
+#     '/home/runner/work/memento/memento/tools/note-comment-renderer.js',
+#     '/home/runner/work/memento/memento/tests-js/note-comment-renderer.test.js'
+#   ]
+# }
+# Node.js v20.20.0
+# Subtest: /home/runner/work/memento/memento/tests-js/note-comment-renderer.test.js
+not ok 1 - /home/runner/work/memento/memento/tests-js/note-comment-renderer.test.js
+---
+duration_ms: 45.98327
+location: '/home/runner/work/memento/memento/tests-js/note-comment-renderer.test.js:1:1'
+failureType: 'testCodeFailure'
+exitCode: 1
+signal: ~
+'test failed'
+code: 'ERR_TEST_FAILURE'
+...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 51.124093
+
+To me it looks that the reason is that we have a 3rd party dep missing when we rung the gi github action. Fix the action so that the tests pass as they pass locally
+
+### Codex
+
+I’ll trace how JS tests are run in CI and compare that to your local setup, then patch the workflow so the `markdown-it` dependency is installed before the JS test step.
+
+### Codex
+
+I found the CI workflow files and Node project files; next I’m checking `ci.yml` and `package.json` to confirm where dependency installation is missing for the JS test job.
+
+### Codex
+
+Root cause is confirmed: CI runs Node tests without installing npm dependencies. I’m patching `.github/workflows/ci.yml` to run `npm ci` before the JS test step.
+
+### Codex
+
+I’ve applied the workflow fix; now I’ll quickly validate locally by running the JS test command in the same sequence (`npm ci` then `node --test`).
+
+### Codex
+
+The local validation passed with the same command path as CI. I’ll provide the exact file change and a concise summary so you can push it.
+
+### Codex
+
+Updated CI to install Node dependencies before running JS tests.
+
+### Change made
+- Added an `npm ci` step in [`.github/workflows/ci.yml`](/Users/mandel/Work/memento/.github/workflows/ci.yml) right after Node setup and before `node --test`.
+
+### Why this fixes it
+`tests-js/note-comment-renderer.test.js` imports `tools/note-comment-renderer.js`, which requires `markdown-it`. CI previously never installed npm deps, so module resolution failed.
+
+### Verification
+Ran locally:
+- `npm ci && node --test tests-js/*.test.js`
+- Result: all 11 JS tests pass.
+
+### Manuel de la Pena
+
+using the $git-memento-workflow and a new commit with the current session. Add a one liner title with the change and a longer explanation for the commit. Then push the commit using memento
+
+### Manuel de la Pena
+
+<skill>
+<name>git-memento-workflow</name>
+<path>/Users/mandel/.codex/skills/git-memento-workflow/SKILL.md</path>
+---
+name: git-memento-workflow
+description: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes.
+---
+
+# Git Memento Workflow
+
+Run this workflow whenever work must be committed with an AI session note.
+
+## 1. Preflight
+
+- Confirm repository status with `git status --short` and branch with `git branch --show-current`.
+- Confirm `git memento` is available: `git memento help`.
+- If unavailable, install `git-memento` into a directory on `PATH` and re-check.
+
+## 2. Initialize Once Per Repository
+
+- Check configuration: `git config --local --get memento.provider`.
+- If missing, run `git memento init codex` or `git memento init claude`.
+- If provider CLI shape differs from expected `sessions get/list --json`, configure adapter command in local git config:
+- `git config --local memento.<provider>.bin <adapter-or-cli-path>`
+- `git config --local memento.<provider>.getArgs '<args with {id} placeholder>'`
+- `git config --local memento.<provider>.listArgs '<list args>'`
+
+## 3. Resolve Session ID
+
+- Prefer explicit session id from the user.
+- For Codex in this environment, default to `CODEX_THREAD_ID` when present.
+- Validate retrieval before commit by running provider command manually if needed.
+
+## 4. Create Memento Commit
+
+- Stage files as needed (`git add ...`).
+- Run commit through memento so note attachment happens in the same flow:
+- `git memento commit <session-id> -m "<subject>"`
+- For longer body, use embedded newlines in `-m` or omit `-m` to use editor.
+
+## 5. Verify Note Attachment
+
+- Read latest commit: `git log -1 --pretty=fuller`.
+- Show note on that commit: `git notes show <commit-hash>`.
+- If note is missing, inspect provider command config and rerun commit flow after fixing.
+
+## 6. Push Code and Sync Notes
+
+- Push commit branch and sync notes in one step: `git memento push <remote>`.
+- For default remote, run `git memento push`.
+- Optional fallback: `git push <remote> <branch>` then `git memento share-notes <remote>`.
+- Verify notes exist remotely: `git ls-remote <remote> 'refs/notes/*'`.
+
+## 7. Failure Handling Checklist
+
+- `git-memento is not configured`: run `git memento init ...`.
+- Provider command fails: verify `memento.<provider>.*` git config and executable permissions.
+- Session not found: list sessions using provider list command and retry with exact id.
+- Note push missing on remote: rerun `git memento push <remote>` (or `git memento share-notes <remote>`) and confirm remote ref output.
+
+</skill>
+
+### Codex
+
+Using `git-memento-workflow` now to create a memento commit tied to this session, verify the note attachment, and push code plus notes. I’m starting with preflight and session-id resolution.
+
+### Codex
+
+Preflight is good: provider is already `codex` and I found `CODEX_THREAD_ID`. Next I’ll stage only the workflow change (excluding local `node_modules/`) and create the memento commit with a one-line subject plus detailed body.
+
+### Codex
+
+Staging was blocked by sandbox write restrictions to `.git`; I’m re-running the git add/status command with elevated permission so I can complete the commit flow.
+
+### Codex
+
+I’ll create the memento commit now using the current session ID, with a one-line title and a fuller body describing the CI fix and why it matches local behavior.
