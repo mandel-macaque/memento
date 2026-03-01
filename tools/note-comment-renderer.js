@@ -184,21 +184,25 @@ const dedupeSections = (sections) => {
   const normalizeForKey = (value) =>
     normalizeLineEndings(value)
       .split("\n")
+      // Intentionally ignore blank-line-only differences for dedupe keys.
+      // Preserve leading indentation so markdown structure changes (lists/code blocks) stay distinct.
       .map((line) => line.trimEnd())
+      .filter((line) => line.trim().length > 0)
       .join("\n")
-      .replace(/\n{3,}/g, "\n\n")
-      .trim();
+      .trimEnd();
 
   const seen = new Set();
   const deduped = [];
   for (const section of sections) {
-    const key = `${normalizeForKey(section.title).toLowerCase()}\n---\n${normalizeForKey(section.content)}`;
-    if (seen.has(key)) {
-      continue;
+    const normalizedTitle = normalizeForKey(section.title).toLowerCase().trim();
+    const normalizedContent = normalizeForKey(section.content);
+    const key = `${normalizedTitle}\n---\n${normalizedContent}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      deduped.push(section);
     }
-    seen.add(key);
-    deduped.push(section);
   }
+
   return deduped;
 };
 

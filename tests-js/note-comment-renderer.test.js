@@ -154,6 +154,65 @@ A skill is a set of local instructions.
   assert.equal(countMatches(body, /~~~markdown/g), 1);
 });
 
+test("deduplicates markdown sections with the same title across different note locations", () => {
+  const note = `# Git Memento Session
+
+- Provider: Codex
+- Session ID: sess-same-title
+- Session Title: # AGENTS.md instructions for /Users/mandel/Work/memento
+<INSTRUCTIONS>
+## Skills
+- git-memento-workflow
+</INSTRUCTIONS>
+- Committer: Mandel
+
+## Conversation
+
+### Codex
+
+# AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+- git-memento-workflow
+</INSTRUCTIONS>`;
+  const body = buildBody(note, 65000);
+
+  assert.equal(countMatches(body, /<summary>AGENTS\.md instructions for \/Users\/mandel\/Work\/memento<\/summary>/g), 1);
+  assert.equal(countMatches(body, /### Markdown files/g), 1);
+  assert.equal(countMatches(body, /~~~markdown/g), 1);
+});
+
+test("keeps sections with same title when markdown content differs", () => {
+  const note = `# Git Memento Session
+
+- Provider: Codex
+- Session ID: sess-same-title-different-content
+- Session Title: # AGENTS.md instructions for /Users/mandel/Work/memento
+<INSTRUCTIONS>
+## Skills
+- git-memento-workflow
+</INSTRUCTIONS>
+- Committer: Mandel
+
+## Conversation
+
+### Codex
+
+# AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## How to use skills
+- Discovery
+</INSTRUCTIONS>`;
+  const body = buildBody(note, 65000);
+
+  assert.equal(countMatches(body, /<summary>AGENTS\.md instructions for \/Users\/mandel\/Work\/memento<\/summary>/g), 2);
+  assert.equal(countMatches(body, /~~~markdown/g), 2);
+  assert.match(body, /## Skills/);
+  assert.match(body, /## How to use skills/);
+});
+
 test("renders markdown sections with expected details and fenced markdown format", () => {
   const note = `${baseHeader}
 ### Codex
