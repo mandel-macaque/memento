@@ -43,6 +43,30 @@ let ``parse commit with multiple messages preserves order`` () =
     | _ -> failwith "Expected parsed commit command with multiple messages."
 
 [<Fact>]
+let ``parse commit supports --message forms`` () =
+    let result =
+        CliArgs.parse
+            [| "commit"
+               "sess-123"
+               "--message"
+               "subject"
+               "--message=body paragraph" |]
+
+    match result with
+    | Ok(Command.Commit(id, messages)) ->
+        Assert.Equal("sess-123", id)
+        Assert.Equal<string list>([ "subject"; "body paragraph" ], messages)
+    | _ -> failwith "Expected parsed commit command with --message variants."
+
+[<Fact>]
+let ``parse commit preserves raw message text`` () =
+    let result = CliArgs.parse [| "commit"; "sess-123"; "-m"; "  subject with spacing  " |]
+
+    match result with
+    | Ok(Command.Commit(_, messages)) -> Assert.Equal<string list>([ "  subject with spacing  " ], messages)
+    | _ -> failwith "Expected parsed commit command preserving message text."
+
+[<Fact>]
 let ``parse rejects unknown argument`` () =
     let result = CliArgs.parse [| "commit"; "sess-123"; "--bad" |]
     Assert.True(Result.isError result)

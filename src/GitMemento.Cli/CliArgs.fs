@@ -10,9 +10,8 @@ module CliArgs =
         + "  git memento share-notes [remote]\n"
         + "  git memento help"
 
-    let private trimToOption (value: string) =
-        let trimmed = value.Trim()
-        if String.IsNullOrWhiteSpace trimmed then None else Some trimmed
+    let private toNonEmptyOption (value: string) =
+        if String.IsNullOrWhiteSpace value then None else Some value
 
     let parse (args: string array) : Result<Command, string> =
         if args.Length = 0 then
@@ -47,19 +46,31 @@ module CliArgs =
 
                         while i < args.Length && parseError.IsNone do
                             let current = args[i]
-                            if current = "-m" then
+                            if current = "-m" || current = "--message" then
                                 if i + 1 >= args.Length then
-                                    parseError <- Some "Flag -m requires a non-empty commit message."
+                                    parseError <- Some "Flag -m/--message requires a non-empty commit message."
                                 else
-                                    match trimToOption args[i + 1] with
+                                    match toNonEmptyOption args[i + 1] with
                                     | Some message -> messages <- message :: messages
-                                    | None -> parseError <- Some "Flag -m requires a non-empty commit message."
+                                    | None -> parseError <- Some "Flag -m/--message requires a non-empty commit message."
                                     i <- i + 2
+                            elif current.StartsWith("--message=", StringComparison.Ordinal) then
+                                let inlineValue = current.Substring("--message=".Length)
+                                match toNonEmptyOption inlineValue with
+                                | Some message -> messages <- message :: messages
+                                | None -> parseError <- Some "Flag -m/--message requires a non-empty commit message."
+                                i <- i + 1
                             elif current.StartsWith("-m", StringComparison.Ordinal) then
                                 let inlineValue = current.AsSpan(2).ToString()
-                                match trimToOption inlineValue with
+                                let normalizedInlineValue =
+                                    if inlineValue.StartsWith("=", StringComparison.Ordinal) then
+                                        inlineValue.Substring(1)
+                                    else
+                                        inlineValue
+
+                                match toNonEmptyOption normalizedInlineValue with
                                 | Some message -> messages <- message :: messages
-                                | None -> parseError <- Some "Flag -m requires a non-empty commit message."
+                                | None -> parseError <- Some "Flag -m/--message requires a non-empty commit message."
                                 i <- i + 1
                             else
                                 parseError <- Some $"Unknown argument: {current}"
