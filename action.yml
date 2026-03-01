@@ -30,36 +30,13 @@ runs:
         github-token: ${{ inputs.github-token }}
         script: |
           const { execSync } = require("child_process");
-
-          const marker = "<!-- git-memento-note-comment -->";
+          const path = require("path");
+          const renderer = require(path.join(process.env.GITHUB_ACTION_PATH || process.cwd(), "tools", "note-comment-renderer.js"));
+          const { marker, buildBody } = renderer;
           const maxBodyLength = Number.parseInt(core.getInput("max-comment-length"), 10) || 65000;
           const { owner, repo } = context.repo;
 
           const isSha = (value) => /^[0-9a-f]{40}$/i.test(value || "");
-
-          const parseNote = (note) => {
-            const providerMatch = note.match(/^- Provider:\s*(.+)$/m);
-            const sessionIdMatch = note.match(/^- Session ID:\s*(.+)$/m);
-            const provider = providerMatch ? providerMatch[1].trim() : "unknown";
-            const sessionId = sessionIdMatch ? sessionIdMatch[1].trim() : "";
-            return { provider, sessionId };
-          };
-
-          const buildBody = (note) => {
-            const { provider, sessionId } = parseNote(note);
-            const agentId = sessionId ? `${provider} / ${sessionId}` : provider;
-
-            let body = `${marker}\nThis commit has a prompt attached to it created with agent ${agentId}:\n\n<details>\n<summary>The note attached to the commit</summary>\n\n${note}\n\n</details>`;
-
-            if (body.length > maxBodyLength) {
-              const reserve = "\n\n_Note truncated due to GitHub comment size limits._\n\n</details>";
-              const head = `${marker}\nThis commit has a prompt attached to it created with agent ${agentId}:\n\n<details>\n<summary>The note attached to the commit</summary>\n\n`;
-              const available = Math.max(0, maxBodyLength - head.length - reserve.length);
-              body = `${head}${note.slice(0, available)}${reserve}`;
-            }
-
-            return body;
-          };
 
           const getCommitShas = async () => {
             if (context.eventName === "push") {
@@ -105,7 +82,7 @@ runs:
               continue;
             }
 
-            const body = buildBody(note);
+            const body = buildBody(note, maxBodyLength);
 
             const existingComments = await github.paginate(github.rest.repos.listCommentsForCommit, {
               owner,
