@@ -16,42 +16,6 @@ let configureLogging () =
 #endif
     Log.Logger <- configuration.CreateLogger()
 
-let requireConfigured (git: IGitService) =
-    match git.GetLocalConfigValueAsync("memento.provider").Result with
-    | Error err -> Error err
-    | Ok None ->
-        Error "git-memento is not configured for this repository. Run: git memento init"
-    | Ok(Some provider) -> Ok provider
-
-let loadProviderSettings (git: IGitService) (providerValue: string) =
-    match AiProviderFactory.normalizeProvider providerValue with
-    | Error err -> Error err
-    | Ok provider ->
-        match AiProviderFactory.defaultSettings provider with
-        | Error err -> Error err
-        | Ok defaults ->
-            let read key fallback =
-                match git.GetLocalConfigValueAsync(key).Result with
-                | Error err -> Error err
-                | Ok(Some value) -> Ok value
-                | Ok None -> Ok fallback
-
-            let keyBase = $"memento.{provider}"
-            match read $"{keyBase}.bin" defaults.Executable with
-            | Error err -> Error err
-            | Ok executable ->
-                match read $"{keyBase}.getArgs" defaults.GetArgs with
-                | Error err -> Error err
-                | Ok getArgs ->
-                    match read $"{keyBase}.listArgs" defaults.ListArgs with
-                    | Error err -> Error err
-                    | Ok listArgs ->
-                        Ok
-                            { Provider = provider
-                              Executable = executable
-                              GetArgs = getArgs
-                              ListArgs = listArgs }
-
 let formatVersion (runner: ICommandRunner) =
     let assemblyVersion =
         Assembly.GetEntryAssembly()
@@ -103,6 +67,8 @@ let main args =
             let notesSyncWorkflow = NotesSyncWorkflow(git, output)
             let notesRewriteSetupWorkflow = NotesRewriteSetupWorkflow(git, output)
             let notesCarryWorkflow = NotesCarryWorkflow(git, output)
+            let auditWorkflow = AuditWorkflow(git, output)
+            let doctorWorkflow = DoctorWorkflow(git, runner, output)
             let initWorkflow = InitWorkflow(git, output)
 
             match command with
@@ -116,13 +82,27 @@ let main args =
                     | CommandResult.Failed message ->
                         Console.Error.WriteLine(message)
                         1
+            | Command.Audit(rangeSpec, strict, outputFormat) ->
+                auditWorkflow.ExecuteAsync(rangeSpec, strict, outputFormat).Result
+                |> function
+                    | CommandResult.Completed -> 0
+                    | CommandResult.Failed message ->
+                        Console.Error.WriteLine(message)
+                        1
+            | Command.Doctor(remote, outputFormat) ->
+                doctorWorkflow.ExecuteAsync(remote, outputFormat).Result
+                |> function
+                    | CommandResult.Completed -> 0
+                    | CommandResult.Failed message ->
+                        Console.Error.WriteLine(message)
+                        1
             | Command.Commit(sessionId, messages) ->
-                match requireConfigured git with
+                match MementoConfig.requireConfigured git with
                 | Error configError ->
                     Console.Error.WriteLine(configError)
                     1
                 | Ok providerName ->
-                    match loadProviderSettings git providerName with
+                    match MementoConfig.loadProviderSettings git providerName with
                     | Error configError ->
                         Console.Error.WriteLine(configError)
                         1
@@ -148,12 +128,12 @@ let main args =
                 match sessionId with
                 | None -> workflowWithProvider None
                 | Some _ ->
-                    match requireConfigured git with
+                    match MementoConfig.requireConfigured git with
                     | Error configError ->
                         Console.Error.WriteLine(configError)
                         1
                     | Ok providerName ->
-                        match loadProviderSettings git providerName with
+                        match MementoConfig.loadProviderSettings git providerName with
                         | Error configError ->
                             Console.Error.WriteLine(configError)
                             1
@@ -161,7 +141,7 @@ let main args =
                             let provider = AiProviderFactory.createFromSettings runner settings
                             workflowWithProvider (Some provider)
             | Command.ShareNotes(remote) ->
-                match requireConfigured git with
+                match MementoConfig.requireConfigured git with
                 | Error configError ->
                     Console.Error.WriteLine(configError)
                     1
@@ -173,7 +153,7 @@ let main args =
                             Console.Error.WriteLine(message)
                             1
             | Command.Push(remote) ->
-                match requireConfigured git with
+                match MementoConfig.requireConfigured git with
                 | Error configError ->
                     Console.Error.WriteLine(configError)
                     1
@@ -185,7 +165,7 @@ let main args =
                             Console.Error.WriteLine(message)
                             1
             | Command.NotesSync(remote, strategy) ->
-                match requireConfigured git with
+                match MementoConfig.requireConfigured git with
                 | Error configError ->
                     Console.Error.WriteLine(configError)
                     1
@@ -197,7 +177,7 @@ let main args =
                             Console.Error.WriteLine(message)
                             1
             | Command.NotesRewriteSetup ->
-                match requireConfigured git with
+                match MementoConfig.requireConfigured git with
                 | Error configError ->
                     Console.Error.WriteLine(configError)
                     1
@@ -209,7 +189,7 @@ let main args =
                             Console.Error.WriteLine(message)
                             1
             | Command.NotesCarry(onto, fromRange) ->
-                match requireConfigured git with
+                match MementoConfig.requireConfigured git with
                 | Error configError ->
                     Console.Error.WriteLine(configError)
                     1

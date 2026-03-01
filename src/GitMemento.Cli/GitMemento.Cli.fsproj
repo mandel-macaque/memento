@@ -19,8 +19,12 @@
     <Compile Include="ProcessRunner.fs" />
     <Compile Include="GitService.fs" />
     <Compile Include="AiProvider.fs" />
+    <Compile Include="MementoConfig.fs" />
+    <Compile Include="AuditCore.fs" />
     <Compile Include="CommitWorkflow.fs" />
     <Compile Include="AmendWorkflow.fs" />
+    <Compile Include="AuditWorkflow.fs" />
+    <Compile Include="DoctorWorkflow.fs" />
     <Compile Include="ShareNotesWorkflow.fs" />
     <Compile Include="PushWorkflow.fs" />
     <Compile Include="NotesSyncWorkflow.fs" />

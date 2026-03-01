@@ -6,6 +6,7 @@ open System.Threading.Tasks
 type IGitService =
     abstract member EnsureInRepositoryAsync: unit -> Task<Result<unit, string>>
     abstract member GetLocalConfigValueAsync: key: string -> Task<Result<string option, string>>
+    abstract member GetLocalConfigValuesAsync: key: string -> Task<Result<string list, string>>
     abstract member SetLocalConfigValueAsync: key: string * value: string -> Task<Result<unit, string>>
     abstract member GetCommitterAliasAsync: unit -> Task<string>
     abstract member CommitAsync: messages: string list -> Task<Result<unit, string>>
@@ -19,6 +20,7 @@ type IGitService =
     abstract member UpdateRefAsync: refName: string * objectId: string -> Task<Result<unit, string>>
     abstract member FetchNotesToNamespaceAsync: remote: string * namespaceRoot: string -> Task<Result<unit, string>>
     abstract member MergeNotesAsync: notesRef: string * strategy: string -> Task<Result<unit, string>>
+    abstract member ListRemoteRefsAsync: remote: string * pattern: string -> Task<Result<string list, string>>
     abstract member ResolveCommitAsync: revision: string -> Task<Result<string, string>>
     abstract member GetCommitsInRangeAsync: rangeSpec: string -> Task<Result<string list, string>>
     abstract member GetNoteAsync: hash: string -> Task<Result<string option, string>>
@@ -58,6 +60,22 @@ type GitService(runner: ICommandRunner) =
                 let! result = runner.RunCaptureAsync("git", [ "config"; "--local"; key; value ])
                 if result.ExitCode = 0 then
                     return Ok()
+                else
+                    return Error(failWith result.StdErr result.StdOut)
+            }
+
+        member _.GetLocalConfigValuesAsync(key: string) =
+            task {
+                let! result = runner.RunCaptureAsync("git", [ "config"; "--get-all"; key ])
+                if result.ExitCode = 0 then
+                    let values =
+                        result.StdOut.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                        |> Array.map (fun value -> value.Trim())
+                        |> Array.filter (String.IsNullOrWhiteSpace >> not)
+                        |> Array.toList
+                    return Ok values
+                elif result.ExitCode = 1 then
+                    return Ok []
                 else
                     return Error(failWith result.StdErr result.StdOut)
             }
@@ -210,6 +228,20 @@ type GitService(runner: ICommandRunner) =
                 let! result = runner.RunCaptureAsync("git", [ "notes"; "merge"; "-s"; strategy; notesRef ])
                 if result.ExitCode = 0 then
                     return Ok()
+                else
+                    return Error(failWith result.StdErr result.StdOut)
+            }
+
+        member _.ListRemoteRefsAsync(remote: string, pattern: string) =
+            task {
+                let! result = runner.RunCaptureAsync("git", [ "ls-remote"; remote; pattern ])
+                if result.ExitCode = 0 then
+                    let refs =
+                        result.StdOut.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                        |> Array.map (fun value -> value.Trim())
+                        |> Array.filter (String.IsNullOrWhiteSpace >> not)
+                        |> Array.toList
+                    return Ok refs
                 else
                     return Error(failWith result.StdErr result.StdOut)
             }

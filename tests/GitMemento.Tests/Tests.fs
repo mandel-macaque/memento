@@ -85,6 +85,25 @@ let ``parse amend without session id`` () =
     | _ -> failwith "Expected parsed amend command without session id."
 
 [<Fact>]
+let ``parse audit with strict json range`` () =
+    let result = CliArgs.parse [| "audit"; "--range"; "main..HEAD"; "--strict"; "--format"; "json" |]
+    match result with
+    | Ok(Command.Audit(Some range, strict, format)) ->
+        Assert.Equal("main..HEAD", range)
+        Assert.True(strict)
+        Assert.Equal("json", format)
+    | _ -> failwith "Expected parsed audit command."
+
+[<Fact>]
+let ``parse doctor with remote and format`` () =
+    let result = CliArgs.parse [| "doctor"; "upstream"; "--format=text" |]
+    match result with
+    | Ok(Command.Doctor(remote, format)) ->
+        Assert.Equal("upstream", remote)
+        Assert.Equal("text", format)
+    | _ -> failwith "Expected parsed doctor command."
+
+[<Fact>]
 let ``parse rejects unknown argument`` () =
     let result = CliArgs.parse [| "commit"; "sess-123"; "--bad" |]
     Assert.True(Result.isError result)
@@ -264,6 +283,18 @@ let ``session notes parser supports multi session envelope`` () =
     Assert.Contains("- Provider: Claude", entries[1])
 
 [<Fact>]
+let ``audit core validates provider and session markers`` () =
+    let note = "# Git Memento Session\n\n- Provider: Codex\n- Session ID: s1"
+    let issues = AuditCore.validateNote note
+    Assert.Empty(issues)
+
+[<Fact>]
+let ``audit core flags missing session marker`` () =
+    let note = "# Git Memento Session\n\n- Provider: Codex"
+    let issues = AuditCore.validateNote note
+    Assert.Contains(MissingSessionIdMarker, issues)
+
+[<Fact>]
 let ``session notes roundtrip preserves marker-like transcript text`` () =
     let entry =
         String.Join(
@@ -337,6 +368,9 @@ type private InMemoryGitService() =
         member _.GetLocalConfigValueAsync(key: string) =
             let found, value = config.TryGetValue(key)
             Task.FromResult(Ok(if found then Some value else None))
+        member _.GetLocalConfigValuesAsync(key: string) =
+            let found, value = config.TryGetValue(key)
+            Task.FromResult(Ok(if found then [ value ] else []))
         member _.SetLocalConfigValueAsync(key: string, value: string) =
             config[key] <- value
             Task.FromResult(Ok())
@@ -352,6 +386,7 @@ type private InMemoryGitService() =
         member _.UpdateRefAsync(_refName: string, _objectId: string) = Task.FromResult(Ok())
         member _.FetchNotesToNamespaceAsync(_remote: string, _namespaceRoot: string) = Task.FromResult(Ok())
         member _.MergeNotesAsync(_notesRef: string, _strategy: string) = Task.FromResult(Ok())
+        member _.ListRemoteRefsAsync(_remote: string, _pattern: string) = Task.FromResult(Ok [])
         member _.ResolveCommitAsync(_revision: string) = Task.FromResult(Ok("hash"))
         member _.GetCommitsInRangeAsync(_rangeSpec: string) = Task.FromResult(Ok [])
         member _.GetNoteAsync(_hash: string) = Task.FromResult(Ok None)
@@ -381,6 +416,7 @@ type private PushSpyGitService() =
             calls.Add("ensureRepo", "")
             Task.FromResult(Ok())
         member _.GetLocalConfigValueAsync(_key: string) = Task.FromResult(Ok None)
+        member _.GetLocalConfigValuesAsync(_key: string) = Task.FromResult(Ok [])
         member _.SetLocalConfigValueAsync(_key: string, _value: string) = Task.FromResult(Ok())
         member _.GetCommitterAliasAsync() = Task.FromResult("Dev")
         member _.CommitAsync(_messages) = Task.FromResult(Ok())
@@ -400,6 +436,7 @@ type private PushSpyGitService() =
         member _.UpdateRefAsync(_refName: string, _objectId: string) = Task.FromResult(Ok())
         member _.FetchNotesToNamespaceAsync(_remote: string, _namespaceRoot: string) = Task.FromResult(Ok())
         member _.MergeNotesAsync(_notesRef: string, _strategy: string) = Task.FromResult(Ok())
+        member _.ListRemoteRefsAsync(_remote: string, _pattern: string) = Task.FromResult(Ok [])
         member _.ResolveCommitAsync(_revision: string) = Task.FromResult(Ok("hash"))
         member _.GetCommitsInRangeAsync(_rangeSpec: string) = Task.FromResult(Ok [])
         member _.GetNoteAsync(_hash: string) = Task.FromResult(Ok None)
@@ -435,6 +472,7 @@ type private NotesSyncSpyGitService() =
             calls.Add("ensureRepo", "")
             Task.FromResult(Ok())
         member _.GetLocalConfigValueAsync(_key: string) = Task.FromResult(Ok None)
+        member _.GetLocalConfigValuesAsync(_key: string) = Task.FromResult(Ok [])
         member _.SetLocalConfigValueAsync(_key: string, _value: string) = Task.FromResult(Ok())
         member _.GetCommitterAliasAsync() = Task.FromResult("Dev")
         member _.CommitAsync(_messages) = Task.FromResult(Ok())
@@ -462,6 +500,7 @@ type private NotesSyncSpyGitService() =
         member _.MergeNotesAsync(notesRef: string, strategy: string) =
             calls.Add("mergeNotes", $"{notesRef}:{strategy}")
             Task.FromResult(Ok())
+        member _.ListRemoteRefsAsync(_remote: string, _pattern: string) = Task.FromResult(Ok [])
         member _.ResolveCommitAsync(_revision: string) = Task.FromResult(Ok("hash"))
         member _.GetCommitsInRangeAsync(_rangeSpec: string) = Task.FromResult(Ok [])
         member _.GetNoteAsync(_hash: string) = Task.FromResult(Ok None)
@@ -494,6 +533,7 @@ type private RewriteSetupSpyGitService() =
             calls.Add("ensureRepo", "")
             Task.FromResult(Ok())
         member _.GetLocalConfigValueAsync(_key: string) = Task.FromResult(Ok None)
+        member _.GetLocalConfigValuesAsync(_key: string) = Task.FromResult(Ok [])
         member _.SetLocalConfigValueAsync(key: string, value: string) =
             calls.Add("setConfig", $"{key}={value}")
             Task.FromResult(Ok())
@@ -509,6 +549,7 @@ type private RewriteSetupSpyGitService() =
         member _.UpdateRefAsync(_refName: string, _objectId: string) = Task.FromResult(Ok())
         member _.FetchNotesToNamespaceAsync(_remote: string, _namespaceRoot: string) = Task.FromResult(Ok())
         member _.MergeNotesAsync(_notesRef: string, _strategy: string) = Task.FromResult(Ok())
+        member _.ListRemoteRefsAsync(_remote: string, _pattern: string) = Task.FromResult(Ok [])
         member _.ResolveCommitAsync(_revision: string) = Task.FromResult(Ok("hash"))
         member _.GetCommitsInRangeAsync(_rangeSpec: string) = Task.FromResult(Ok [])
         member _.GetNoteAsync(_hash: string) = Task.FromResult(Ok None)
@@ -548,6 +589,7 @@ type private NotesCarrySpyGitService() =
             calls.Add("ensureRepo", "")
             Task.FromResult(Ok())
         member _.GetLocalConfigValueAsync(_key: string) = Task.FromResult(Ok None)
+        member _.GetLocalConfigValuesAsync(_key: string) = Task.FromResult(Ok [])
         member _.SetLocalConfigValueAsync(_key: string, _value: string) = Task.FromResult(Ok())
         member _.GetCommitterAliasAsync() = Task.FromResult("Dev")
         member _.CommitAsync(_messages) = Task.FromResult(Ok())
@@ -561,6 +603,7 @@ type private NotesCarrySpyGitService() =
         member _.UpdateRefAsync(_refName: string, _objectId: string) = Task.FromResult(Ok())
         member _.FetchNotesToNamespaceAsync(_remote: string, _namespaceRoot: string) = Task.FromResult(Ok())
         member _.MergeNotesAsync(_notesRef: string, _strategy: string) = Task.FromResult(Ok())
+        member _.ListRemoteRefsAsync(_remote: string, _pattern: string) = Task.FromResult(Ok [])
         member _.ResolveCommitAsync(revision: string) =
             calls.Add("resolveCommit", revision)
             Task.FromResult(Ok "onto-commit")
@@ -608,6 +651,7 @@ type private AmendSpyGitService(existingNote: string option) =
     interface IGitService with
         member _.EnsureInRepositoryAsync() = Task.FromResult(Ok())
         member _.GetLocalConfigValueAsync(_key: string) = Task.FromResult(Ok None)
+        member _.GetLocalConfigValuesAsync(_key: string) = Task.FromResult(Ok [])
         member _.SetLocalConfigValueAsync(_key: string, _value: string) = Task.FromResult(Ok())
         member _.GetCommitterAliasAsync() = Task.FromResult("Dev")
         member _.CommitAsync(_messages) = Task.FromResult(Ok())
@@ -627,6 +671,7 @@ type private AmendSpyGitService(existingNote: string option) =
         member _.UpdateRefAsync(_refName, _objectId) = Task.FromResult(Ok())
         member _.FetchNotesToNamespaceAsync(_remote, _namespaceRoot) = Task.FromResult(Ok())
         member _.MergeNotesAsync(_notesRef, _strategy) = Task.FromResult(Ok())
+        member _.ListRemoteRefsAsync(_remote: string, _pattern: string) = Task.FromResult(Ok [])
         member _.ResolveCommitAsync(_revision) = Task.FromResult(Ok "hash")
         member _.GetCommitsInRangeAsync(_rangeSpec) = Task.FromResult(Ok [])
         member _.GetNoteAsync(hash) =

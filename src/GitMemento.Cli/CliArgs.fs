@@ -8,6 +8,8 @@ module CliArgs =
         + "  git memento init [codex|claude]\n"
         + "  git memento commit <session-id> [-m \"commit message\"]...\n"
         + "  git memento amend [session-id] [-m \"commit message\"]...\n"
+        + "  git memento audit [--range <A..B>] [--strict] [--format <text|json>]\n"
+        + "  git memento doctor [remote] [--format <text|json>]\n"
         + "  git memento push [remote]\n"
         + "  git memento share-notes [remote]\n"
         + "  git memento notes-sync [remote] [--strategy <strategy>]\n"
@@ -139,6 +141,87 @@ module CliArgs =
                     else
                         parseMessages 2 |> Result.map (fun messages -> Command.Amend(Some sessionId, messages))
 
+        let private parseFormatValue (value: string) =
+            let normalized = value.Trim().ToLowerInvariant()
+            match normalized with
+            | "text"
+            | "json" -> Ok normalized
+            | _ -> Error "Flag --format must be either 'text' or 'json'."
+
+        let parseAudit (args: string array) : Result<Command, string> =
+            let rec loop
+                (i: int)
+                (range: string option)
+                (strict: bool)
+                (outputFormat: string)
+                : Result<Command, string> =
+                if i >= args.Length then
+                    Ok(Command.Audit(range, strict, outputFormat))
+                else
+                    let current = args[i]
+                    if current = "--range" then
+                        if i + 1 >= args.Length then
+                            Error "Flag --range requires a value like <base>..<head>."
+                        else
+                            let value = args[i + 1].Trim()
+                            if isBlank value then
+                                Error "Flag --range requires a non-empty value."
+                            else
+                                loop (i + 2) (Some value) strict outputFormat
+                    elif current.StartsWith("--range=", StringComparison.Ordinal) then
+                        let value = current.Substring("--range=".Length).Trim()
+                        if isBlank value then
+                            Error "Flag --range requires a non-empty value."
+                        else
+                            loop (i + 1) (Some value) strict outputFormat
+                    elif current = "--strict" then
+                        loop (i + 1) range true outputFormat
+                    elif current = "--format" then
+                        if i + 1 >= args.Length then
+                            Error "Flag --format requires a value."
+                        else
+                            match parseFormatValue args[i + 1] with
+                            | Ok formatValue -> loop (i + 2) range strict formatValue
+                            | Error err -> Error err
+                    elif current.StartsWith("--format=", StringComparison.Ordinal) then
+                        match parseFormatValue (current.Substring("--format=".Length)) with
+                        | Ok formatValue -> loop (i + 1) range strict formatValue
+                        | Error err -> Error err
+                    else
+                        Error $"Unknown argument: {current}"
+
+            loop 1 None false "text"
+
+        let parseDoctor (args: string array) : Result<Command, string> =
+            let rec loop (i: int) (remote: string option) (outputFormat: string) : Result<Command, string> =
+                if i >= args.Length then
+                    Ok(Command.Doctor(remote |> Option.defaultValue "origin", outputFormat))
+                else
+                    let current = args[i]
+                    if current = "--format" then
+                        if i + 1 >= args.Length then
+                            Error "Flag --format requires a value."
+                        else
+                            match parseFormatValue args[i + 1] with
+                            | Ok formatValue -> loop (i + 2) remote formatValue
+                            | Error err -> Error err
+                    elif current.StartsWith("--format=", StringComparison.Ordinal) then
+                        match parseFormatValue (current.Substring("--format=".Length)) with
+                        | Ok formatValue -> loop (i + 1) remote formatValue
+                        | Error err -> Error err
+                    elif current.StartsWith("-", StringComparison.Ordinal) then
+                        Error $"Unknown argument: {current}"
+                    else
+                        let remoteValue = current.Trim()
+                        if isBlank remoteValue then
+                            Error "Remote name cannot be empty."
+                        elif remote.IsSome then
+                            Error "Usage: git memento doctor [remote] [--format <text|json>]"
+                        else
+                            loop (i + 1) (Some remoteValue) outputFormat
+
+            loop 1 None "text"
+
         let parseShareNotes (args: string array) : Result<Command, string> =
             parseOptionalRemote "share-notes" Command.ShareNotes args
 
@@ -242,6 +325,8 @@ module CliArgs =
             | "init" -> Parsing.parseInit args
             | "commit" -> Parsing.parseCommit args
             | "amend" -> Parsing.parseAmend args
+            | "audit" -> Parsing.parseAudit args
+            | "doctor" -> Parsing.parseDoctor args
             | "share-notes" -> Parsing.parseShareNotes args
             | "push" -> Parsing.parsePush args
             | "notes-sync" -> Parsing.parseNotesSync args
