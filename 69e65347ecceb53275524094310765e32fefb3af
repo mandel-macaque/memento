@@ -1,0 +1,237 @@
+# Git Memento Session
+
+- Provider: Codex
+- Session ID: 019ca6cd-9add-7f11-8604-d6bea3b6ebc3
+- Session Title: # AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
+### Available skills
+- git-memento-workflow: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes. (file: /Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- skill-creator: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. (file: /Users/mandel/.codex/skills/.system/skill-creator/SKILL.md)
+- skill-installer: Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos). (file: /Users/mandel/.codex/skills/.system/skill-installer/SKILL.md)
+### How to use skills
+- Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths.
+- Trigger rules: If the user names a skill (with `$SkillName` or plain text) OR the task clearly matches a skill's description shown above, you must use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned.
+- Missing/blocked: If a named skill isn't in the list or the path can't be read, say so briefly and continue with the best fallback.
+- How to use a skill (progressive disclosure):
+  1) After deciding to use a skill, open its `SKILL.md`. Read only enough to follow the workflow.
+  2) When `SKILL.md` references relative paths (e.g., `scripts/foo.py`), resolve them relative to the skill directory listed above first, and only consider other paths if needed.
+  3) If `SKILL.md` points to extra folders such as `references/`, load only the specific files needed for the request; don't bulk-load everything.
+  4) If `scripts/` exist, prefer running or patching them instead of retyping large code blocks.
+  5) If `assets/` or templates exist, reuse them instead of recreating from scratch.
+- Coordination and sequencing:
+  - If multiple skills apply, choose the minimal set that covers the request and state the order you'll use them.
+  - Announce which skill(s) you're using and why (one short line). If you skip an obvious skill, say why.
+- Context hygiene:
+  - Keep context small: summarize long sections instead of pasting them; only load extra files when needed.
+  - Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
+  - When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
+- Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+</INSTRUCTIONS>
+- Committer: Manuel de la Pena
+- Captured At (UTC): 2026-03-01T00:35:39.9280860+00:00
+
+## Conversation
+
+### Manuel de la Pena
+
+# AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
+### Available skills
+- git-memento-workflow: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes. (file: /Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- skill-creator: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. (file: /Users/mandel/.codex/skills/.system/skill-creator/SKILL.md)
+- skill-installer: Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos). (file: /Users/mandel/.codex/skills/.system/skill-installer/SKILL.md)
+### How to use skills
+- Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths.
+- Trigger rules: If the user names a skill (with `$SkillName` or plain text) OR the task clearly matches a skill's description shown above, you must use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned.
+- Missing/blocked: If a named skill isn't in the list or the path can't be read, say so briefly and continue with the best fallback.
+- How to use a skill (progressive disclosure):
+1) After deciding to use a skill, open its `SKILL.md`. Read only enough to follow the workflow.
+2) When `SKILL.md` references relative paths (e.g., `scripts/foo.py`), resolve them relative to the skill directory listed above first, and only consider other paths if needed.
+3) If `SKILL.md` points to extra folders such as `references/`, load only the specific files needed for the request; don't bulk-load everything.
+4) If `scripts/` exist, prefer running or patching them instead of retyping large code blocks.
+5) If `assets/` or templates exist, reuse them instead of recreating from scratch.
+- Coordination and sequencing:
+- If multiple skills apply, choose the minimal set that covers the request and state the order you'll use them.
+- Announce which skill(s) you're using and why (one short line). If you skip an obvious skill, say why.
+- Context hygiene:
+- Keep context small: summarize long sections instead of pasting them; only load extra files when needed.
+- Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
+- When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
+- Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+</INSTRUCTIONS>
+
+### Manuel de la Pena
+
+<environment_context>
+<cwd>/Users/mandel/Work/memento</cwd>
+<shell>zsh</shell>
+</environment_context>
+
+### Manuel de la Pena
+
+In the action that writes a comment with the notes we have a bug. Part of the session informaiton is a set of markdown files, for example:
+
+Git Memento Session
+
+Provider: Codex
+Session ID: 019ca6c8-eac8-78d3-bd58-52da607ba0b3
+Session Title: # AGENTS.md instructions for /Users/mandel/Work/memento
+## Skills A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill. ### Available skills - git-memento-workflow: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes. (file: /Users/mandel/.codex/skills/git-memento-workflow/SKILL.md) - skill-creator: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. (file: /Users/mandel/.codex/skills/.system/skill-creator/SKILL.md) - skill-installer: Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos). (file: /Users/mandel/.codex/skills/.system/skill-installer/SKILL.md) ### How to use skills - Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths. - Trigger rules: If the user names a skill (with `$SkillName` or plain text) OR the task clearly matches a skill's description shown above, you must use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned. - Missing/blocked: If a named skill isn't in the list or the path can't be read, say so briefly and continue with the best fallback. - How to use a skill (progressive disclosure): 1) After deciding to use a skill, open its `SKILL.md`. Read only enough to follow the workflow. 2) When `SKILL.md` references relative paths (e.g., `scripts/foo.py`), resolve them relative to the skill directory listed above first, and only consider other paths if needed. 3) If `SKILL.md` points to extra folders such as `references/`, load only the specific files needed for the request; don't bulk-load everything. 4) If `scripts/` exist, prefer running or patching them instead of retyping large code blocks. 5) If `assets/` or templates exist, reuse them instead of recreating from scratch. - Coordination and sequencing: - If multiple skills apply, choose the minimal set that covers the request and state the order you'll use them. - Announce which skill(s) you're using and why (one short line). If you skip an obvious skill, say why. - Context hygiene: - Keep context small: summarize long sections instead of pasting them; only load extra files when needed. - Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked. - When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice. - Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue. - Committer: Manuel de la Pena - Captured At (UTC): 2026-03-01T00:29:13.4496100+00:00
+Conversation
+
+Now, or code has a bug because the commit in the markdown section is just adding:
+
+`
+<INSTRUCTIONS>
+
+## Skills
+A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
+`
+
+As you can see we are missing a lot of data. I want you to:
+
+- Ensure that the entire markdown is present. Use the notes or previous commits to understand the pattern and fix the parsing.
+- Because we are adding the markdown at the end of the comment, just remove it from the start of the comment, we do not want to show the data twice.
+
+So fat I have only tested codex, so it might very well be that claude uses a diff pattern. To fix that add a rendered for each ai agent provider. You can use the information of the note to know the provider.
+
+### Codex
+
+I’m going to inspect the comment-writing/parsing flow and the existing note format, then patch provider-specific rendering so full markdown is preserved and only shown once at the end. I’ll start by locating the relevant files and tests.
+
+### Codex
+
+I’m using the `git-memento-workflow` skill because this is a memento note/comment rendering bug. Next I’ll read that skill briefly, then patch the renderer and tests.
+
+### Codex
+
+I’ve confirmed the skill context; now I’m inspecting the JavaScript renderer and its tests to pinpoint where the markdown file extraction is cutting content.
+
+### Codex
+
+I found the likely root cause: section extraction stops at any `###` heading, so Codex markdown with headings like `### Available skills` is being cut early. I’m now checking how speaker headings are generated so we can distinguish conversation speakers from markdown headings.
+
+### Codex
+
+I confirmed speaker headings are exact names (`### <committer>`, `### <provider>`, plus `System`/`Tool`). I’m now patching the renderer to use provider-specific extraction and to only split on actual speaker headings, not arbitrary markdown subheadings, and I’ll remove the “moved below” placeholder from the top section.
+
+### Codex
+
+I’ve applied the core parsing change. Next I’m updating tests to assert full markdown capture (including internal `###` headings), no duplicate placeholder in the main note body, and provider-specific behavior for Claude.
+
+### Codex
+
+I’ve updated the tests to lock the expected behavior. I’m running the JS renderer tests now to verify the fix and catch any regressions.
+
+### Codex
+
+The renderer tests all pass. I’ll quickly inspect the diff for precision and then summarize exactly what changed and why.
+
+### Codex
+
+Implemented. The comment renderer now preserves full embedded markdown blocks and avoids duplicate display.
+
+**What changed**
+1. Fixed markdown section parsing in [tools/note-comment-renderer.js](/Users/mandel/Work/memento/tools/note-comment-renderer.js):
+- It no longer stops on any `###` line.
+- It now detects real conversation speaker headings only (`### <provider|committer|System|Tool>`).
+- It keeps consuming content inside `<INSTRUCTIONS> ... </INSTRUCTIONS>` fully, including internal headings/lists.
+- It removes the “moved below” placeholder from the main note body, so the markdown content appears only once (in the “Markdown files” section).
+
+2. Added provider-specific rendering dispatch in [tools/note-comment-renderer.js](/Users/mandel/Work/memento/tools/note-comment-renderer.js):
+- Added explicit provider handlers for `codex` and `claude` (currently same formatter, separate provider routing in place for future divergence).
+
+3. Updated and expanded tests in [tests-js/note-comment-renderer.test.js](/Users/mandel/Work/memento/tests-js/note-comment-renderer.test.js):
+- Verifies internal markdown headings like `### Available skills` are preserved.
+- Verifies duplicate placeholder text is gone.
+- Adds Codex-specific full `<INSTRUCTIONS>` capture test.
+- Adds Claude provider-aware extraction test.
+
+**Verification**
+- Ran: `node --test tests-js/note-comment-renderer.test.js`
+- Result: 7/7 tests passing.
+
+### Manuel de la Pena
+
+Using the $git-memento-workflow create a new commit using the current session. Add a one liner that explans the change and a longer commit with the details. Then push to origin and sync the notes
+
+### Manuel de la Pena
+
+<skill>
+<name>git-memento-workflow</name>
+<path>/Users/mandel/.codex/skills/git-memento-workflow/SKILL.md</path>
+---
+name: git-memento-workflow
+description: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes.
+---
+
+# Git Memento Workflow
+
+Run this workflow whenever work must be committed with an AI session note.
+
+## 1. Preflight
+
+- Confirm repository status with `git status --short` and branch with `git branch --show-current`.
+- Confirm `git memento` is available: `git memento help`.
+- If unavailable, install `git-memento` into a directory on `PATH` and re-check.
+
+## 2. Initialize Once Per Repository
+
+- Check configuration: `git config --local --get memento.provider`.
+- If missing, run `git memento init codex` or `git memento init claude`.
+- If provider CLI shape differs from expected `sessions get/list --json`, configure adapter command in local git config:
+- `git config --local memento.<provider>.bin <adapter-or-cli-path>`
+- `git config --local memento.<provider>.getArgs '<args with {id} placeholder>'`
+- `git config --local memento.<provider>.listArgs '<list args>'`
+
+## 3. Resolve Session ID
+
+- Prefer explicit session id from the user.
+- For Codex in this environment, default to `CODEX_THREAD_ID` when present.
+- Validate retrieval before commit by running provider command manually if needed.
+
+## 4. Create Memento Commit
+
+- Stage files as needed (`git add ...`).
+- Run commit through memento so note attachment happens in the same flow:
+- `git memento commit <session-id> -m "<subject>"`
+- For longer body, use embedded newlines in `-m` or omit `-m` to use editor.
+
+## 5. Verify Note Attachment
+
+- Read latest commit: `git log -1 --pretty=fuller`.
+- Show note on that commit: `git notes show <commit-hash>`.
+- If note is missing, inspect provider command config and rerun commit flow after fixing.
+
+## 6. Push Code and Sync Notes
+
+- Push commit branch: `git push <remote> <branch>`.
+- Sync notes with memento: `git memento share-notes <remote>`.
+- Verify notes exist remotely: `git ls-remote <remote> 'refs/notes/*'`.
+
+## 7. Failure Handling Checklist
+
+- `git-memento is not configured`: run `git memento init ...`.
+- Provider command fails: verify `memento.<provider>.*` git config and executable permissions.
+- Session not found: list sessions using provider list command and retry with exact id.
+- Note push missing on remote: rerun `git memento share-notes <remote>` and confirm remote ref output.
+
+</skill>
+
+### Codex
+
+Using `git-memento-workflow` to create the commit with this session note, then push and sync notes. I’m starting with preflight checks (`git status`, branch, memento availability/config, and session ID resolution).
+
+### Codex
+
+Preflight is good: provider is `codex`, current branch is `main`, and `CODEX_THREAD_ID` is available. I’ll stage the two modified files and create a `git memento commit` with a one-line subject plus a detailed body.
+
+### Codex
+
+The commit flow was blocked by sandbox write restrictions on `.git/index.lock`. I’m rerunning the stage+memento commit command with elevated permissions so the commit and note can be created.
