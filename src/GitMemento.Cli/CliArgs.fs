@@ -8,6 +8,7 @@ module CliArgs =
         + "  git memento init [codex|claude]\n"
         + "  git memento commit <session-id> [-m \"commit message\"]...\n"
         + "  git memento share-notes [remote]\n"
+        + "  git memento --version\n"
         + "  git memento help"
 
     let private toNonEmptyOption (value: string) =
@@ -21,6 +22,9 @@ module CliArgs =
             | "help"
             | "--help"
             | "-h" -> Ok Command.Help
+            | "version"
+            | "--version"
+            | "-v" -> Ok Command.Version
             | "init" ->
                 if args.Length = 1 then
                     Ok(Command.Init(None))

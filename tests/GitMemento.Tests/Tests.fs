@@ -86,6 +86,16 @@ let ``parse init with explicit provider`` () =
     | _ -> failwith "Expected init command with provider."
 
 [<Fact>]
+let ``parse version flags`` () =
+    let forms = [| [| "version" |]; [| "--version" |]; [| "-v" |] |]
+    forms
+    |> Array.iter (fun args ->
+        let input = String.Join(" ", args)
+        match CliArgs.parse args with
+        | Ok Command.Version -> ()
+        | _ -> failwith $"Expected version command for input: {input}")
+
+[<Fact>]
 let ``cleaner strips log prefixes`` () =
     let cleaned = TextCleaning.cleanBlock "[INFO] hello\nDEBUG: world"
     Assert.Equal("hello\nworld", cleaned)

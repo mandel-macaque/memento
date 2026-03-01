@@ -1,4 +1,5 @@
 ﻿open System
+open System.Reflection
 open GitMemento
 open Serilog
 
@@ -51,6 +52,35 @@ let loadProviderSettings (git: IGitService) (providerValue: string) =
                               GetArgs = getArgs
                               ListArgs = listArgs }
 
+let formatVersion (runner: ICommandRunner) =
+    let assemblyVersion =
+        Assembly.GetEntryAssembly()
+        |> Option.ofObj
+        |> Option.bind (fun assembly -> assembly.GetName().Version |> Option.ofObj)
+        |> Option.defaultValue (new Version(0, 0))
+
+    let majorMinor = $"{assemblyVersion.Major}.{assemblyVersion.Minor}"
+
+    let tryCapture (args: string list) =
+        try
+            let result = runner.RunCaptureAsync("git", args).Result
+            if result.ExitCode = 0 then
+                let value = result.StdOut.Trim()
+                if String.IsNullOrWhiteSpace(value) then None else Some value
+            else
+                None
+        with _ ->
+            None
+
+    let commitHash = tryCapture [ "rev-parse"; "--short"; "HEAD" ]
+    let commitDate = tryCapture [ "show"; "-s"; "--format=%cI"; "HEAD" ]
+
+    match commitHash, commitDate with
+    | Some hash, Some date -> $"git-memento {majorMinor} (commit {hash}, date {date})"
+    | Some hash, None -> $"git-memento {majorMinor} (commit {hash})"
+    | None, Some date -> $"git-memento {majorMinor} (commit date {date})"
+    | None, None -> $"git-memento {majorMinor} (commit metadata unavailable)"
+
 [<EntryPoint>]
 let main args =
     configureLogging ()
@@ -72,6 +102,9 @@ let main args =
             let initWorkflow = InitWorkflow(git, output)
 
             match command with
+            | Command.Version ->
+                Console.WriteLine(formatVersion runner)
+                0
             | Command.Init provider ->
                 initWorkflow.ExecuteAsync(provider).Result
                 |> function

@@ -27,6 +27,7 @@ type Command =
     | Commit of sessionId: string * messages: string list
     | ShareNotes of remote: string
     | Init of provider: string option
+    | Version
     | Help
 
 type CommandResult =

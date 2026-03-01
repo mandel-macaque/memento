@@ -52,6 +52,12 @@ Show command help:
 git memento help
 ```
 
+Show installed tool version (major.minor + commit metadata when available):
+
+```bash
+git memento --version
+```
+
 ## Provider Configuration
 
 Provider defaults can come from env vars, and `init` persists the selected provider + values in local git config:
