@@ -1,0 +1,522 @@
+# Git Memento Session
+
+- Provider: Codex
+- Session ID: 019ca70c-0155-7d51-98e3-1239e81f1cbb
+- Session Title: # AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
+### Available skills
+- git-memento-workflow: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes. (file: /Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- skill-creator: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. (file: /Users/mandel/.codex/skills/.system/skill-creator/SKILL.md)
+- skill-installer: Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos). (file: /Users/mandel/.codex/skills/.system/skill-installer/SKILL.md)
+### How to use skills
+- Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths.
+- Trigger rules: If the user names a skill (with `$SkillName` or plain text) OR the task clearly matches a skill's description shown above, you must use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned.
+- Missing/blocked: If a named skill isn't in the list or the path can't be read, say so briefly and continue with the best fallback.
+- How to use a skill (progressive disclosure):
+  1) After deciding to use a skill, open its `SKILL.md`. Read only enough to follow the workflow.
+  2) When `SKILL.md` references relative paths (e.g., `scripts/foo.py`), resolve them relative to the skill directory listed above first, and only consider other paths if needed.
+  3) If `SKILL.md` points to extra folders such as `references/`, load only the specific files needed for the request; don't bulk-load everything.
+  4) If `scripts/` exist, prefer running or patching them instead of retyping large code blocks.
+  5) If `assets/` or templates exist, reuse them instead of recreating from scratch.
+- Coordination and sequencing:
+  - If multiple skills apply, choose the minimal set that covers the request and state the order you'll use them.
+  - Announce which skill(s) you're using and why (one short line). If you skip an obvious skill, say why.
+- Context hygiene:
+  - Keep context small: summarize long sections instead of pasting them; only load extra files when needed.
+  - Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
+  - When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
+- Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+</INSTRUCTIONS>
+- Committer: Manuel de la Pena
+- Captured At (UTC): 2026-03-01T19:00:52.5356120+00:00
+
+## Conversation
+
+### Manuel de la Pena
+
+# AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
+### Available skills
+- git-memento-workflow: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes. (file: /Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- skill-creator: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. (file: /Users/mandel/.codex/skills/.system/skill-creator/SKILL.md)
+- skill-installer: Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos). (file: /Users/mandel/.codex/skills/.system/skill-installer/SKILL.md)
+### How to use skills
+- Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths.
+- Trigger rules: If the user names a skill (with `$SkillName` or plain text) OR the task clearly matches a skill's description shown above, you must use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned.
+- Missing/blocked: If a named skill isn't in the list or the path can't be read, say so briefly and continue with the best fallback.
+- How to use a skill (progressive disclosure):
+1) After deciding to use a skill, open its `SKILL.md`. Read only enough to follow the workflow.
+2) When `SKILL.md` references relative paths (e.g., `scripts/foo.py`), resolve them relative to the skill directory listed above first, and only consider other paths if needed.
+3) If `SKILL.md` points to extra folders such as `references/`, load only the specific files needed for the request; don't bulk-load everything.
+4) If `scripts/` exist, prefer running or patching them instead of retyping large code blocks.
+5) If `assets/` or templates exist, reuse them instead of recreating from scratch.
+- Coordination and sequencing:
+- If multiple skills apply, choose the minimal set that covers the request and state the order you'll use them.
+- Announce which skill(s) you're using and why (one short line). If you skip an obvious skill, say why.
+- Context hygiene:
+- Keep context small: summarize long sections instead of pasting them; only load extra files when needed.
+- Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
+- When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
+- Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+</INSTRUCTIONS>
+
+### Manuel de la Pena
+
+<environment_context>
+<cwd>/Users/mandel/Work/memento</cwd>
+<shell>zsh</shell>
+</environment_context>
+
+### Manuel de la Pena
+
+Our memento tool right now has been developed ignoring the fact that commits can be added via a github PR and a merge commit or squash. We want to be able to mantain the notes in those situations. Do remember the following:
+
+Git notes are not part of the commit itself.
+They are stored separately (by default under refs/notes/commits), so:
+✅ If the commit object survives the merge, its notes are still there.
+❌ Notes do not automatically “merge” like normal branch content.
+⚠️ If two branches added different notes to the same commit, you must merge the notes refs separately.
+
+We want to provide a new command for memento that will help in the situation in which we are performing a new merge or squash in to different branch. Do do so remember the different options you have to work with git notes:
+
+ormal merge, commit already exists on both branches
+Example:
+main:    A---B---C
+feature:      \
+D
+If commit B has notes:
+After merging feature → main
+Commit B is still the same object
+Notes remain visible
+✔ Nothing special needed.
+
+Notes created independently on two branches
+This is where it gets tricky.
+If:
+main has notes on commit X
+feature also adds notes to X
+You merge branches
+The notes do not automatically combine.
+You must explicitly merge the notes ref:
+git notes merge
+or manually:
+git fetch origin refs/notes/*:refs/notes/*
+git notes merge origin/notes/commits
+Otherwise one side's notes may not be visible.
+
+Rebase or rewritten commits
+Important:
+If you:
+rebase
+amend
+squash
+cherry-pick
+You create new commit hashes.
+Since notes are attached to the commit hash:
+❌ The notes do NOT automatically move.
+You must copy them:
+git notes copy <old-commit> <new-commit>
+
+We probably want to take the Rebase case to be a special case, since that might be done by the user. Create a plan on:
+
+- What new commands should we add
+- The implementation details taking into account each of the merge cases
+- Provide a solution for the rebase
+
+In no case we want to loose the data of the session. We want to use this tool to audit the work with ai agents
+
+### Codex
+
+I’ll inspect the current `memento` CLI structure and the `git-memento-workflow` skill instructions first, then I’ll propose a concrete command plan and implementation strategy that covers merge, squash, and rebase without data loss.
+
+### Codex
+
+I’m using the `git-memento-workflow` skill because this change is about preserving and syncing memento git notes across branch integration workflows. Next I’ll inspect the current CLI commands to map where to add new note-safe operations.
+
+### Codex
+
+I’ve mapped existing commands (`init`, `commit`, `push`, `share-notes`) and confirmed there’s no merge/rewrite note handling yet. I’ll read the CLI/domain service files now and then give you a concrete command set plus implementation plan tied to current code structure.
+
+### Codex
+
+I have enough structure now to design this cleanly against the existing architecture (`Command` + workflow + `IGitService`). I’ll quickly inspect workflow/tests patterns so the plan includes exact implementation/test steps.
+
+### Codex
+
+I’m now shaping the command design around “never lose note data.” I’ll verify exact native Git capabilities for rewrite handling (`notes.rewrite*`) so the rebase plan is reliable and low-maintenance.
+
+### Codex
+
+**Plan**
+
+1. **Add 3 new commands**
+1. `git memento notes-sync [remote] [--strategy cat_sort_uniq]`
+Purpose: safely reconcile notes when both branches/remotes may have different notes for the same commit.
+2. `git memento notes-carry --onto <commit> --from-range <base>..<head>`
+Purpose: preserve audit trail for squash/merge-result commits by carrying notes from source commits into the new target commit.
+3. `git memento notes-rewrite-setup`
+Purpose: make user-driven `rebase`/`amend` preserve notes automatically.
+
+2. **Implementation details by merge case**
+1. **Normal merge (commit object survives)**
+No note migration needed. Notes remain attached because commit hash is unchanged.
+`notes-sync` is still useful as a safety step to ensure local/remote notes refs are reconciled.
+2. **Independent notes on same commit across branches**
+`notes-sync` flow:
+- Create backup ref before any mutation, e.g. `refs/notes/memento-backups/<timestamp>`.
+- Fetch remote notes into namespaced refs (not directly overwriting local), e.g. `refs/notes/remote/<remote>/*`.
+- Merge `refs/notes/remote/<remote>/commits` into local notes ref with `git notes merge -s cat_sort_uniq`.
+- Push `refs/notes/*` after successful merge.
+- If conflict: stop, keep backup ref, surface exact recovery command.
+3. **Squash merge / new commit hash**
+`notes-carry` flow:
+- Resolve source commit list from `<base>..<head>`.
+- Read each source note (if present).
+- Build one aggregated audit note with source commit IDs and note bodies.
+- Append to target commit note (`git notes append`) instead of overwrite.
+- Add provenance markers (`Source-Commit: <sha>`) so audit remains traceable.
+
+3. **Rebase solution (special case)**
+1. **Preventive setup** with `notes-rewrite-setup`:
+- `git config --local notes.rewriteRef refs/notes/commits`
+- `git config --local notes.rewriteMode concatenate`
+- `git config --local notes.rewrite.rebase true`
+- `git config --local notes.rewrite.amend true`
+2. **Recovery path** for already-rewritten history:
+- Add optional follow-up command later: `git memento notes-remap --map <old-new-map-file> [--dry-run]`.
+- It copies/concatenates old notes onto rewritten commits (`git notes copy`/`append`) without deleting originals.
+
+4. **Code changes in this repo**
+1. Extend command model/parser/help:
+- [/Users/mandel/Work/memento/src/GitMemento.Cli/Domain.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/Domain.fs)
+- [/Users/mandel/Work/memento/src/GitMemento.Cli/CliArgs.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/CliArgs.fs)
+- [/Users/mandel/Work/memento/src/GitMemento.Cli/Program.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/Program.fs)
+2. Extend git abstraction/service:
+- [/Users/mandel/Work/memento/src/GitMemento.Cli/GitService.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/GitService.fs)
+3. Add workflows:
+- `NotesSyncWorkflow.fs`
+- `NotesCarryWorkflow.fs`
+- `NotesRewriteSetupWorkflow.fs`
+4. Tests:
+- Parser and workflow unit tests in [/Users/mandel/Work/memento/tests/GitMemento.Tests/Tests.fs](/Users/mandel/Work/memento/tests/GitMemento.Tests/Tests.fs)
+- Integration behavior in [/Users/mandel/Work/memento/tests/GitMemento.Tests/IntegrationTests.fs](/Users/mandel/Work/memento/tests/GitMemento.Tests/IntegrationTests.fs)
+
+5. **No-data-loss guarantees**
+1. Always create a backup notes ref before merge/carry operations.
+2. Default to append/concatenate behavior, never silent overwrite.
+3. Support `--dry-run` for `notes-sync` and `notes-carry`.
+4. Print deterministic recovery instructions after partial failures.
+
+If you want, I can implement Phase 1 now (`notes-sync` + `notes-rewrite-setup`), then Phase 2 (`notes-carry`) immediately after.
+
+### Manuel de la Pena
+
+Please do. MAke sure that readme and help are updated. Do one face after the other one, no commits in between but make sure you do not move to phase 2 until phase 1 is completed and passes all the tests
+
+### Codex
+
+I’ll implement Phase 1 first (`notes-sync` and `notes-rewrite-setup`) with parser/help/README updates, run the full tests, and only then move to Phase 2 (`notes-carry`). I’m starting by wiring new commands through `Domain`, `CliArgs`, `Program`, and `GitService` interfaces.
+
+### Codex
+
+I’m about to edit Phase 1 files now: add new command variants in the parser/domain, add `NotesSyncWorkflow` and `NotesRewriteSetupWorkflow`, extend `IGitService` with note-merge primitives, and wire everything in `Program` plus README/help text.
+
+### Codex
+
+I’ve added the new Phase 1 workflow files and service methods. Next I’m wiring them into `Program` command dispatch and parser/help tests, then I’ll run `dotnet test` before touching Phase 2.
+
+### Codex
+
+Phase 1 code and docs are in place. I’m running the full test suite now and will not start Phase 2 until everything passes.
+
+### Codex
+
+Phase 1 is complete and all tests are passing (`26/26`). I’m moving to Phase 2 now: adding `notes-carry` end-to-end (CLI/help, workflow, git service methods, tests, README), then I’ll rerun the full suite.
+
+### Codex
+
+I’m now finishing Phase 2 wiring by extending all test doubles for the new `IGitService` methods and adding parser/workflow tests for `notes-carry`, then I’ll rerun the full suite.
+
+### Codex
+
+Implemented both phases sequentially, with full tests passing after each phase and no commits made in between.
+
+**Phase 1 completed**
+- Added `notes-sync` and `notes-rewrite-setup` commands to CLI/help/dispatch.
+- Implemented workflows:
+- [NotesSyncWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/NotesSyncWorkflow.fs)
+- [NotesRewriteSetupWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/NotesRewriteSetupWorkflow.fs)
+- Extended git service with ref/fetch/notes-merge primitives in [GitService.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/GitService.fs).
+- Updated help/parser/domain/program wiring in:
+- [CliArgs.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/CliArgs.fs)
+- [Domain.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/Domain.fs)
+- [Program.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/Program.fs)
+- [GitMemento.Cli.fsproj](/Users/mandel/Work/memento/src/GitMemento.Cli/GitMemento.Cli.fsproj)
+- Updated docs in [README.md](/Users/mandel/Work/memento/README.md).
+- Tests passed before moving to Phase 2: `Passed: 26`.
+
+**Phase 2 completed**
+- Added `notes-carry --onto <commit> --from-range <base>..<head>`.
+- Implemented workflow:
+- [NotesCarryWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/NotesCarryWorkflow.fs)
+- Extended git service with rewrite/carry helpers (`resolve commit`, `rev-list range`, `show note`, `append note`) in [GitService.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/GitService.fs).
+- Updated parser/help/domain/program wiring and README for `notes-carry`.
+- Added/updated unit tests in [Tests.fs](/Users/mandel/Work/memento/tests/GitMemento.Tests/Tests.fs).
+- Full suite after Phase 2: `Passed: 28`.
+
+**Final test run**
+- `dotnet test GitMemento.slnx` succeeded with all tests passing.
+
+1. If you want, I can now add integration tests for `notes-sync` conflict paths and `notes-carry` against fake git to harden behavior under real command outputs.
+
+### Manuel de la Pena
+
+Add the integration tests
+
+### Codex
+
+I’ll add integration coverage for the three new workflows (`notes-sync`, `notes-rewrite-setup`, `notes-carry`) by extending the fake git script to support the extra git subcommands they need, then add tests and run the full suite.
+
+### Codex
+
+I’ve extended the fake git binary behavior to emulate `notes-sync`/`notes-carry`/rewrite config paths. Next I’m adding three new integration tests and running the full test suite.
+
+### Codex
+
+One integration test failed due a shell pattern bug in the fake `update-ref` handler; I fixed it. I’m rerunning the full test suite now.
+
+### Codex
+
+Added integration tests for all new note-maintenance workflows and extended the fake git harness to support the required commands.
+
+Updated test file:
+- [IntegrationTests.fs](/Users/mandel/Work/memento/tests/GitMemento.Tests/IntegrationTests.fs)
+
+New integration tests:
+1. `integration notes-sync workflow backs up merges and shares notes`
+2. `integration notes-rewrite-setup stores rewrite config in local git metadata`
+3. `integration notes-carry appends source notes to target commit`
+
+Also extended fake git behavior for:
+- `git rev-parse --verify --quiet <ref>`
+- `git rev-parse --verify <rev^{commit}>`
+- `git update-ref`
+- `git fetch <remote> refs/notes/*:refs/notes/remote/<remote>/*`
+- `git notes merge -s <strategy> <ref>`
+- `git rev-list --reverse <range>`
+- `git notes show <commit>`
+- `git notes append -m <note> <commit>`
+- `git config --local <key> <value>`
+
+Validation:
+- Ran `dotnet test GitMemento.slnx`
+- Result: `Passed: 31, Failed: 0`
+
+No commits were created.
+
+### Manuel de la Pena
+
+The parse method in src/GitMemento.Cli/CliArgs.fs is getting too complicated. The complexity to read the file is at a point in which we need to refactoring. Keep the pattern match approach but refactor the code to use function that we can idependently test and read.
+
+### Codex
+
+I’ll refactor `CliArgs.parse` into smaller command-specific parsing functions while preserving the top-level pattern match, then add focused unit tests for those helper functions and run the full test suite.
+
+### Codex
+
+I’m rewriting `CliArgs.fs` now to keep `parse` as pattern match but delegate each command to dedicated helper functions, and I’ll expose those helpers under a small `CliArgs.Parsing` module so they can be tested directly.
+
+### Codex
+
+Refactor and helper-level tests are in. I’m running the full test suite to confirm no behavioral regressions.
+
+### Codex
+
+Refactor completed with the same top-level pattern-match flow in `parse`, but command parsing is now decomposed into small helper functions that are easier to read and test.
+
+Updated file:
+- [CliArgs.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/CliArgs.fs)
+
+What changed:
+1. Kept `CliArgs.parse` as the command dispatcher via `match args[0].ToLowerInvariant()`.
+2. Moved per-command parsing into `CliArgs.Parsing` helpers:
+- `parseInit`
+- `parseCommit`
+- `parseShareNotes`
+- `parsePush`
+- `parseNotesSync`
+- `parseNotesRewriteSetup`
+- `parseNotesCarry`
+3. Added a shared `parseOptionalRemote` helper to remove duplicated push/share-notes logic.
+4. Replaced mutable loops in `notes-sync`, `notes-carry`, and `commit` parsing with recursive parsers for clearer control flow.
+
+Added independent helper tests:
+- [Tests.fs](/Users/mandel/Work/memento/tests/GitMemento.Tests/Tests.fs)
+- `parse commit helper returns expected command`
+- `parse notes-sync helper supports mixed ordering`
+- `parse notes-carry helper rejects missing required flags`
+
+Validation:
+- Ran `dotnet test GitMemento.slnx`
+- Result: `Passed: 34, Failed: 0`
+
+### Manuel de la Pena
+
+The cyclomatric complexity of /Users/mandel/Work/memento/src/GitMemento.Cli/NotesCarryWorkflow.fs is quite high, reduce it so that it is easier for a human to read. Add comments when appropaite
+
+### Codex
+
+I’ll refactor `NotesCarryWorkflow` into smaller private helper functions to flatten nesting and reduce cyclomatic complexity, then run tests to confirm behavior is unchanged.
+
+### Codex
+
+I’m applying a structural refactor now: extracting range validation, note collection, and markdown rendering into focused helpers, plus brief comments on the non-obvious parts. Then I’ll run tests.
+
+### Codex
+
+I fixed the workflow refactor and I’m running the full test suite now to confirm no behavior changes.
+
+### Codex
+
+Reduced complexity in [NotesCarryWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/NotesCarryWorkflow.fs) by splitting logic into focused helpers and flattening control flow.
+
+What I changed:
+1. Added `IsValidRangeSpec` and `InvalidRangeMessage` for isolated range validation.
+2. Extracted `CollectNotesAsync` to encapsulate note retrieval/error handling.
+3. Extracted `BuildCarryMarkdown` to centralize note rendering.
+4. Simplified `ExecuteAsync` to an orchestration flow with fewer nested branches.
+5. Added a concise comment in markdown construction to explain audit provenance intent.
+
+Validation:
+- Ran `dotnet test GitMemento.slnx`
+- Result: `Passed: 34, Failed: 0`
+
+### Manuel de la Pena
+
+Do a similar refactor for src/GitMemento.Cli/NotesSyncWorkflow.fs
+
+### Codex
+
+I’ll apply the same style refactor to `NotesSyncWorkflow` by extracting helper methods for backup, fetch, and reconciliation branches to reduce nesting, then run the full test suite.
+
+### Codex
+
+Refactor is in with helper methods for backup/share/reconcile and a flattened `ExecuteAsync`. I’m running tests now to verify no regressions.
+
+### Codex
+
+Refactored [NotesSyncWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/NotesSyncWorkflow.fs) with the same approach as `NotesCarryWorkflow` to reduce cyclomatic complexity and improve readability.
+
+What changed:
+1. Extracted helpers:
+- `CreateBackupIfPresentAsync`
+- `ShareNotesAsync`
+- `ReconcileAsync`
+- static utility members for refs/message formatting
+2. Flattened `ExecuteAsync` so it mainly orchestrates steps.
+3. Kept behavior unchanged (backup, fetch-to-namespace, reconcile paths, merge failure recovery message).
+4. Added a focused comment explaining why fetch is namespaced before merge.
+
+Validation:
+- Ran `dotnet test GitMemento.slnx`
+- Result: `Passed: 34, Failed: 0`
+
+### Manuel de la Pena
+
+Using the $git-memento-workflow add a new commit with a one liner title explaining the change and longer commit explaining the details. Use the curretn session for the commit, then use the memento push to push changes to the remote repo.
+
+Make sure that before you push you build the project and install it locally (verify with the help commnad)
+
+### Manuel de la Pena
+
+<skill>
+<name>git-memento-workflow</name>
+<path>/Users/mandel/.codex/skills/git-memento-workflow/SKILL.md</path>
+---
+name: git-memento-workflow
+description: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes.
+---
+
+# Git Memento Workflow
+
+Run this workflow whenever work must be committed with an AI session note.
+
+## 1. Preflight
+
+- Confirm repository status with `git status --short` and branch with `git branch --show-current`.
+- Confirm `git memento` is available: `git memento help`.
+- If unavailable, install `git-memento` into a directory on `PATH` and re-check.
+
+## 2. Initialize Once Per Repository
+
+- Check configuration: `git config --local --get memento.provider`.
+- If missing, run `git memento init codex` or `git memento init claude`.
+- If provider CLI shape differs from expected `sessions get/list --json`, configure adapter command in local git config:
+- `git config --local memento.<provider>.bin <adapter-or-cli-path>`
+- `git config --local memento.<provider>.getArgs '<args with {id} placeholder>'`
+- `git config --local memento.<provider>.listArgs '<list args>'`
+
+## 3. Resolve Session ID
+
+- Prefer explicit session id from the user.
+- For Codex in this environment, default to `CODEX_THREAD_ID` when present.
+- Validate retrieval before commit by running provider command manually if needed.
+
+## 4. Create Memento Commit
+
+- Stage files as needed (`git add ...`).
+- Run commit through memento so note attachment happens in the same flow:
+- `git memento commit <session-id> -m "<subject>"`
+- For longer body, use embedded newlines in `-m` or omit `-m` to use editor.
+
+## 5. Verify Note Attachment
+
+- Read latest commit: `git log -1 --pretty=fuller`.
+- Show note on that commit: `git notes show <commit-hash>`.
+- If note is missing, inspect provider command config and rerun commit flow after fixing.
+
+## 6. Push Code and Sync Notes
+
+- Push commit branch and sync notes in one step: `git memento push <remote>`.
+- For default remote, run `git memento push`.
+- Optional fallback: `git push <remote> <branch>` then `git memento share-notes <remote>`.
+- Verify notes exist remotely: `git ls-remote <remote> 'refs/notes/*'`.
+
+## 7. Failure Handling Checklist
+
+- `git-memento is not configured`: run `git memento init ...`.
+- Provider command fails: verify `memento.<provider>.*` git config and executable permissions.
+- Session not found: list sessions using provider list command and retry with exact id.
+- Note push missing on remote: rerun `git memento push <remote>` (or `git memento share-notes <remote>`) and confirm remote ref output.
+
+</skill>
+
+### Codex
+
+I’m using the `git-memento-workflow` skill now. I’ll run preflight checks, resolve the current session id, build and install locally, verify `git memento help`, then create a memento commit and push with `git memento push`.
+
+### Codex
+
+Build/publish is running now; I’ll install the produced binary and verify `git memento help` once it completes.
+
+### Manuel de la Pena
+
+The compilation was complete by me, continue with the commit
+
+### Codex
+
+Proceeding with commit flow. I’ll install the locally built `git-memento` binary now, verify `git memento help` shows the new commands, then create the memento commit with this session and push with `git memento push`.
+
+### Codex
+
+I found a mismatch: the newly built binary shows the updated help, but `git memento help` is routed through an existing Git alias/plugin path that still points to an older implementation. I’ll repoint that alias to the installed binary, re-verify help, then continue with commit and push.
+
+### Codex
+
+Local install is now verified (`git memento help` shows the new commands). I’m staging the code changes (excluding `node_modules`), then creating the memento commit with the current session id and a detailed commit body.
