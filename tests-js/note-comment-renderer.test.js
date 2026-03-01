@@ -64,6 +64,17 @@ test("uses provider-aware extraction for Claude notes", () => {
   assert.match(body, /### Mandel\s+Done\./);
 });
 
+test("removes session-title instruction blocks from top note body and renders once in markdown files", () => {
+  const note = `# Git Memento Session\n\n- Provider: Codex\n- Session ID: sess-meta\n- Session Title: # AGENTS.md instructions for /Users/mandel/Work/memento\n<INSTRUCTIONS>\n## Skills\n### Available skills\n- git-memento-workflow\n</INSTRUCTIONS>\n- Committer: Mandel\n- Captured At (UTC): 2026-03-01T00:35:39.9280860+00:00\n\n## Conversation\n\n### Mandel\n\nFix it.`;
+  const body = buildBody(note, 65000);
+
+  assert.match(body, /### Markdown files/);
+  assert.match(body, /<summary>AGENTS\.md instructions for \/Users\/mandel\/Work\/memento<\/summary>/);
+  assert.match(body, /### Available skills/);
+  assert.match(body, /- Session Title: # AGENTS\.md instructions for \/Users\/mandel\/Work\/memento/);
+  assert.doesNotMatch(body, /- Session Title:[\s\S]*<INSTRUCTIONS>[\s\S]*<\/INSTRUCTIONS>[\s\S]*- Committer:/);
+});
+
 test("truncates note body when still above max limit", () => {
   const longText = "x".repeat(2000);
   const note = `${baseHeader}\n## Conversation\n\n### Mandel\n\n${longText}`;

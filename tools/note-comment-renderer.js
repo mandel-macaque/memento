@@ -63,6 +63,86 @@ const isConversationSpeakerHeading = (line, speakers) => {
   return speakers.has(match[1].trim().toLowerCase());
 };
 
+const normalizeMarkdownTitle = (value) => (value || "").replace(/^#+\s*/, "").trim();
+
+const resolveSectionTitle = (lines, startIndex, fallbackTitle) => {
+  for (let i = startIndex - 1; i >= 0; i -= 1) {
+    const line = lines[i].trim();
+    if (!line) {
+      continue;
+    }
+
+    const headingMatch = line.match(markdownFileHeadingPattern);
+    if (headingMatch) {
+      return headingMatch[1].trim();
+    }
+
+    const sessionTitleMatch = line.match(/^- Session Title:\s*(.+)$/i);
+    if (sessionTitleMatch) {
+      const sessionTitle = normalizeMarkdownTitle(sessionTitleMatch[1]);
+      if (sessionTitle) {
+        return sessionTitle;
+      }
+    }
+
+    break;
+  }
+
+  return fallbackTitle;
+};
+
+const extractTopLevelInstructionSections = (noteBody, fallbackTitle, formatSection) => {
+  const lines = normalizeLineEndings(noteBody).split("\n");
+  const sections = [];
+  const remaining = [];
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    if (!/^<INSTRUCTIONS>$/i.test(trimmed)) {
+      remaining.push(line);
+      continue;
+    }
+
+    let end = i + 1;
+    while (end < lines.length && !/^<\/INSTRUCTIONS>$/i.test(lines[end].trim())) {
+      end += 1;
+    }
+
+    if (end >= lines.length) {
+      // Preserve malformed blocks to avoid data loss.
+      remaining.push(line);
+      continue;
+    }
+
+    const content = lines.slice(i, end + 1).join("\n");
+    sections.push({
+      title: resolveSectionTitle(lines, i, fallbackTitle),
+      content: formatSection(content),
+    });
+    i = end;
+  }
+
+  return {
+    noteBody: remaining.join("\n").trim(),
+    sections,
+  };
+};
+
+const dedupeSections = (sections) => {
+  const seen = new Set();
+  const deduped = [];
+  for (const section of sections) {
+    const key = `${section.title}\n---\n${section.content}`;
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    deduped.push(section);
+  }
+  return deduped;
+};
+
 const extractMarkdownFileSectionsForProvider = (note, provider, committer) => {
   const normalizedProvider = (provider || "").trim().toLowerCase();
   const providerRenderers = {
@@ -128,9 +208,15 @@ const extractMarkdownFileSectionsForProvider = (note, provider, committer) => {
     i = end - 1;
   }
 
+  const baseNoteBody = remaining.join("\n").trim();
+  const topLevelFallbackTitle = note.match(/^- Session Title:\s*(.+)$/m)
+    ? normalizeMarkdownTitle(note.match(/^- Session Title:\s*(.+)$/m)[1])
+    : "Session instructions";
+  const extractedTopLevel = extractTopLevelInstructionSections(baseNoteBody, topLevelFallbackTitle, renderer.formatSection);
+
   return {
-    noteBody: remaining.join("\n").trim(),
-    sections,
+    noteBody: extractedTopLevel.noteBody,
+    sections: dedupeSections([...sections, ...extractedTopLevel.sections]),
   };
 };
 
