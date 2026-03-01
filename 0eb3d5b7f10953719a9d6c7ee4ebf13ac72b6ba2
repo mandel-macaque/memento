@@ -1,0 +1,301 @@
+<!-- git-memento-sessions:v1 -->
+
+<!-- git-memento-note-version:1 -->
+
+<!-- git-memento-session:start -->
+# Git Memento Session
+
+- Provider: Codex
+- Session ID: 019cab59-f99b-7ec2-b1b9-2dbc48510041
+- Session Title: # AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
+### Available skills
+- git-memento-workflow: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes. (file: /Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- skill-creator: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. (file: /Users/mandel/.codex/skills/.system/skill-creator/SKILL.md)
+- skill-installer: Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos). (file: /Users/mandel/.codex/skills/.system/skill-installer/SKILL.md)
+### How to use skills
+- Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths.
+- Trigger rules: If the user names a skill (with `$SkillName` or plain text) OR the task clearly matches a skill's description shown above, you must use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned.
+- Missing/blocked: If a named skill isn't in the list or the path can't be read, say so briefly and continue with the best fallback.
+- How to use a skill (progressive disclosure):
+  1) After deciding to use a skill, open its `SKILL.md`. Read only enough to follow the workflow.
+  2) When `SKILL.md` references relative paths (e.g., `scripts/foo.py`), resolve them relative to the skill directory listed above first, and only consider other paths if needed.
+  3) If `SKILL.md` points to extra folders such as `references/`, load only the specific files needed for the request; don't bulk-load everything.
+  4) If `scripts/` exist, prefer running or patching them instead of retyping large code blocks.
+  5) If `assets/` or templates exist, reuse them instead of recreating from scratch.
+- Coordination and sequencing:
+  - If multiple skills apply, choose the minimal set that covers the request and state the order you'll use them.
+  - Announce which skill(s) you're using and why (one short line). If you skip an obvious skill, say why.
+- Context hygiene:
+  - Keep context small: summarize long sections instead of pasting them; only load extra files when needed.
+  - Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
+  - When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
+- Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+</INSTRUCTIONS>
+- Committer: Manuel de la Pena
+- Captured At (UTC): 2026-03-01T22:05:01.0190650+00:00
+
+## Conversation
+
+### Manuel de la Pena
+
+# AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
+### Available skills
+- git-memento-workflow: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes. (file: /Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- skill-creator: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. (file: /Users/mandel/.codex/skills/.system/skill-creator/SKILL.md)
+- skill-installer: Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos). (file: /Users/mandel/.codex/skills/.system/skill-installer/SKILL.md)
+### How to use skills
+- Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths.
+- Trigger rules: If the user names a skill (with `$SkillName` or plain text) OR the task clearly matches a skill's description shown above, you must use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned.
+- Missing/blocked: If a named skill isn't in the list or the path can't be read, say so briefly and continue with the best fallback.
+- How to use a skill (progressive disclosure):
+1) After deciding to use a skill, open its `SKILL.md`. Read only enough to follow the workflow.
+2) When `SKILL.md` references relative paths (e.g., `scripts/foo.py`), resolve them relative to the skill directory listed above first, and only consider other paths if needed.
+3) If `SKILL.md` points to extra folders such as `references/`, load only the specific files needed for the request; don't bulk-load everything.
+4) If `scripts/` exist, prefer running or patching them instead of retyping large code blocks.
+5) If `assets/` or templates exist, reuse them instead of recreating from scratch.
+- Coordination and sequencing:
+- If multiple skills apply, choose the minimal set that covers the request and state the order you'll use them.
+- Announce which skill(s) you're using and why (one short line). If you skip an obvious skill, say why.
+- Context hygiene:
+- Keep context small: summarize long sections instead of pasting them; only load extra files when needed.
+- Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
+- When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
+- Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+</INSTRUCTIONS>
+
+### Manuel de la Pena
+
+<environment_context>
+<cwd>/Users/mandel/Work/memento</cwd>
+<shell>zsh</shell>
+</environment_context>
+
+### Manuel de la Pena
+
+The publish action fails when it is ran on windows with the folowing error:
+
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$archive = "git-memento-win-x64.zip"
+$zip = [System.IO.Compression.ZipFile]::OpenRead($archive)
+try {
+if ($zip.Entries.Count -ne 1 -or $zip.Entries[0].FullName -ne "git-memento.exe") {
+$names = ($zip.Entries | ForEach-Object { $_.FullName }) -join ", "
+throw "Unexpected archive contents for $archive: $names"
+}
+}
+finally {
+$zip.Dispose()
+}
+shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+env:
+DOTNET_ROOT: C:\Program Files\dotnet
+ParserError: D:\a\_temp\81cdf205-86f2-499e-a418-f1d5978fd1e4.ps1:8
+Line |
+8 |      throw "Unexpected archive contents for $archive: $names"
+|                                             ~~~~~~~~~
+| Variable reference is not valid. ':' was not followed by a valid variable name character. Consider using ${} to
+| delimit the name.
+Process completed with exit code 1.
+
+Looks like the formating is not correct ps, consider using the ${} pattern. Update the action. To make things easier, could we stract those ps/bash scripts to a diff location so that we can run tests on them? If that is the case, move all the script to a special location in the tree and add unit tests when possible. Since this might be hard for bash, consider using pwsh (it is multi platform) and write unit tests for the pwsh
+
+pwsh does have a test and mock pacakge we can use. This will ensure that we do not make mistakes again
+
+### Codex
+
+I’m going to locate the publish workflow and the inline PowerShell/Bash blocks first, then I’ll extract them into repository scripts and add PowerShell unit tests to cover the archive validation path that failed on Windows.
+
+### Codex
+
+I found the failing block in `.github/workflows/release.yml`. Next I’ll inspect the full workflow and then extract those inline shell steps into dedicated `scripts/` PowerShell files with Pester tests.
+
+### Codex
+
+I confirmed the exact parser issue: PowerShell treats `"$archive: $names"` as a malformed variable reference. I’ll now refactor the release workflow scripts into versioned `.ps1` files and wire in Pester tests for the archive validation logic.
+
+### Codex
+
+I’m shifting the release workflow to call reusable PowerShell scripts under a dedicated folder, then I’ll add a Pester suite that tests the archive-content checks and run it in CI so this class of failure is caught before publish.
+
+### Codex
+
+I’m now creating a dedicated `scripts/release` PowerShell module plus thin wrapper scripts, then I’ll switch the workflow to call those scripts instead of inline shell blocks. After that I’ll add Pester tests under `tests/powershell`.
+
+### Codex
+
+Core scripts are in place. I’ll add the packaging/archive-validation wrappers, then patch `release.yml` and `ci.yml` to call these scripts and run Pester tests on every PR/push.
+
+### Codex
+
+I’m patching the workflows now: `release.yml` will call the new PowerShell scripts for metadata/validate/package/archive checks, and `ci.yml` will install Pester and execute the new script tests.
+
+### Codex
+
+Workflow updates are applied. Next I’m running the new PowerShell test suite locally to verify script behavior and catch any syntax/runtime issues before handing this back.
+
+### Codex
+
+I hit a script parsing issue: in PowerShell, `param(...)` must come before executable statements. I’m fixing that ordering in all new `.ps1` files and re-running sanity checks.
+
+### Codex
+
+The quick local integration check command had shell-quoting issues, not script logic. I’ll run a cleaner single PowerShell command to validate the extracted scripts end-to-end.
+
+### Codex
+
+I found another PowerShell edge case: a single returned zip entry was being treated as a scalar string. I’m forcing array semantics in the archive validator so single-entry archives are handled correctly.
+
+### Codex
+
+The extracted scripts now pass a local integration sanity check for zip packaging/validation, including the exact failure case with extra entries. I’ll do a final diff review for correctness and then summarize what changed and what still needs CI to validate.
+
+### Codex
+
+I found why the new scripts weren’t showing as tracked: `.gitignore` has a broad `[Rr]elease/` rule that ignores any `release/` directory, including `scripts/release`. I’m adding a targeted unignore for this path.
+
+### Codex
+
+I’ve finished code changes and done local runtime sanity checks for the new release scripts (including the failing zip-content path). I’m grabbing exact file/line references now so you can review quickly.
+
+### Codex
+
+Local PowerShell doesn’t have `PSGallery` registered, so I’m making the CI install step resilient by registering default repositories first when needed.
+
+### Codex
+
+I fixed another strict-mode edge case (`Get-ChildItem` null output). I’m doing one last sequential sanity run for both `zip` and `tar.gz` paths.
+
+### Codex
+
+Implemented in the release/publish pipeline:
+
+1. Fixed the PowerShell interpolation bug by using `${...}` in thrown messages, so `:` after variable names no longer causes parser errors.
+2. Extracted publish/release inline scripts into reusable PowerShell scripts under:
+- [scripts/release/ReleaseArtifacts.psm1](/Users/mandel/Work/memento/scripts/release/ReleaseArtifacts.psm1)
+- [scripts/release/compute-release-metadata.ps1](/Users/mandel/Work/memento/scripts/release/compute-release-metadata.ps1)
+- [scripts/release/validate-nativeaot-output.ps1](/Users/mandel/Work/memento/scripts/release/validate-nativeaot-output.ps1)
+- [scripts/release/package-artifact.ps1](/Users/mandel/Work/memento/scripts/release/package-artifact.ps1)
+- [scripts/release/validate-archive-contents.ps1](/Users/mandel/Work/memento/scripts/release/validate-archive-contents.ps1)
+
+3. Updated the release workflow to call those scripts instead of inline bash/pwsh:
+- [release.yml](/Users/mandel/Work/memento/.github/workflows/release.yml:34)
+- [release.yml](/Users/mandel/Work/memento/.github/workflows/release.yml:78)
+- [release.yml](/Users/mandel/Work/memento/.github/workflows/release.yml:85)
+- [release.yml](/Users/mandel/Work/memento/.github/workflows/release.yml:92)
+
+4. Added PowerShell unit tests (Pester) for the extracted archive/native-aot validation logic:
+- [ReleaseArtifacts.Tests.ps1](/Users/mandel/Work/memento/tests/powershell/ReleaseArtifacts.Tests.ps1)
+
+5. Wired Pester into CI and made module repo setup more robust:
+- [ci.yml](/Users/mandel/Work/memento/.github/workflows/ci.yml:34)
+- [ci.yml](/Users/mandel/Work/memento/.github/workflows/ci.yml:49)
+
+6. Updated `.gitignore` so `scripts/release` is tracked (it was being ignored by `[Rr]elease/`):
+- [.gitignore](/Users/mandel/Work/memento/.gitignore:56)
+
+Validation I ran locally:
+- Positive `zip` package + validate flow: passed.
+- Positive `tar.gz` package + validate flow: passed.
+- Negative `zip` archive-content case: throws expected `Unexpected archive contents...` message (no parser error).
+
+Couldn’t run `Invoke-Pester` locally in this sandbox because PowerShell gallery/module registration isn’t available here, but CI now installs Pester before running those tests.
+
+### Manuel de la Pena
+
+Using the $git-memento-workflow create a new commit for the current session. Add a one liner title that explain the changes and a longer commit explaining what changed and how that will prevent other issues in CI. Then push the changes to the remote repository using memento push
+
+### Manuel de la Pena
+
+<skill>
+<name>git-memento-workflow</name>
+<path>/Users/mandel/.codex/skills/git-memento-workflow/SKILL.md</path>
+---
+name: git-memento-workflow
+description: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes.
+---
+
+# Git Memento Workflow
+
+Run this workflow whenever work must be committed with an AI session note.
+
+## 1. Preflight
+
+- Confirm repository status with `git status --short` and branch with `git branch --show-current`.
+- Confirm `git memento` is available: `git memento help`.
+- If unavailable, install `git-memento` into a directory on `PATH` and re-check.
+
+## 2. Initialize Once Per Repository
+
+- Check configuration: `git config --local --get memento.provider`.
+- If missing, run `git memento init codex` or `git memento init claude`.
+- If provider CLI shape differs from expected `sessions get/list --json`, configure adapter command in local git config:
+- `git config --local memento.<provider>.bin <adapter-or-cli-path>`
+- `git config --local memento.<provider>.getArgs '<args with {id} placeholder>'`
+- `git config --local memento.<provider>.listArgs '<list args>'`
+
+## 3. Resolve Session ID
+
+- Prefer explicit session id from the user.
+- For Codex in this environment, default to `CODEX_THREAD_ID` when present.
+- Validate retrieval before commit by running provider command manually if needed.
+
+## 4. Create Memento Commit or Amend
+
+- Stage files as needed (`git add ...`).
+- Run commit through memento so note attachment happens in the same flow:
+- `git memento commit <session-id> -m "<subject>"`
+- For amend flows:
+- `git memento amend -m "<amended-subject>"` to carry forward existing note(s) onto the amended commit.
+- `git memento amend <session-id> -m "<amended-subject>"` to carry forward existing note(s) and append a new session.
+- Backward compatibility:
+- Legacy single-session notes are preserved.
+- When append is needed, legacy notes are upgraded into the versioned multi-session envelope so no prior session content is lost.
+- For longer body, use embedded newlines in `-m` or omit `-m` to use editor.
+
+## 5. Verify Note Attachment
+
+- Read latest commit: `git log -1 --pretty=fuller`.
+- Show note on that commit: `git notes show <commit-hash>`.
+- For multi-session notes, expect envelope/version headers and separators:
+- `<!-- git-memento-sessions:v1 -->`
+- `<!-- git-memento-note-version:1 -->`
+- `<!-- git-memento-session:start -->`
+- `<!-- git-memento-session:end -->`
+- If note is missing, inspect provider command config and rerun commit flow after fixing.
+
+## 6. Push Code and Sync Notes
+
+- Push commit branch and sync notes in one step: `git memento push <remote>`.
+- For default remote, run `git memento push`.
+- Optional fallback: `git push <remote> <branch>` then `git memento share-notes <remote>`.
+- Verify notes exist remotely: `git ls-remote <remote> 'refs/notes/*'`.
+
+## 7. Failure Handling Checklist
+
+- `git-memento is not configured`: run `git memento init ...`.
+- Provider command fails: verify `memento.<provider>.*` git config and executable permissions.
+- Session not found: list sessions using provider list command and retry with exact id.
+- Note push missing on remote: rerun `git memento push <remote>` (or `git memento share-notes <remote>`) and confirm remote ref output.
+
+</skill>
+
+### Codex
+
+Using the `git-memento-workflow` skill now to create the commit with an attached session note, verify the note, and then push with `git memento push`. I’ll start with the preflight checks and memento/session configuration.
+
+### Codex
+
+Preflight is good: provider is already `codex`, `git memento` is installed, and I resolved the current session id from `CODEX_THREAD_ID`. I’ll stage only the relevant workflow/script/test files (excluding `node_modules`) and create the memento commit with your requested title/body.
+
+### Codex
+
+I staged only the intended files and left `node_modules/` untracked. Next I’m creating the memento commit with a one-line subject and a detailed body explaining the CI hardening changes.
+<!-- git-memento-session:end -->
