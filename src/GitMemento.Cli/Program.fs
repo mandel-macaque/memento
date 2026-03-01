@@ -99,6 +99,7 @@ let main args =
             let git = GitService(runner) :> IGitService
             let output = ConsoleOutput() :> IUserOutput
             let shareNotesWorkflow = ShareNotesWorkflow(git, output)
+            let pushWorkflow = PushWorkflow(git, output)
             let initWorkflow = InitWorkflow(git, output)
 
             match command with
@@ -138,6 +139,18 @@ let main args =
                     1
                 | Ok _ ->
                     shareNotesWorkflow.ExecuteAsync(remote).Result
+                    |> function
+                        | CommandResult.Completed -> 0
+                        | CommandResult.Failed message ->
+                            Console.Error.WriteLine(message)
+                            1
+            | Command.Push(remote) ->
+                match requireConfigured git with
+                | Error configError ->
+                    Console.Error.WriteLine(configError)
+                    1
+                | Ok _ ->
+                    pushWorkflow.ExecuteAsync(remote).Result
                     |> function
                         | CommandResult.Completed -> 0
                         | CommandResult.Failed message ->

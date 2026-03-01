@@ -11,6 +11,7 @@ type IGitService =
     abstract member CommitAsync: messages: string list -> Task<Result<unit, string>>
     abstract member GetHeadHashAsync: unit -> Task<Result<string, string>>
     abstract member AddNoteAsync: hash: string * note: string -> Task<Result<unit, string>>
+    abstract member PushAsync: remote: string -> Task<Result<unit, string>>
     abstract member EnsureNotesFetchConfiguredAsync: remote: string -> Task<Result<unit, string>>
     abstract member ShareNotesAsync: remote: string -> Task<Result<unit, string>>
 
@@ -97,6 +98,15 @@ type GitService(runner: ICommandRunner) =
         member _.AddNoteAsync(hash: string, note: string) =
             task {
                 let! result = runner.RunCaptureAsync("git", [ "notes"; "add"; "-f"; "-m"; note; hash ])
+                if result.ExitCode = 0 then
+                    return Ok()
+                else
+                    return Error(failWith result.StdErr result.StdOut)
+            }
+
+        member _.PushAsync(remote: string) =
+            task {
+                let! result = runner.RunCaptureAsync("git", [ "push"; remote ])
                 if result.ExitCode = 0 then
                     return Ok()
                 else

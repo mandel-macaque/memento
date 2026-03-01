@@ -43,8 +43,9 @@ Run this workflow whenever work must be committed with an AI session note.
 
 ## 6. Push Code and Sync Notes
 
-- Push commit branch: `git push <remote> <branch>`.
-- Sync notes with memento: `git memento share-notes <remote>`.
+- Push commit branch and sync notes in one step: `git memento push <remote>`.
+- For default remote, run `git memento push`.
+- Optional fallback: `git push <remote> <branch>` then `git memento share-notes <remote>`.
 - Verify notes exist remotely: `git ls-remote <remote> 'refs/notes/*'`.
 
 ## 7. Failure Handling Checklist
@@ -52,4 +53,4 @@ Run this workflow whenever work must be committed with an AI session note.
 - `git-memento is not configured`: run `git memento init ...`.
 - Provider command fails: verify `memento.<provider>.*` git config and executable permissions.
 - Session not found: list sessions using provider list command and retry with exact id.
-- Note push missing on remote: rerun `git memento share-notes <remote>` and confirm remote ref output.
+- Note push missing on remote: rerun `git memento push <remote>` (or `git memento share-notes <remote>`) and confirm remote ref output.

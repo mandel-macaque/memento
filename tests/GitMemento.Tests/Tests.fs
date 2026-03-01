@@ -79,6 +79,20 @@ let ``parse share-notes with default remote`` () =
     | _ -> failwith "Expected share-notes command with default remote."
 
 [<Fact>]
+let ``parse push with default remote`` () =
+    let result = CliArgs.parse [| "push" |]
+    match result with
+    | Ok(Command.Push remote) -> Assert.Equal("origin", remote)
+    | _ -> failwith "Expected push command with default remote."
+
+[<Fact>]
+let ``parse push with explicit remote`` () =
+    let result = CliArgs.parse [| "push"; "upstream" |]
+    match result with
+    | Ok(Command.Push remote) -> Assert.Equal("upstream", remote)
+    | _ -> failwith "Expected push command with explicit remote."
+
+[<Fact>]
 let ``parse init with explicit provider`` () =
     let result = CliArgs.parse [| "init"; "claude" |]
     match result with
@@ -184,6 +198,7 @@ type private InMemoryGitService() =
         member _.CommitAsync(_messages) = Task.FromResult(Ok())
         member _.GetHeadHashAsync() = Task.FromResult(Ok("hash"))
         member _.AddNoteAsync(_, _) = Task.FromResult(Ok())
+        member _.PushAsync(_) = Task.FromResult(Ok())
         member _.EnsureNotesFetchConfiguredAsync(_) = Task.FromResult(Ok())
         member _.ShareNotesAsync(_) = Task.FromResult(Ok())
 
@@ -200,3 +215,43 @@ let ``init workflow stores provider configuration in local git metadata`` () =
     match provider with
     | Ok(Some value) -> Assert.Equal("codex", value)
     | _ -> failwith "Expected memento.provider to be set."
+
+type private PushSpyGitService() =
+    let calls = ResizeArray<string * string>()
+
+    member _.Calls = calls |> Seq.toList
+
+    interface IGitService with
+        member _.EnsureInRepositoryAsync() =
+            calls.Add("ensureRepo", "")
+            Task.FromResult(Ok())
+        member _.GetLocalConfigValueAsync(_key: string) = Task.FromResult(Ok None)
+        member _.SetLocalConfigValueAsync(_key: string, _value: string) = Task.FromResult(Ok())
+        member _.GetCommitterAliasAsync() = Task.FromResult("Dev")
+        member _.CommitAsync(_messages) = Task.FromResult(Ok())
+        member _.GetHeadHashAsync() = Task.FromResult(Ok("hash"))
+        member _.AddNoteAsync(_, _) = Task.FromResult(Ok())
+        member _.PushAsync(remote: string) =
+            calls.Add("push", remote)
+            Task.FromResult(Ok())
+        member _.EnsureNotesFetchConfiguredAsync(remote: string) =
+            calls.Add("ensureNotes", remote)
+            Task.FromResult(Ok())
+        member _.ShareNotesAsync(remote: string) =
+            calls.Add("shareNotes", remote)
+            Task.FromResult(Ok())
+
+[<Fact>]
+let ``push workflow executes branch push then note sync`` () =
+    let git = PushSpyGitService() :> IGitService
+    let output = StubOutput()
+    let workflow = PushWorkflow(git, output :> IUserOutput)
+
+    let result = workflow.ExecuteAsync("origin").Result
+
+    Assert.Equal(CommandResult.Completed, result)
+    let spy = git :?> PushSpyGitService
+    Assert.Equal<(string * string) list>(
+        [ ("ensureRepo", ""); ("push", "origin"); ("ensureNotes", "origin"); ("shareNotes", "origin") ],
+        spy.Calls
+    )

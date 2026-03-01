@@ -7,6 +7,7 @@ module CliArgs =
         "Usage:\n"
         + "  git memento init [codex|claude]\n"
         + "  git memento commit <session-id> [-m \"commit message\"]...\n"
+        + "  git memento push [remote]\n"
         + "  git memento share-notes [remote]\n"
         + "  git memento --version\n"
         + "  git memento help"
@@ -93,5 +94,16 @@ module CliArgs =
                         Ok(Command.ShareNotes(remote))
                 else
                     Error "Usage: git memento share-notes [remote]"
+            | "push" ->
+                if args.Length = 1 then
+                    Ok(Command.Push("origin"))
+                elif args.Length = 2 then
+                    let remote = args[1].Trim()
+                    if String.IsNullOrWhiteSpace remote then
+                        Error "Remote name cannot be empty."
+                    else
+                        Ok(Command.Push(remote))
+                else
+                    Error "Usage: git memento push [remote]"
             | unknown ->
                 Error $"Unknown command '{unknown}'.{Environment.NewLine}{usage}"

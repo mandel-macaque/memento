@@ -138,6 +138,7 @@ if [ "$cmd" = "notes" ] && [ "${2:-}" = "add" ]; then
 fi
 
 if [ "$cmd" = "push" ]; then
+  echo "$*" >> "$state/push-log"
   echo "$*" > "$state/push-args"
   exit 0
 fi
@@ -279,5 +280,33 @@ let ``integration share-notes pushes notes and configures fetch mapping`` () =
     Assert.Equal(CommandResult.Completed, result)
     let pushArgs = File.ReadAllText(Path.Combine(stateDir, "push-args")).Trim()
     Assert.Equal("push origin refs/notes/*", pushArgs)
+    let fetchConfig = File.ReadAllText(Path.Combine(stateDir, "remote-origin-fetch")).Trim()
+    Assert.Contains("+refs/notes/*:refs/notes/*", fetchConfig)
+
+[<Fact>]
+let ``integration push workflow pushes branch then notes`` () =
+    let temp = Path.Combine(Path.GetTempPath(), $"memento-it-{Guid.NewGuid():N}")
+    Directory.CreateDirectory(temp) |> ignore
+    let binDir = Path.Combine(temp, "bin")
+    let stateDir = Path.Combine(temp, "state")
+    Directory.CreateDirectory(binDir) |> ignore
+    Directory.CreateDirectory(stateDir) |> ignore
+
+    let gitPath = Path.Combine(binDir, "git")
+    writeExecutable gitPath (buildFakeGitScript stateDir)
+
+    let originalPath = Environment.GetEnvironmentVariable("PATH") |> Option.ofObj |> Option.defaultValue ""
+    use _env = new EnvScope([ "PATH", Some($"{binDir}{Path.PathSeparator}{originalPath}") ])
+
+    let runner = ProcessCommandRunner() :> ICommandRunner
+    let git = GitService(runner) :> IGitService
+    let output = CaptureOutput()
+    let workflow = PushWorkflow(git, output :> IUserOutput)
+
+    let result = workflow.ExecuteAsync("origin").Result
+
+    Assert.Equal(CommandResult.Completed, result)
+    let pushLog = File.ReadAllLines(Path.Combine(stateDir, "push-log"))
+    Assert.Equal<string array>([| "push origin"; "push origin refs/notes/*" |], pushLog)
     let fetchConfig = File.ReadAllText(Path.Combine(stateDir, "remote-origin-fetch")).Trim()
     Assert.Contains("+refs/notes/*:refs/notes/*", fetchConfig)

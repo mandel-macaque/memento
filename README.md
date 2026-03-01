@@ -46,6 +46,15 @@ git memento share-notes upstream
 
 This pushes `refs/notes/*` and configures local `remote.<name>.fetch` so notes can be fetched by teammates.
 
+Push your branch and sync notes to the same remote in one command (default: `origin`):
+
+```bash
+git memento push
+git memento push upstream
+```
+
+This runs `git push <remote>` and then performs the same notes sync as `share-notes`.
+
 Show command help:
 
 ```bash
@@ -73,7 +82,7 @@ Provider defaults can come from env vars, and `init` persists the selected provi
 Set `MEMENTO_AI_PROVIDER=claude` to use Claude Code.
 
 Runtime behavior:
-- If the repository is not configured yet, `commit` and `share-notes` fail with a message to run `git memento init` first.
+- If the repository is not configured yet, `commit`, `push`, and `share-notes` fail with a message to run `git memento init` first.
 - Stored git metadata keys include:
   - `memento.provider`
   - `memento.codex.bin`, `memento.codex.getArgs`, `memento.codex.listArgs`

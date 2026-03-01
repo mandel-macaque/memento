@@ -20,6 +20,7 @@
     <Compile Include="AiProvider.fs" />
     <Compile Include="CommitWorkflow.fs" />
     <Compile Include="ShareNotesWorkflow.fs" />
+    <Compile Include="PushWorkflow.fs" />
     <Compile Include="InitWorkflow.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
