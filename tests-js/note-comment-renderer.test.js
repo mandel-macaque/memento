@@ -3,7 +3,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const { buildBody, buildNoSessionBody, marker } = require("../tools/note-comment-renderer");
+const { buildBody, buildNoSessionBody, marker } = require("../dist/note-comment-renderer");
 
 const baseHeader = `# Git Memento Session\n\n- Provider: Codex\n- Session ID: sess-123\n- Committer: Mandel\n`;
 const countMatches = (value, pattern) => (value.match(pattern) || []).length;

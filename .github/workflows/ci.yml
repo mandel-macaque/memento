@@ -46,8 +46,18 @@ jobs:
       - name: Build
         run: dotnet build GitMemento.slnx -c Release --no-restore
 
+      - name: Guard action dist is up to date
+        run: |
+          set -eu
+          npm run build:action
+          if ! git diff --quiet -- dist/note-comment-renderer.js; then
+            echo "dist/note-comment-renderer.js is out of date. Run 'npm run build:action' and commit the updated dist artifact."
+            git --no-pager diff -- dist/note-comment-renderer.js
+            exit 1
+          fi
+
       - name: Test JS Comment Renderer
-        run: node --test tests-js/*.test.js
+        run: npm run test:js
 
       - name: Test PowerShell Release Scripts
         shell: pwsh

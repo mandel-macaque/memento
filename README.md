@@ -194,6 +194,7 @@ CI runs install smoke tests on Linux, macOS, and Windows that verify:
 
 ```bash
 dotnet test GitMemento.slnx
+npm run test:js
 ```
 
 ## Commit Note Comments (GitHub Action)
@@ -206,6 +207,8 @@ This repository includes a reusable action that reads `git notes` created by `gi
 Action definition:
 
 - `action.yml` at repository root.
+- Renderer source: `src/note-comment-renderer.ts`
+- Runtime artifact committed for marketplace consumers: `dist/note-comment-renderer.js`
 
 Example workflow:
 
@@ -246,8 +249,16 @@ Local workflow in this repository:
 
 ### Publish This Action To GitHub Marketplace
 
-1. Ensure `action.yml` is in the default branch root and README documents usage (done).
-2. Create and push a semantic version tag:
+1. Build and commit the action renderer artifact:
+
+```bash
+npm ci
+npm run build:action
+git add src/note-comment-renderer.ts dist/note-comment-renderer.js
+```
+
+2. Ensure `action.yml` is in the default branch root and README documents usage.
+3. Create and push a semantic version tag:
 
 ```bash
 git tag -a v1.0.0 -m "Release GitHub Action v1.0.0"
@@ -256,10 +267,10 @@ git tag -f v1 v1.0.0
 git push -f origin v1
 ```
 
-3. In GitHub, open your repository page:
+4. In GitHub, open your repository page:
    - `Releases` -> `Draft a new release` -> choose `v1.0.0` -> publish.
-4. Open the `Marketplace` (GitHub Store) publishing flow from the repository and submit listing metadata.
-5. Keep the major tag (`v1`) updated to the latest compatible release.
+5. Open the `Marketplace` (GitHub Store) publishing flow from the repository and submit listing metadata.
+6. Keep the major tag (`v1`) updated to the latest compatible release.
 
 ## Notes
 
