@@ -67,6 +67,24 @@ let ``parse commit preserves raw message text`` () =
     | _ -> failwith "Expected parsed commit command preserving message text."
 
 [<Fact>]
+let ``parse amend with session id and messages`` () =
+    let result = CliArgs.parse [| "amend"; "sess-123"; "-m"; "subject" |]
+
+    match result with
+    | Ok(Command.Amend(Some id, messages)) ->
+        Assert.Equal("sess-123", id)
+        Assert.Equal<string list>([ "subject" ], messages)
+    | _ -> failwith "Expected parsed amend command with session id."
+
+[<Fact>]
+let ``parse amend without session id`` () =
+    let result = CliArgs.parse [| "amend"; "--message=subject" |]
+
+    match result with
+    | Ok(Command.Amend(None, messages)) -> Assert.Equal<string list>([ "subject" ], messages)
+    | _ -> failwith "Expected parsed amend command without session id."
+
+[<Fact>]
 let ``parse rejects unknown argument`` () =
     let result = CliArgs.parse [| "commit"; "sess-123"; "--bad" |]
     Assert.True(Result.isError result)
@@ -217,6 +235,74 @@ let ``summary returns first relevant messages`` () =
     Assert.Contains("- AI: Added tests", summary)
 
 [<Fact>]
+let ``session notes parser supports legacy single note`` () =
+    let entries = SessionNotes.parseEntries "# Git Memento Session\n\n- Provider: Codex\n- Session ID: one"
+    Assert.Equal<string list>([ "# Git Memento Session\n\n- Provider: Codex\n- Session ID: one" ], entries)
+
+[<Fact>]
+let ``session notes parser supports multi session envelope`` () =
+    let note =
+        """<!-- git-memento-sessions:v1 -->
+
+<!-- git-memento-session:start -->
+# Git Memento Session
+
+- Provider: Codex
+- Session ID: one
+<!-- git-memento-session:end -->
+
+<!-- git-memento-session:start -->
+# Git Memento Session
+
+- Provider: Claude
+- Session ID: two
+<!-- git-memento-session:end -->
+"""
+    let entries = SessionNotes.parseEntries note
+    Assert.Equal(2, entries.Length)
+    Assert.Contains("- Provider: Codex", entries[0])
+    Assert.Contains("- Provider: Claude", entries[1])
+
+[<Fact>]
+let ``session notes roundtrip preserves marker-like transcript text`` () =
+    let entry =
+        String.Join(
+            "\n",
+            [ "# Git Memento Session"
+              ""
+              "- Provider: Codex"
+              "- Session ID: collision"
+              ""
+              "Literal inline marker: <!-- git-memento-session:end -->"
+              "<!-- git-memento-session:end -->"
+              "<!-- git-memento-session:start -->" ]
+        )
+
+    let rendered = SessionNotes.renderEntries [ entry ]
+    let parsed = SessionNotes.parseEntries rendered
+
+    Assert.Equal(1, parsed.Length)
+    Assert.Equal(entry, parsed[0])
+
+[<Fact>]
+let ``session notes parser treats legacy note containing envelope text as legacy`` () =
+    let legacyWithMarkerMention =
+        String.Join(
+            "\n",
+            [ "# Git Memento Session"
+              ""
+              "- Provider: Codex"
+              "- Session ID: legacy"
+              ""
+              "Mentioning marker inline should not switch formats:"
+              "<!-- git-memento-sessions:v1 -->" ]
+        )
+
+    let parsed = SessionNotes.parseEntries legacyWithMarkerMention
+    Assert.Equal(1, parsed.Length)
+    Assert.Equal(legacyWithMarkerMention, parsed[0])
+
+[<Fact>]
 let ``provider factory supports claude`` () =
     let runner =
         { new ICommandRunner with
@@ -256,6 +342,7 @@ type private InMemoryGitService() =
             Task.FromResult(Ok())
         member _.GetCommitterAliasAsync() = Task.FromResult("Dev")
         member _.CommitAsync(_messages) = Task.FromResult(Ok())
+        member _.CommitAmendAsync(_messages) = Task.FromResult(Ok())
         member _.GetHeadHashAsync() = Task.FromResult(Ok("hash"))
         member _.AddNoteAsync(_, _) = Task.FromResult(Ok())
         member _.PushAsync(_) = Task.FromResult(Ok())
@@ -297,6 +384,7 @@ type private PushSpyGitService() =
         member _.SetLocalConfigValueAsync(_key: string, _value: string) = Task.FromResult(Ok())
         member _.GetCommitterAliasAsync() = Task.FromResult("Dev")
         member _.CommitAsync(_messages) = Task.FromResult(Ok())
+        member _.CommitAmendAsync(_messages) = Task.FromResult(Ok())
         member _.GetHeadHashAsync() = Task.FromResult(Ok("hash"))
         member _.AddNoteAsync(_, _) = Task.FromResult(Ok())
         member _.PushAsync(remote: string) =
@@ -350,6 +438,7 @@ type private NotesSyncSpyGitService() =
         member _.SetLocalConfigValueAsync(_key: string, _value: string) = Task.FromResult(Ok())
         member _.GetCommitterAliasAsync() = Task.FromResult("Dev")
         member _.CommitAsync(_messages) = Task.FromResult(Ok())
+        member _.CommitAmendAsync(_messages) = Task.FromResult(Ok())
         member _.GetHeadHashAsync() = Task.FromResult(Ok("hash"))
         member _.AddNoteAsync(_, _) = Task.FromResult(Ok())
         member _.PushAsync(_remote: string) = Task.FromResult(Ok())
@@ -410,6 +499,7 @@ type private RewriteSetupSpyGitService() =
             Task.FromResult(Ok())
         member _.GetCommitterAliasAsync() = Task.FromResult("Dev")
         member _.CommitAsync(_messages) = Task.FromResult(Ok())
+        member _.CommitAmendAsync(_messages) = Task.FromResult(Ok())
         member _.GetHeadHashAsync() = Task.FromResult(Ok("hash"))
         member _.AddNoteAsync(_, _) = Task.FromResult(Ok())
         member _.PushAsync(_remote: string) = Task.FromResult(Ok())
@@ -461,6 +551,7 @@ type private NotesCarrySpyGitService() =
         member _.SetLocalConfigValueAsync(_key: string, _value: string) = Task.FromResult(Ok())
         member _.GetCommitterAliasAsync() = Task.FromResult("Dev")
         member _.CommitAsync(_messages) = Task.FromResult(Ok())
+        member _.CommitAmendAsync(_messages) = Task.FromResult(Ok())
         member _.GetHeadHashAsync() = Task.FromResult(Ok("hash"))
         member _.AddNoteAsync(_, _) = Task.FromResult(Ok())
         member _.PushAsync(_remote: string) = Task.FromResult(Ok())
@@ -505,3 +596,152 @@ let ``notes-carry workflow appends collected notes to target commit`` () =
     Assert.Contains("note one", body)
     Assert.Contains("## Source Commit c2", body)
     Assert.Contains("note two", body)
+
+type private AmendSpyGitService(existingNote: string option) =
+    let calls = ResizeArray<string * string>()
+    let mutable head = "old-hash"
+    let mutable latestNote: string option = None
+
+    member _.Calls = calls |> Seq.toList
+    member _.LatestNote = latestNote
+
+    interface IGitService with
+        member _.EnsureInRepositoryAsync() = Task.FromResult(Ok())
+        member _.GetLocalConfigValueAsync(_key: string) = Task.FromResult(Ok None)
+        member _.SetLocalConfigValueAsync(_key: string, _value: string) = Task.FromResult(Ok())
+        member _.GetCommitterAliasAsync() = Task.FromResult("Dev")
+        member _.CommitAsync(_messages) = Task.FromResult(Ok())
+        member _.CommitAmendAsync(messages) =
+            calls.Add("commitAmend", String.Join("|", messages))
+            head <- "new-hash"
+            Task.FromResult(Ok())
+        member _.GetHeadHashAsync() = Task.FromResult(Ok head)
+        member _.AddNoteAsync(hash, note) =
+            calls.Add("addNote", hash)
+            latestNote <- Some note
+            Task.FromResult(Ok())
+        member _.PushAsync(_remote) = Task.FromResult(Ok())
+        member _.EnsureNotesFetchConfiguredAsync(_remote) = Task.FromResult(Ok())
+        member _.ShareNotesAsync(_remote) = Task.FromResult(Ok())
+        member _.GetRefObjectIdAsync(_refName) = Task.FromResult(Ok None)
+        member _.UpdateRefAsync(_refName, _objectId) = Task.FromResult(Ok())
+        member _.FetchNotesToNamespaceAsync(_remote, _namespaceRoot) = Task.FromResult(Ok())
+        member _.MergeNotesAsync(_notesRef, _strategy) = Task.FromResult(Ok())
+        member _.ResolveCommitAsync(_revision) = Task.FromResult(Ok "hash")
+        member _.GetCommitsInRangeAsync(_rangeSpec) = Task.FromResult(Ok [])
+        member _.GetNoteAsync(hash) =
+            if hash = "old-hash" then
+                Task.FromResult(Ok existingNote)
+            else
+                Task.FromResult(Ok None)
+        member _.AppendNoteAsync(_hash, _note) = Task.FromResult(Ok())
+
+type private StubProvider(sessionId: string, providerName: string) =
+    interface IAiSessionProvider with
+        member _.Name = providerName
+        member _.GetSessionAsync(requestedId: string) =
+            if requestedId = sessionId then
+                Task.FromResult(
+                    Ok
+                        { Id = requestedId
+                          Provider = providerName
+                          Title = None
+                          Messages = [ { Role = MessageRole.User; Content = "hello"; Timestamp = None } ] }
+                )
+            else
+                Task.FromResult(Error "session not found")
+        member _.ListSessionsAsync() =
+            Task.FromResult(Ok [ { Id = sessionId; Title = Some "Session" } ])
+
+[<Fact>]
+let ``amend workflow copies legacy note to amended commit`` () =
+    let legacyNote = "# Git Memento Session\n\n- Provider: Codex\n- Session ID: old"
+    let git = AmendSpyGitService(Some legacyNote)
+    let output = StubOutput()
+    let workflow = AmendWorkflow(git :> IGitService, None, output :> IUserOutput)
+
+    let result = workflow.ExecuteAsync(None, [ "subject" ]).Result
+
+    Assert.Equal(CommandResult.Completed, result)
+    let spy = git
+    Assert.Contains(("commitAmend", "subject"), spy.Calls)
+    Assert.Contains(("addNote", "new-hash"), spy.Calls)
+    match spy.LatestNote with
+    | None -> failwith "Expected rewritten note to be attached."
+    | Some note ->
+        Assert.Contains(SessionNotes.EnvelopeMarker, note)
+        Assert.Contains(SessionNotes.NoteVersionHeader, note)
+        let parsed = SessionNotes.parseEntries note
+        Assert.Equal(1, parsed.Length)
+        Assert.Contains("- Session ID: old", parsed[0])
+
+[<Fact>]
+let ``amend workflow appends new session to existing note`` () =
+    let existingMultiSessionNote =
+        SessionNotes.renderEntries [ "# Git Memento Session\n\n- Provider: Codex\n- Session ID: old" ]
+    let git = AmendSpyGitService(Some existingMultiSessionNote)
+    let output = StubOutput()
+    let provider = StubProvider("new-session", "Claude") :> IAiSessionProvider
+    let workflow = AmendWorkflow(git :> IGitService, Some provider, output :> IUserOutput)
+
+    let result = workflow.ExecuteAsync(Some "new-session", [ "subject" ]).Result
+
+    Assert.Equal(CommandResult.Completed, result)
+    match git.LatestNote with
+    | None -> failwith "Expected note to be attached."
+    | Some note ->
+        let parsed = SessionNotes.parseEntries note
+        Assert.Equal(2, parsed.Length)
+        Assert.Contains("- Session ID: old", parsed[0])
+        Assert.Contains("- Session ID: new-session", parsed[1])
+        Assert.Contains("- Provider: Claude", parsed[1])
+
+[<Fact>]
+let ``amend workflow appends new session to legacy note while preserving content`` () =
+    let legacyNote = "# Git Memento Session\n\n- Provider: Codex\n- Session ID: old"
+    let git = AmendSpyGitService(Some legacyNote)
+    let output = StubOutput()
+    let provider = StubProvider("new-session", "Claude") :> IAiSessionProvider
+    let workflow = AmendWorkflow(git :> IGitService, Some provider, output :> IUserOutput)
+
+    let result = workflow.ExecuteAsync(Some "new-session", [ "subject" ]).Result
+
+    Assert.Equal(CommandResult.Completed, result)
+    match git.LatestNote with
+    | None -> failwith "Expected note to be attached."
+    | Some note ->
+        Assert.Contains(SessionNotes.EnvelopeMarker, note)
+        Assert.Contains(SessionNotes.NoteVersionHeader, note)
+        let parsed = SessionNotes.parseEntries note
+        Assert.Equal(2, parsed.Length)
+        Assert.Contains("- Session ID: old", parsed[0])
+        Assert.Contains("- Session ID: new-session", parsed[1])
+
+[<Fact>]
+let ``amend workflow preserves legacy note that mentions envelope marker text`` () =
+    let legacyNote =
+        String.Join(
+            "\n",
+            [ "# Git Memento Session"
+              ""
+              "- Provider: Codex"
+              "- Session ID: old"
+              ""
+              "Mention marker in content:"
+              "<!-- git-memento-sessions:v1 -->" ]
+        )
+    let git = AmendSpyGitService(Some legacyNote)
+    let output = StubOutput()
+    let provider = StubProvider("new-session", "Claude") :> IAiSessionProvider
+    let workflow = AmendWorkflow(git :> IGitService, Some provider, output :> IUserOutput)
+
+    let result = workflow.ExecuteAsync(Some "new-session", [ "subject" ]).Result
+
+    Assert.Equal(CommandResult.Completed, result)
+    match git.LatestNote with
+    | None -> failwith "Expected note to be attached."
+    | Some note ->
+        let parsed = SessionNotes.parseEntries note
+        Assert.Equal(2, parsed.Length)
+        Assert.Contains("<!-- git-memento-sessions:v1 -->", parsed[0])
+        Assert.Contains("- Session ID: new-session", parsed[1])

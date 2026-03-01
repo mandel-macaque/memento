@@ -52,7 +52,8 @@ type CommitWorkflow(git: IGitService, provider: IAiSessionProvider, output: IUse
                     return CommandResult.Failed $"Unable to fetch session '{sessionId}'."
                 | Ok session ->
                     Log.Debug("Rendering markdown note for session {SessionId}", sessionId)
-                    let noteMarkdown = Markdown.renderConversation committer session
+                    let entryMarkdown = Markdown.renderConversation committer session
+                    let noteMarkdown = SessionNotes.renderEntries [ entryMarkdown ]
                     let summary = Markdown.buildSummary session
                     output.Info "Session summary that will be attached to git notes:"
                     if List.isEmpty summary then

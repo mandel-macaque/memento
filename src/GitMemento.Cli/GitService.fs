@@ -9,6 +9,7 @@ type IGitService =
     abstract member SetLocalConfigValueAsync: key: string * value: string -> Task<Result<unit, string>>
     abstract member GetCommitterAliasAsync: unit -> Task<string>
     abstract member CommitAsync: messages: string list -> Task<Result<unit, string>>
+    abstract member CommitAmendAsync: messages: string list -> Task<Result<unit, string>>
     abstract member GetHeadHashAsync: unit -> Task<Result<string, string>>
     abstract member AddNoteAsync: hash: string * note: string -> Task<Result<unit, string>>
     abstract member PushAsync: remote: string -> Task<Result<unit, string>>
@@ -92,6 +93,26 @@ type GitService(runner: ICommandRunner) =
                         return Ok()
                     else
                         return Error "git commit failed or was aborted."
+            }
+
+        member _.CommitAmendAsync(messages: string list) =
+            task {
+                if not (List.isEmpty messages) then
+                    let args =
+                        [ "commit"; "--amend" ]
+                        @ (messages |> List.collect (fun msg -> [ "-m"; msg ]))
+
+                    let! result = runner.RunCaptureAsync("git", args)
+                    if result.ExitCode = 0 then
+                        return Ok()
+                    else
+                        return Error(failWith result.StdErr result.StdOut)
+                else
+                    let! exitCode = runner.RunStreamingAsync("git", [ "commit"; "--amend" ])
+                    if exitCode = 0 then
+                        return Ok()
+                    else
+                        return Error "git commit --amend failed or was aborted."
             }
 
         member _.GetHeadHashAsync() =

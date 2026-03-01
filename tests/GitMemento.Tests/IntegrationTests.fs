@@ -162,9 +162,13 @@ fi
 
 if [ "$cmd" = "commit" ]; then
   : > "$state/commit-messages"
+  amend_mode="false"
   shift
   while [ $# -gt 0 ]; do
-    if [ "$1" = "-m" ]; then
+    if [ "$1" = "--amend" ]; then
+      amend_mode="true"
+      shift
+    elif [ "$1" = "-m" ]; then
       if [ $# -lt 2 ]; then
         echo "missing message for -m" >&2
         exit 2
@@ -182,6 +186,7 @@ if [ "$cmd" = "commit" ]; then
   fi
   n=$((n + 1))
   echo "$n" > "$state/counter"
+  printf "%s" "$amend_mode" > "$state/commit-amend-mode"
   echo "fakehash$n" > "$state/head"
   exit 0
 fi
@@ -214,6 +219,13 @@ fi
 
 if [ "$cmd" = "notes" ] && [ "${2:-}" = "show" ]; then
   hash="${3:-}"
+  if [ -f "$state/note-hash" ] && [ -f "$state/note.md" ]; then
+    current_hash=$(cat "$state/note-hash")
+    if [ "$hash" = "$current_hash" ]; then
+      cat "$state/note.md"
+      exit 0
+    fi
+  fi
   if [ "$hash" = "c1" ]; then
     printf "source note one"
     exit 0
@@ -278,12 +290,16 @@ if [ "${1:-}" = "sessions" ] && [ "${2:-}" = "get" ] && [ "${4:-}" = "--json" ];
     printf '{"id":"good-session","title":"Sample Session","messages":[{"role":"user","content":"[INFO] Build feature"},{"role":"assistant","content":"Done and tested"}]}'
     exit 0
   fi
+  if [ "${3:-}" = "amend-session" ]; then
+    printf '{"id":"amend-session","title":"Amend Session","messages":[{"role":"user","content":"Refine commit message"},{"role":"assistant","content":"Applied follow-up changes"}]}'
+    exit 0
+  fi
   echo "session not found" >&2
   exit 1
 fi
 
 if [ "${1:-}" = "sessions" ] && [ "${2:-}" = "list" ] && [ "${3:-}" = "--json" ]; then
-  printf '[{"id":"good-session","title":"Sample Session"},{"id":"other-session"}]'
+  printf '[{"id":"good-session","title":"Sample Session"},{"id":"amend-session","title":"Amend Session"},{"id":"other-session"}]'
   exit 0
 fi
 
@@ -374,6 +390,99 @@ let ``integration commit flow forwards multiple -m message parts`` () =
     Assert.Equal(CommandResult.Completed, result)
     let commitMessages = File.ReadAllLines(Path.Combine(stateDir, "commit-messages"))
     Assert.Equal<string array>([| "subject"; "body paragraph" |], commitMessages)
+
+[<Fact>]
+let ``integration amend flow copies existing note when no new session is provided`` () =
+    let temp = Path.Combine(Path.GetTempPath(), $"memento-it-{Guid.NewGuid():N}")
+    Directory.CreateDirectory(temp) |> ignore
+    let binDir = Path.Combine(temp, "bin")
+    let stateDir = Path.Combine(temp, "state")
+    Directory.CreateDirectory(binDir) |> ignore
+    Directory.CreateDirectory(stateDir) |> ignore
+
+    let gitPath = Path.Combine(binDir, "git")
+    let codexPath = Path.Combine(binDir, "codex")
+    writeExecutable gitPath (buildFakeGitScript stateDir)
+    writeExecutable codexPath buildFakeCodexScript
+
+    let originalPath = Environment.GetEnvironmentVariable("PATH") |> Option.ofObj |> Option.defaultValue ""
+    use _env =
+        new EnvScope(
+            [ "PATH", Some($"{binDir}{Path.PathSeparator}{originalPath}")
+              "MEMENTO_AI_PROVIDER", Some("codex")
+              "MEMENTO_CODEX_BIN", Some("codex") ]
+        )
+
+    let runner = ProcessCommandRunner() :> ICommandRunner
+    let git = GitService(runner) :> IGitService
+    let providerSettings =
+        { Provider = "codex"
+          Executable = "codex"
+          GetArgs = "sessions get {id} --json"
+          ListArgs = "sessions list --json" }
+    let provider = AiProviderFactory.createFromSettings runner providerSettings
+    let output = CaptureOutput()
+    let commitWorkflow = CommitWorkflow(git, provider, output :> IUserOutput)
+
+    let commitResult = commitWorkflow.ExecuteAsync("good-session", [ "initial" ]).Result
+    Assert.Equal(CommandResult.Completed, commitResult)
+
+    let amendWorkflow = AmendWorkflow(git, None, output :> IUserOutput)
+    let amendResult = amendWorkflow.ExecuteAsync(None, [ "amended" ]).Result
+
+    Assert.Equal(CommandResult.Completed, amendResult)
+    Assert.Equal("true", File.ReadAllText(Path.Combine(stateDir, "commit-amend-mode")))
+    let noteHash = File.ReadAllText(Path.Combine(stateDir, "note-hash")).Trim()
+    Assert.Equal("fakehash2", noteHash)
+    let note = File.ReadAllText(Path.Combine(stateDir, "note.md"))
+    Assert.Contains(SessionNotes.EnvelopeMarker, note)
+    Assert.Contains("- Session ID: good-session", note)
+
+[<Fact>]
+let ``integration amend flow appends a new session to copied note`` () =
+    let temp = Path.Combine(Path.GetTempPath(), $"memento-it-{Guid.NewGuid():N}")
+    Directory.CreateDirectory(temp) |> ignore
+    let binDir = Path.Combine(temp, "bin")
+    let stateDir = Path.Combine(temp, "state")
+    Directory.CreateDirectory(binDir) |> ignore
+    Directory.CreateDirectory(stateDir) |> ignore
+
+    let gitPath = Path.Combine(binDir, "git")
+    let codexPath = Path.Combine(binDir, "codex")
+    writeExecutable gitPath (buildFakeGitScript stateDir)
+    writeExecutable codexPath buildFakeCodexScript
+
+    let originalPath = Environment.GetEnvironmentVariable("PATH") |> Option.ofObj |> Option.defaultValue ""
+    use _env =
+        new EnvScope(
+            [ "PATH", Some($"{binDir}{Path.PathSeparator}{originalPath}")
+              "MEMENTO_AI_PROVIDER", Some("codex")
+              "MEMENTO_CODEX_BIN", Some("codex") ]
+        )
+
+    let runner = ProcessCommandRunner() :> ICommandRunner
+    let git = GitService(runner) :> IGitService
+    let providerSettings =
+        { Provider = "codex"
+          Executable = "codex"
+          GetArgs = "sessions get {id} --json"
+          ListArgs = "sessions list --json" }
+    let provider = AiProviderFactory.createFromSettings runner providerSettings
+    let output = CaptureOutput()
+    let commitWorkflow = CommitWorkflow(git, provider, output :> IUserOutput)
+
+    let commitResult = commitWorkflow.ExecuteAsync("good-session", [ "initial" ]).Result
+    Assert.Equal(CommandResult.Completed, commitResult)
+
+    let amendWorkflow = AmendWorkflow(git, Some provider, output :> IUserOutput)
+    let amendResult = amendWorkflow.ExecuteAsync(Some "amend-session", [ "amended" ]).Result
+
+    Assert.Equal(CommandResult.Completed, amendResult)
+    let note = File.ReadAllText(Path.Combine(stateDir, "note.md"))
+    let entries = SessionNotes.parseEntries note
+    Assert.Equal(2, entries.Length)
+    Assert.Contains("- Session ID: good-session", entries[0])
+    Assert.Contains("- Session ID: amend-session", entries[1])
 
 [<Fact>]
 let ``integration share-notes pushes notes and configures fetch mapping`` () =

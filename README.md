@@ -26,6 +26,8 @@ git memento init claude
 ```bash
 git memento commit <session-id> -m "Normal commit message"
 git memento commit <session-id> -m "Subject line" -m "Body paragraph"
+git memento amend -m "Amended subject"
+git memento amend <new-session-id> -m "Amended subject" -m "Amended body"
 ```
 
 Or:
@@ -36,6 +38,11 @@ git memento commit <session-id>
 
 You can pass `-m` multiple times, and each value is forwarded to `git commit` in order.
 When `-m` is omitted, `git commit` opens your default editor.
+
+`amend` runs `git commit --amend`.
+- Without a session id, it copies the note(s) from the previous HEAD onto the amended commit.
+- With a session id, it copies previous note(s) and appends the new fetched session as an additional session entry.
+- A single commit note can contain sessions from different AI providers.
 
 Share notes with the repository remote (default: `origin`):
 
@@ -116,7 +123,7 @@ Provider defaults can come from env vars, and `init` persists the selected provi
 Set `MEMENTO_AI_PROVIDER=claude` to use Claude Code.
 
 Runtime behavior:
-- If the repository is not configured yet, `commit`, `push`, `share-notes`, `notes-sync`, `notes-rewrite-setup`, and `notes-carry` fail with a message to run `git memento init` first.
+- If the repository is not configured yet, `commit`, `amend <session-id>`, `push`, `share-notes`, `notes-sync`, `notes-rewrite-setup`, and `notes-carry` fail with a message to run `git memento init` first.
 - Stored git metadata keys include:
   - `memento.provider`
   - `memento.codex.bin`, `memento.codex.getArgs`, `memento.codex.listArgs`
@@ -178,7 +185,7 @@ dotnet test GitMemento.slnx
 
 This repository includes a reusable action that reads `git notes` created by `git-memento` and posts a commit comment with:
 
-- The AI agent used (provider + session id when available).
+- The AI agent(s) used (provider + session id when available).
 - The attached note body in a collapsible `<details>` block.
 
 Action definition:
@@ -242,5 +249,11 @@ git push -f origin v1
 ## Notes
 
 - Notes are written with `git notes add -f -m "<markdown>" <commit-hash>`.
+- Multi-session notes use explicit delimiters:
+  - `<!-- git-memento-sessions:v1 -->`
+  - `<!-- git-memento-note-version:1 -->`
+  - `<!-- git-memento-session:start -->`
+  - `<!-- git-memento-session:end -->`
+- Legacy single-session notes remain supported and are upgraded to the versioned multi-session envelope when amend needs to append a new session.
 - Conversation markdown labels user messages with your git alias (`git config user.name`) and assistant messages with provider name.
 - Serilog debug logs are enabled in `DEBUG` builds.

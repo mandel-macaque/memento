@@ -25,6 +25,7 @@ type SessionRef =
 
 type Command =
     | Commit of sessionId: string * messages: string list
+    | Amend of sessionId: string option * messages: string list
     | ShareNotes of remote: string
     | Push of remote: string
     | NotesSync of remote: string * strategy: string

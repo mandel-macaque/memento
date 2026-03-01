@@ -15,10 +15,12 @@
     <Compile Include="CliArgs.fs" />
     <Compile Include="TextCleaning.fs" />
     <Compile Include="Markdown.fs" />
+    <Compile Include="SessionNotes.fs" />
     <Compile Include="ProcessRunner.fs" />
     <Compile Include="GitService.fs" />
     <Compile Include="AiProvider.fs" />
     <Compile Include="CommitWorkflow.fs" />
+    <Compile Include="AmendWorkflow.fs" />
     <Compile Include="ShareNotesWorkflow.fs" />
     <Compile Include="PushWorkflow.fs" />
     <Compile Include="NotesSyncWorkflow.fs" />

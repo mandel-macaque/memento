@@ -28,17 +28,28 @@ Run this workflow whenever work must be committed with an AI session note.
 - For Codex in this environment, default to `CODEX_THREAD_ID` when present.
 - Validate retrieval before commit by running provider command manually if needed.
 
-## 4. Create Memento Commit
+## 4. Create Memento Commit or Amend
 
 - Stage files as needed (`git add ...`).
 - Run commit through memento so note attachment happens in the same flow:
   - `git memento commit <session-id> -m "<subject>"`
+- For amend flows:
+  - `git memento amend -m "<amended-subject>"` to carry forward existing note(s) onto the amended commit.
+  - `git memento amend <session-id> -m "<amended-subject>"` to carry forward existing note(s) and append a new session.
+- Backward compatibility:
+  - Legacy single-session notes are preserved.
+  - When append is needed, legacy notes are upgraded into the versioned multi-session envelope so no prior session content is lost.
 - For longer body, use embedded newlines in `-m` or omit `-m` to use editor.
 
 ## 5. Verify Note Attachment
 
 - Read latest commit: `git log -1 --pretty=fuller`.
 - Show note on that commit: `git notes show <commit-hash>`.
+- For multi-session notes, expect envelope/version headers and separators:
+  - `<!-- git-memento-sessions:v1 -->`
+  - `<!-- git-memento-note-version:1 -->`
+  - `<!-- git-memento-session:start -->`
+  - `<!-- git-memento-session:end -->`
 - If note is missing, inspect provider command config and rerun commit flow after fixing.
 
 ## 6. Push Code and Sync Notes

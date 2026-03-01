@@ -135,6 +135,31 @@ let main args =
                             | CommandResult.Failed message ->
                                 Console.Error.WriteLine(message)
                                 1
+            | Command.Amend(sessionId, messages) ->
+                let workflowWithProvider (provider: IAiSessionProvider option) =
+                    let workflow = AmendWorkflow(git, provider, output)
+                    workflow.ExecuteAsync(sessionId, messages).Result
+                    |> function
+                        | CommandResult.Completed -> 0
+                        | CommandResult.Failed message ->
+                            Console.Error.WriteLine(message)
+                            1
+
+                match sessionId with
+                | None -> workflowWithProvider None
+                | Some _ ->
+                    match requireConfigured git with
+                    | Error configError ->
+                        Console.Error.WriteLine(configError)
+                        1
+                    | Ok providerName ->
+                        match loadProviderSettings git providerName with
+                        | Error configError ->
+                            Console.Error.WriteLine(configError)
+                            1
+                        | Ok settings ->
+                            let provider = AiProviderFactory.createFromSettings runner settings
+                            workflowWithProvider (Some provider)
             | Command.ShareNotes(remote) ->
                 match requireConfigured git with
                 | Error configError ->

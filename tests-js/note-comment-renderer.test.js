@@ -227,3 +227,110 @@ test("renders markdown sections with expected details and fenced markdown format
 
   assert.match(body, /### Markdown files\n\n<details>\n<summary>PROMPT\.md<\/summary>\n\n~~~markdown\n[\s\S]*\n~~~\n\n<\/details>/);
 });
+
+test("renders multiple session entries with mixed providers", () => {
+  const multi = `<!-- git-memento-sessions:v1 -->
+
+<!-- git-memento-session:start -->
+# Git Memento Session
+
+- Provider: Codex
+- Session ID: sess-one
+- Committer: Mandel
+
+## Conversation
+
+### Mandel
+
+First pass.
+<!-- git-memento-session:end -->
+
+<!-- git-memento-session:start -->
+# Git Memento Session
+
+- Provider: Claude
+- Session ID: sess-two
+- Committer: Mandel
+
+## Conversation
+
+### Mandel
+
+Second pass.
+<!-- git-memento-session:end -->`;
+
+  const body = buildBody(multi, 65000);
+
+  assert.match(body, /created with agents Codex \/ sess-one, Claude \/ sess-two/);
+  assert.match(body, /## Session 1: Codex \/ sess-one/);
+  assert.match(body, /## Session 2: Claude \/ sess-two/);
+  assert.match(body, /First pass\./);
+  assert.match(body, /Second pass\./);
+});
+
+test("does not truncate single-session notes that mention marker text", () => {
+  const note = `# Git Memento Session
+
+- Provider: Codex
+- Session ID: marker-text
+- Committer: Mandel
+
+## Conversation
+
+### Mandel
+
+Mention marker literally: <!-- git-memento-session:end --> and continue after it.`;
+
+  const body = buildBody(note, 65000);
+
+  assert.match(body, /Mention marker literally: <!-- git-memento-session:end --> and continue after it\./);
+});
+
+test("does not treat legacy notes with envelope marker text as multi-session", () => {
+  const note = `# Git Memento Session
+
+- Provider: Codex
+- Session ID: marker-envelope
+- Committer: Mandel
+
+## Conversation
+
+### Mandel
+
+Mentioning envelope marker in plain content:
+<!-- git-memento-sessions:v1 -->
+still legacy.`;
+
+  const body = buildBody(note, 65000);
+  assert.match(body, /Mentioning envelope marker in plain content:/);
+  assert.match(body, /<!-- git-memento-sessions:v1 -->/);
+  assert.match(body, /still legacy\./);
+  assert.doesNotMatch(body, /## Session 1:/);
+});
+
+test("renders escaped marker lines from multi-session envelope as literal content", () => {
+  const note = `<!-- git-memento-sessions:v1 -->
+
+<!-- git-memento-session:start -->
+# Git Memento Session
+
+- Provider: Codex
+- Session ID: escaped-lines
+- Committer: Mandel
+
+## Conversation
+
+### Mandel
+
+\\<!-- git-memento-session:end -->
+\\<!-- git-memento-session:start -->
+\\<!-- git-memento-note-version:1 -->
+<!-- git-memento-session:end -->`;
+
+  const body = buildBody(note, 65000);
+
+  assert.match(body, /<!-- git-memento-session:end -->/);
+  assert.match(body, /<!-- git-memento-session:start -->/);
+  assert.match(body, /<!-- git-memento-note-version:1 -->/);
+  assert.doesNotMatch(body, /\\<!-- git-memento-note-version:1 -->/);
+});

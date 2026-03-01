@@ -3,11 +3,72 @@
 const MarkdownIt = require("markdown-it");
 
 const marker = "<!-- git-memento-note-comment -->";
+const sessionEnvelopeMarker = "<!-- git-memento-sessions:v1 -->";
+const noteVersionMarker = "<!-- git-memento-note-version:1 -->";
+const sessionStartMarker = "<!-- git-memento-session:start -->";
+const sessionEndMarker = "<!-- git-memento-session:end -->";
 const markdownFileHeadingPattern = /^#{1,6}\s+([^\s]+\.md\b.*)$/i;
 const speakerHeadingPattern = /^###\s+(.+?)\s*$/;
 const markdownParser = new MarkdownIt({ html: true, linkify: false, typographer: false });
 
 const normalizeLineEndings = (value) => (value || "").replace(/\r\n/g, "\n");
+
+const extractSessionNotes = (note) => {
+  const normalized = normalizeLineEndings(note).trim();
+  if (!normalized) {
+    return [];
+  }
+
+  const lines = normalized.split("\n");
+  const firstNonEmpty = lines.find((line) => line.trim().length > 0);
+  if ((firstNonEmpty || "").trim() !== sessionEnvelopeMarker) {
+    return [normalized];
+  }
+
+  const unescapeCollisionLine = (line) => {
+    const trimmed = line.trim();
+    if (
+      trimmed === `\\${sessionStartMarker}` ||
+      trimmed === `\\${sessionEndMarker}` ||
+      trimmed === `\\${sessionEnvelopeMarker}` ||
+      trimmed === `\\${noteVersionMarker}`
+    ) {
+      return line.replace(trimmed, trimmed.slice(1));
+    }
+    return line;
+  };
+
+  const sessions = [];
+  let collecting = false;
+  let current = [];
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed === sessionStartMarker) {
+      collecting = true;
+      current = [];
+      continue;
+    }
+
+    if (trimmed === sessionEndMarker) {
+      if (collecting) {
+        const entry = current.map(unescapeCollisionLine).join("\n").trim();
+        if (entry) {
+          sessions.push(entry);
+        }
+      }
+      collecting = false;
+      current = [];
+      continue;
+    }
+
+    if (collecting) {
+      current.push(line);
+    }
+  }
+
+  return sessions.length ? sessions : [normalized];
+};
 
 const escapeHtml = (value) =>
   (value || "")
@@ -305,13 +366,39 @@ const renderMarkdownSections = (sections) => {
 const buildNoSessionBody = () => `${marker}\nNo AI session was attached to this commit.`;
 
 const buildBody = (note, maxBodyLength) => {
-  const { provider, sessionId, committer } = parseNote(note);
-  const agentId = sessionId ? `${provider} / ${sessionId}` : provider;
   const normalizedNote = normalizeLineEndings(note).trim();
-  const { noteBody, sections } = extractMarkdownFileSectionsForProvider(normalizedNote, provider, committer);
-  const renderedNote = noteBody || normalizedNote;
-  const renderedSections = renderMarkdownSections(sections);
-  const heading = `${marker}\nThis commit has a prompt attached to it created with agent ${agentId}:`;
+  const sessionNotes = extractSessionNotes(normalizedNote);
+  const renderedSessions = sessionNotes.map((sessionNote, index) => {
+    const { provider, sessionId, committer } = parseNote(sessionNote);
+    const agentId = sessionId ? `${provider} / ${sessionId}` : provider;
+    const { noteBody, sections } = extractMarkdownFileSectionsForProvider(sessionNote, provider, committer);
+    const renderedNote = noteBody || sessionNote;
+    return { index, agentId, renderedNote, sections };
+  });
+
+  if (!renderedSessions.length) {
+    return buildNoSessionBody();
+  }
+
+  const isSingleSession = renderedSessions.length === 1;
+  const agents = [...new Set(renderedSessions.map((session) => session.agentId).filter(Boolean))];
+  const heading = isSingleSession
+    ? `${marker}\nThis commit has a prompt attached to it created with agent ${agents[0]}:`
+    : `${marker}\nThis commit has prompts attached to it created with agents ${agents.join(", ")}:`;
+
+  const renderedNote = isSingleSession
+    ? renderedSessions[0].renderedNote
+    : renderedSessions.map((session) => `## Session ${session.index + 1}: ${session.agentId}\n\n${session.renderedNote}`).join("\n\n");
+
+  const allSections = isSingleSession
+    ? renderedSessions[0].sections
+    : renderedSessions.flatMap((session) =>
+        session.sections.map((section) => ({
+          title: `Session ${session.index + 1} - ${section.title}`,
+          content: section.content,
+        })),
+      );
+  const renderedSections = renderMarkdownSections(allSections);
 
   let body = `${heading}\n\n<details>\n<summary>The note attached to the commit</summary>\n\n${renderedNote}\n\n</details>${renderedSections}`;
 

@@ -7,6 +7,7 @@ module CliArgs =
         "Usage:\n"
         + "  git memento init [codex|claude]\n"
         + "  git memento commit <session-id> [-m \"commit message\"]...\n"
+        + "  git memento amend [session-id] [-m \"commit message\"]...\n"
         + "  git memento push [remote]\n"
         + "  git memento share-notes [remote]\n"
         + "  git memento notes-sync [remote] [--strategy <strategy>]\n"
@@ -89,6 +90,54 @@ module CliArgs =
                                 Error $"Unknown argument: {current}"
 
                     loop 2 [] |> Result.map (fun messages -> Command.Commit(sessionId, messages))
+
+        let parseAmend (args: string array) : Result<Command, string> =
+            let parseMessages (startIndex: int) =
+                let rec loop (i: int) (messagesRev: string list) : Result<string list, string> =
+                    if i >= args.Length then
+                        Ok(List.rev messagesRev)
+                    else
+                        let current = args[i]
+                        if current = "-m" || current = "--message" then
+                            if i + 1 >= args.Length then
+                                Error "Flag -m/--message requires a non-empty commit message."
+                            else
+                                match toNonEmptyOption args[i + 1] with
+                                | Some message -> loop (i + 2) (message :: messagesRev)
+                                | None -> Error "Flag -m/--message requires a non-empty commit message."
+                        elif current.StartsWith("--message=", StringComparison.Ordinal) then
+                            let inlineValue = current.Substring("--message=".Length)
+                            match toNonEmptyOption inlineValue with
+                            | Some message -> loop (i + 1) (message :: messagesRev)
+                            | None -> Error "Flag -m/--message requires a non-empty commit message."
+                        elif current.StartsWith("-m", StringComparison.Ordinal) then
+                            let inlineValue = current.AsSpan(2).ToString()
+                            let normalizedInlineValue =
+                                if inlineValue.StartsWith("=", StringComparison.Ordinal) then
+                                    inlineValue.Substring(1)
+                                else
+                                    inlineValue
+
+                            match toNonEmptyOption normalizedInlineValue with
+                            | Some message -> loop (i + 1) (message :: messagesRev)
+                            | None -> Error "Flag -m/--message requires a non-empty commit message."
+                        else
+                            Error $"Unknown argument: {current}"
+
+                loop startIndex []
+
+            if args.Length = 1 then
+                Ok(Command.Amend(None, []))
+            else
+                let firstArg = args[1]
+                if firstArg.StartsWith("-", StringComparison.Ordinal) then
+                    parseMessages 1 |> Result.map (fun messages -> Command.Amend(None, messages))
+                else
+                    let sessionId = firstArg.Trim()
+                    if isBlank sessionId then
+                        Error "Session id cannot be empty."
+                    else
+                        parseMessages 2 |> Result.map (fun messages -> Command.Amend(Some sessionId, messages))
 
         let parseShareNotes (args: string array) : Result<Command, string> =
             parseOptionalRemote "share-notes" Command.ShareNotes args
@@ -192,6 +241,7 @@ module CliArgs =
             | "-v" -> Ok Command.Version
             | "init" -> Parsing.parseInit args
             | "commit" -> Parsing.parseCommit args
+            | "amend" -> Parsing.parseAmend args
             | "share-notes" -> Parsing.parseShareNotes args
             | "push" -> Parsing.parsePush args
             | "notes-sync" -> Parsing.parseNotesSync args

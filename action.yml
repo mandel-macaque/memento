@@ -1,5 +1,5 @@
 name: git-memento-note-comment
-description: Post or update commit comments from git-memento notes (provider and session transcript).
+description: Post or update commit comments from git-memento notes (provider and session transcripts).
 author: git-memento contributors
 branding:
   icon: message-square
