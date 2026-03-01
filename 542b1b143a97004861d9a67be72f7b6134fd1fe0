@@ -1,0 +1,402 @@
+<!-- git-memento-sessions:v1 -->
+
+<!-- git-memento-note-version:1 -->
+
+<!-- git-memento-session:start -->
+# Git Memento Session
+
+- Provider: Codex
+- Session ID: 019cab27-3944-7170-99a4-29658ef7b9a0
+- Session Title: # AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
+### Available skills
+- git-memento-workflow: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes. (file: /Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- skill-creator: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. (file: /Users/mandel/.codex/skills/.system/skill-creator/SKILL.md)
+- skill-installer: Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos). (file: /Users/mandel/.codex/skills/.system/skill-installer/SKILL.md)
+### How to use skills
+- Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths.
+- Trigger rules: If the user names a skill (with `$SkillName` or plain text) OR the task clearly matches a skill's description shown above, you must use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned.
+- Missing/blocked: If a named skill isn't in the list or the path can't be read, say so briefly and continue with the best fallback.
+- How to use a skill (progressive disclosure):
+  1) After deciding to use a skill, open its `SKILL.md`. Read only enough to follow the workflow.
+  2) When `SKILL.md` references relative paths (e.g., `scripts/foo.py`), resolve them relative to the skill directory listed above first, and only consider other paths if needed.
+  3) If `SKILL.md` points to extra folders such as `references/`, load only the specific files needed for the request; don't bulk-load everything.
+  4) If `scripts/` exist, prefer running or patching them instead of retyping large code blocks.
+  5) If `assets/` or templates exist, reuse them instead of recreating from scratch.
+- Coordination and sequencing:
+  - If multiple skills apply, choose the minimal set that covers the request and state the order you'll use them.
+  - Announce which skill(s) you're using and why (one short line). If you skip an obvious skill, say why.
+- Context hygiene:
+  - Keep context small: summarize long sections instead of pasting them; only load extra files when needed.
+  - Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
+  - When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
+- Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+</INSTRUCTIONS>
+- Committer: Manuel de la Pena
+- Captured At (UTC): 2026-03-01T21:37:32.4731840+00:00
+
+## Conversation
+
+### Manuel de la Pena
+
+# AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
+### Available skills
+- git-memento-workflow: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes. (file: /Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- skill-creator: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. (file: /Users/mandel/.codex/skills/.system/skill-creator/SKILL.md)
+- skill-installer: Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos). (file: /Users/mandel/.codex/skills/.system/skill-installer/SKILL.md)
+### How to use skills
+- Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths.
+- Trigger rules: If the user names a skill (with `$SkillName` or plain text) OR the task clearly matches a skill's description shown above, you must use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned.
+- Missing/blocked: If a named skill isn't in the list or the path can't be read, say so briefly and continue with the best fallback.
+- How to use a skill (progressive disclosure):
+1) After deciding to use a skill, open its `SKILL.md`. Read only enough to follow the workflow.
+2) When `SKILL.md` references relative paths (e.g., `scripts/foo.py`), resolve them relative to the skill directory listed above first, and only consider other paths if needed.
+3) If `SKILL.md` points to extra folders such as `references/`, load only the specific files needed for the request; don't bulk-load everything.
+4) If `scripts/` exist, prefer running or patching them instead of retyping large code blocks.
+5) If `assets/` or templates exist, reuse them instead of recreating from scratch.
+- Coordination and sequencing:
+- If multiple skills apply, choose the minimal set that covers the request and state the order you'll use them.
+- Announce which skill(s) you're using and why (one short line). If you skip an obvious skill, say why.
+- Context hygiene:
+- Keep context small: summarize long sections instead of pasting them; only load extra files when needed.
+- Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
+- When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
+- Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+</INSTRUCTIONS>
+
+### Manuel de la Pena
+
+<environment_context>
+<cwd>/Users/mandel/Work/memento</cwd>
+<shell>zsh</shell>
+</environment_context>
+
+### Manuel de la Pena
+
+We are worried about breaking the installation script, the problem is that not all developers have all the OS needed. To fix that we want to add a new ci job per OS that will test that the installation script works and that once executed the git memento extension works. We also need to make sure that:
+
+- The releases are compiled in AOT, so that it is a single binary and not several dlls.
+- That the release github action uses the name of the current tag. If not it will use the current dll verison + the current hash
+- That the installation script is tested in each platform so that:
+* It downloads the latest version.
+* It installs correctly for the currrent user
+* That at least the extension can be found and the version and help commands work
+
+Create a plan to understand what needs to be changed for me to review
+
+### Codex
+
+I’ll map the current release/CI/install flow first, then propose a concrete change plan with file-level scope so you can review before implementation. I’m starting by locating GitHub Actions, install scripts, and version/tag logic.
+
+### Codex
+
+I found the key files: `.github/workflows/ci.yml`, `.github/workflows/release.yml`, and `install.sh`. Next I’ll read them to build a precise implementation plan and call out any mismatches with your requirements.
+
+### Codex
+
+I’ve confirmed the current release workflow is commit-based (not tag-based) and `install.sh` pulls `releases/latest`. I’ll quickly check project publish properties and existing tests so the plan includes exact validation points for AOT/single-binary and CLI checks.
+
+### Codex
+
+**Proposed Plan For Review**
+
+**Current gaps to address**
+1. CI only runs on `ubuntu-latest`, so install script/platform behavior is not validated on macOS/Windows.
+2. Release workflow is commit-based (`commit-<sha>`) and not tag-aware.
+3. NativeAOT publish is enabled, but there is no explicit CI guard to prove release assets are single-binary artifacts.
+4. `install.sh` is not currently verified in CI across platforms.
+
+**Plan**
+1. **Refactor release trigger and naming logic**
+1. Update [release.yml](/Users/mandel/Work/memento/.github/workflows/release.yml) trigger to support both tagged and non-tagged releases (recommended: `push` on `main` + `tags: ['v*']`, optionally `workflow_dispatch`).
+2. Add a metadata step that computes:
+1. `release_tag`: use `github.ref_name` when event is a tag.
+2. fallback `release_tag`: `<dllVersion>-<shortSha>` when no tag exists.
+3. `release_name` aligned to the same rule.
+3. Keep `target_commitish` set to the triggering SHA.
+
+2. **Enforce AOT/single-binary release guarantees**
+1. Keep `dotnet publish ... -p:PublishAot=true --self-contained true`.
+2. Add a validation step in [release.yml](/Users/mandel/Work/memento/.github/workflows/release.yml) after publish to fail if any `*.dll` is present in publish output.
+3. Keep packaging as one executable per RID (already mostly true), and add an explicit archive content check before upload.
+
+3. **Add cross-OS install smoke tests to CI**
+1. Add a new matrix job in [ci.yml](/Users/mandel/Work/memento/.github/workflows/ci.yml) for `ubuntu-latest`, `macos-15`, and `windows-latest`.
+2. In each matrix entry:
+1. Run `install.sh` with `GIT_MEMENTO_REPO=${{ github.repository }}` and install into a temp per-user dir.
+2. Add install dir to PATH for subsequent steps.
+3. Validate command discovery and execution:
+1. `git memento --version`
+2. `git memento help`
+3. Keep this as a smoke test (no repo init required) to verify extension wiring works.
+
+4. **Harden install script behavior for CI and users**
+1. Update [install.sh](/Users/mandel/Work/memento/install.sh) only as needed to support reliable CI execution across shells/OS (especially Windows runner + Git Bash assumptions).
+2. Ensure failure messages are explicit for unsupported OS/arch and missing prerequisites.
+3. Preserve `releases/latest/download/...` behavior and test it via CI run.
+
+5. **Add/update documentation**
+1. Update [README.md](/Users/mandel/Work/memento/README.md) release section to describe:
+1. tag-based naming behavior,
+2. fallback naming (`<dllVersion>-<shortSha>`),
+3. cross-platform install verification in CI.
+
+**Acceptance criteria**
+1. Release created from a tag uses that exact tag as release tag/name.
+2. Release created without a tag uses `<dllVersion>-<shortSha>`.
+3. Each release asset contains only one executable for its RID and no `.dll` payload.
+4. CI passes install smoke tests on Linux/macOS/Windows and confirms `git memento --version` and `git memento help` run successfully.
+
+If you approve this plan, I can implement it directly in the workflows and script.
+
+### Manuel de la Pena
+
+Implement the plan
+
+### Codex
+
+I’m implementing the workflow and script changes now. I’ll update `release.yml` for tag/fallback naming and AOT artifact validation first, then add the cross-OS install smoke job in CI and verify with local checks.
+
+### Codex
+
+I’ve identified the main implementation approach: switch release to direct push/tag triggers (so tag names are available), add a metadata step for tag-or-version+hash naming, and add a new matrix smoke-test job for `install.sh` on all three OSes. I’m patching those files now.
+
+### Codex
+
+I’m editing `release.yml` now: new triggers, computed release metadata (tag vs version+sha), and explicit checks that publish output/archives contain only the single executable artifact shape you expect.
+
+### Codex
+
+Release workflow updates are in place. Next I’m adding a dedicated matrix smoke-test job in CI that runs `install.sh` on Linux/macOS/Windows and verifies `git memento --version` + `help` through git extension discovery.
+
+### Codex
+
+I’m updating `install.sh` for better cross-platform robustness in CI, specifically adding a fallback unzip path for Windows shells and a curl/wget downloader fallback so installs are less brittle.
+
+### Codex
+
+I’ve finished the edits and I’m running quick local sanity checks on the modified workflows/script (diff inspection and YAML parse) before I report back.
+
+### Codex
+
+Implemented.
+
+**What changed**
+1. Updated release automation in [release.yml](/Users/mandel/Work/memento/.github/workflows/release.yml)
+- Trigger now runs on `push` to `main`, `push` tags `v*`, and manual dispatch.
+- Added `metadata` job to compute release identity:
+- Uses current tag when ref is a tag.
+- Otherwise uses `<Version>-<shortSha>` from project version + commit hash.
+- Release publish now uses computed `tag_name`, `name`, and `target_commitish`.
+- Added NativeAOT validation steps to fail if publish output contains `*.dll`.
+- Added archive-content validation to ensure packaged artifacts contain only:
+- `git-memento` for `tar.gz`
+- `git-memento.exe` for `zip`
+
+2. Added cross-OS install smoke job in [ci.yml](/Users/mandel/Work/memento/.github/workflows/ci.yml)
+- New `install-smoke` matrix job on:
+- `ubuntu-latest`
+- `macos-15`
+- `windows-latest`
+- Runs `install.sh` against `GIT_MEMENTO_REPO=${{ github.repository }}`.
+- Installs to user-scoped temp bin directory and adds to PATH.
+- Verifies extension works with:
+- `git memento --version`
+- `git memento help`
+
+3. Hardened installer in [install.sh](/Users/mandel/Work/memento/install.sh)
+- Added downloader fallback: `curl` -> `wget`.
+- For Windows zip extraction, added fallback:
+- `unzip` if available
+- otherwise `powershell.exe Expand-Archive`
+
+4. Documented behavior in [README.md](/Users/mandel/Work/memento/README.md)
+- Added release naming rules (tag-first, else version+hash).
+- Added CI install coverage description.
+- Clarified that installer pulls from `releases/latest`.
+
+**Sanity checks run**
+- `ruby` YAML parse: both workflow files parse successfully.
+- `sh -n install.sh`: shell syntax OK.
+- `dotnet msbuild ... -getProperty:Version`: returns expected version (`1.0.0` locally).
+
+If you want, I can also add a small CI assertion that release fallback tags always match a strict regex (e.g. `^\d+\.\d+\.\d+-[0-9a-f]{8}$`).
+
+### Manuel de la Pena
+
+<user_action>
+<context>User initiated a review task. Here's the full review output from reviewer model. User may select one or more comments to resolve.</context>
+<action>review</action>
+<results>
+The release workflow no longer depends on CI success, so it can publish and mark as latest builds that failed tests. That is a functional regression in release correctness and distribution safety.
+
+Review comment:
+
+- [P1] Gate release publishing on successful CI — /Users/mandel/Work/memento/.github/workflows/release.yml:3-7
+This workflow now runs on every `push` to `main`/`v*` and no longer waits for the `ci` workflow to succeed, so a commit with failing tests can still produce and publish a `latest` release artifact. In the current setup, that means `install.sh` can immediately distribute an unverified build after a test failure, which regresses release safety compared to the previous `workflow_run` gate.
+</results>
+</user_action>
+
+### Codex
+
+The release workflow no longer depends on CI success, so it can publish and mark as latest builds that failed tests. That is a functional regression in release correctness and distribution safety.
+
+Review comment:
+
+- [P1] Gate release publishing on successful CI — /Users/mandel/Work/memento/.github/workflows/release.yml:3-7
+This workflow now runs on every `push` to `main`/`v*` and no longer waits for the `ci` workflow to succeed, so a commit with failing tests can still produce and publish a `latest` release artifact. In the current setup, that means `install.sh` can immediately distribute an unverified build after a test failure, which regresses release safety compared to the previous `workflow_run` gate.
+
+### Manuel de la Pena
+
+WE do not want to allow the release to not run the tests. Ensure that the release action does pass tests and gets only executed when unit, integration and the install.sh tests are passed. Otherwise we should have no release
+
+### Codex
+
+I’ll fix this by restoring CI gating for releases: release will only run from a successful `ci` workflow completion, and I’ll update `ci` to run on release tags too so tagged releases are still test-gated. Then I’ll keep the tag-or-version+hash naming logic inside that gated flow.
+
+### Codex
+
+I’m now patching both workflows so release is strictly `workflow_run`-gated on successful `ci` push runs, and CI itself runs on `v*` tags so tagged releases are also fully tested before publishing.
+
+### Codex
+
+I’m tightening tag detection to avoid accidental tag-based naming on normal `main` pushes: only non-`main` push runs will try to use a tag at the commit, otherwise fallback naming is used.
+
+### Codex
+
+Release is now hard-gated on successful CI, including unit/integration and `install.sh` smoke tests.
+
+**What I changed**
+1. Restored release trigger to CI completion in [release.yml](/Users/mandel/Work/memento/.github/workflows/release.yml)
+- `on: workflow_run` for `ci` only.
+- `metadata` job runs only when:
+- `workflow_run.conclusion == 'success'`
+- `workflow_run.event == 'push'`
+- This prevents any release if CI fails.
+
+2. Ensured CI also runs on release tags in [ci.yml](/Users/mandel/Work/memento/.github/workflows/ci.yml)
+- Added `push.tags: ["v*"]` so tag-based releases are tested too.
+- Existing `build-and-test` + `install-smoke` jobs must both pass for CI to be successful.
+
+3. Kept release naming logic while gated
+- In [release.yml](/Users/mandel/Work/memento/.github/workflows/release.yml), metadata is computed from the tested SHA:
+- If this is a tag-driven push (non-`main`) and a `v*` tag points at that commit, release uses that tag.
+- Otherwise fallback is `<Version>-<shortSha>`.
+
+4. Preserved AOT/single-binary checks
+- NativeAOT publish validation (no `.dll` in output).
+- Archive content validation (single executable artifact shape).
+
+**Validation run locally**
+- YAML parsing for both workflows succeeded.
+
+This now enforces: no successful `ci` => no release.
+
+### Manuel de la Pena
+
+<user_action>
+<context>User initiated a review task. Here's the full review output from reviewer model. User may select one or more comments to resolve.</context>
+<action>review</action>
+<results>
+I did not find any concrete, actionable bugs in the modified workflows, installer script, or README changes that would clearly break existing behavior. The changes appear consistent with the stated release/install automation goals.
+</results>
+</user_action>
+
+### Codex
+
+I did not find any concrete, actionable bugs in the modified workflows, installer script, or README changes that would clearly break existing behavior. The changes appear consistent with the stated release/install automation goals.
+
+### Manuel de la Pena
+
+Using the $git-memento-workflow and the current session, create a new commit with a one liner title explaining the changes and a longer commit message that will mention the details of the change. Push to the remote repository using the memento push command
+
+### Manuel de la Pena
+
+<skill>
+<name>git-memento-workflow</name>
+<path>/Users/mandel/.codex/skills/git-memento-workflow/SKILL.md</path>
+---
+name: git-memento-workflow
+description: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes.
+---
+
+# Git Memento Workflow
+
+Run this workflow whenever work must be committed with an AI session note.
+
+## 1. Preflight
+
+- Confirm repository status with `git status --short` and branch with `git branch --show-current`.
+- Confirm `git memento` is available: `git memento help`.
+- If unavailable, install `git-memento` into a directory on `PATH` and re-check.
+
+## 2. Initialize Once Per Repository
+
+- Check configuration: `git config --local --get memento.provider`.
+- If missing, run `git memento init codex` or `git memento init claude`.
+- If provider CLI shape differs from expected `sessions get/list --json`, configure adapter command in local git config:
+- `git config --local memento.<provider>.bin <adapter-or-cli-path>`
+- `git config --local memento.<provider>.getArgs '<args with {id} placeholder>'`
+- `git config --local memento.<provider>.listArgs '<list args>'`
+
+## 3. Resolve Session ID
+
+- Prefer explicit session id from the user.
+- For Codex in this environment, default to `CODEX_THREAD_ID` when present.
+- Validate retrieval before commit by running provider command manually if needed.
+
+## 4. Create Memento Commit or Amend
+
+- Stage files as needed (`git add ...`).
+- Run commit through memento so note attachment happens in the same flow:
+- `git memento commit <session-id> -m "<subject>"`
+- For amend flows:
+- `git memento amend -m "<amended-subject>"` to carry forward existing note(s) onto the amended commit.
+- `git memento amend <session-id> -m "<amended-subject>"` to carry forward existing note(s) and append a new session.
+- Backward compatibility:
+- Legacy single-session notes are preserved.
+- When append is needed, legacy notes are upgraded into the versioned multi-session envelope so no prior session content is lost.
+- For longer body, use embedded newlines in `-m` or omit `-m` to use editor.
+
+## 5. Verify Note Attachment
+
+- Read latest commit: `git log -1 --pretty=fuller`.
+- Show note on that commit: `git notes show <commit-hash>`.
+- For multi-session notes, expect envelope/version headers and separators:
+- `<!-- git-memento-sessions:v1 -->`
+- `<!-- git-memento-note-version:1 -->`
+- `<!-- git-memento-session:start -->`
+- `<!-- git-memento-session:end -->`
+- If note is missing, inspect provider command config and rerun commit flow after fixing.
+
+## 6. Push Code and Sync Notes
+
+- Push commit branch and sync notes in one step: `git memento push <remote>`.
+- For default remote, run `git memento push`.
+- Optional fallback: `git push <remote> <branch>` then `git memento share-notes <remote>`.
+- Verify notes exist remotely: `git ls-remote <remote> 'refs/notes/*'`.
+
+## 7. Failure Handling Checklist
+
+- `git-memento is not configured`: run `git memento init ...`.
+- Provider command fails: verify `memento.<provider>.*` git config and executable permissions.
+- Session not found: list sessions using provider list command and retry with exact id.
+- Note push missing on remote: rerun `git memento push <remote>` (or `git memento share-notes <remote>`) and confirm remote ref output.
+
+</skill>
+
+### Codex
+
+Using the `git-memento-workflow` skill now because you asked for a memento commit + push. I’ll run preflight checks, commit via `git memento` with this session ID, verify the note, then push code and notes.
+
+### Codex
+
+Preflight is good and `CODEX_THREAD_ID` is available, so I’m staging only the intended files (excluding `node_modules`) and creating the memento commit with a one-line subject plus detailed body.
+<!-- git-memento-session:end -->
