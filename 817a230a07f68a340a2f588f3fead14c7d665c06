@@ -1,0 +1,64 @@
+<!-- git-memento-sessions:v1 -->
+
+<!-- git-memento-note-version:1 -->
+
+<!-- git-memento-session:start -->
+# Git Memento Session Summary
+
+- Session Kind: Summary
+- Provider: Codex
+- Session ID: 019caf34-81a1-7e21-b177-68eaf17438b3
+- Original Session Log SHA256: 5956081669a4c49f5b6397a1a7fe4e6aa1669e6bdb17afb6f3b3ab9eecb0a654
+- Captured At (UTC): 2026-03-02T18:24:53.0846590+00:00
+
+## Summary
+
+# Session Summary
+
+## Objective
+Implement and document a new `--summary-skill` workflow in `git-memento` so commit/amend notes can store a reviewed markdown summary while preserving full session data in a separate audit notes ref.
+
+## Implemented Changes
+- Added `--summary-skill <skill|default>` to:
+  - `git memento commit <session-id> ...`
+  - `git memento amend <session-id> ...`
+- Added summary mode behavior:
+  - Generate markdown summary via provider command.
+  - Print summary and require user confirmation.
+  - If rejected, require a custom retry prompt and regenerate.
+- Added dual-note storage model:
+  - Summary note in `refs/notes/commits`.
+  - Full session note in `refs/notes/memento-full-audit`.
+- Added provider summary config:
+  - `memento.<provider>.summary.bin`
+  - `memento.<provider>.summary.args`
+- Added default summary command templates:
+  - Codex: `exec {prompt}`
+  - Claude: `-p {prompt}`
+- Added default skill mapping to in-repo summary skill.
+- Updated notes sync/carry flows to include both refs.
+- Updated docs and skill files (repo + local skill copy) for summary support.
+
+## Files Touched (high-level)
+- CLI/domain/config/provider/workflows/docs were updated, including:
+  - `src/GitMemento.Cli/CliArgs.fs`
+  - `src/GitMemento.Cli/Domain.fs`
+  - `src/GitMemento.Cli/AiProvider.fs`
+  - `src/GitMemento.Cli/CommitWorkflow.fs`
+  - `src/GitMemento.Cli/AmendWorkflow.fs`
+  - `src/GitMemento.Cli/GitService.fs`
+  - `README.md`
+  - `skills/git-memento-workflow/SKILL.md`
+  - `skills/session-summary-default/SKILL.md`
+
+## Validation Status
+- Test suite was run and reported passing after syntax/type fixes.
+- Documentation was aligned to reflect summary mode and dual-note refs.
+
+## Review Findings (Open)
+- **P1:** Summary generation prompt does not include transcript content, risking ungrounded summaries.
+- **P2:** Dual-note writes are non-atomic; if full-audit write fails after summary write, notes can become inconsistent.
+
+## Current State
+Feature is implemented and documented, but the two review findings above indicate functional risk that should be addressed next.
+<!-- git-memento-session:end -->
