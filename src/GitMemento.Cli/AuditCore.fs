@@ -56,6 +56,12 @@ module AuditCore =
         | MissingSessionIdMarker -> "missing-session-id-marker"
         | EmptyNote -> "empty-note"
 
+    let issueToDescription = function
+        | MissingNote -> "No git note was found in refs/notes/commits for this commit."
+        | MissingProviderMarker -> "A note exists, but it is missing the '- Provider:' marker."
+        | MissingSessionIdMarker -> "A note exists, but it is missing the '- Session ID:' marker."
+        | EmptyNote -> "A note exists, but its body is empty or not parseable as a session entry."
+
     let buildSummary (rangeSpec: string) (results: AuditCommitResult list) =
         let missing =
             results

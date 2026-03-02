@@ -11,13 +11,17 @@ type AuditWorkflow(git: IGitService, output: IUserOutput) =
         output.Info($"Commits scanned: {summary.CommitsScanned}")
         output.Info($"Missing notes: {summary.MissingNotes.Length}")
         output.Info($"Invalid notes: {summary.InvalidNotes.Length}")
+        output.Info "Difference:"
+        output.Info "- missing-note: no note exists for the commit in refs/notes/commits."
+        output.Info "- invalid-note: a note exists, but required session markers/structure are not valid."
 
         for commit in summary.MissingNotes do
-            output.Info($"missing-note {commit}")
+            output.Info($"missing-note {commit} // {AuditCore.issueToDescription MissingNote}")
 
         for item in summary.InvalidNotes do
             let codes = item.Issues |> List.map AuditCore.issueToCode |> String.concat ","
-            output.Info($"invalid-note {item.Commit} {codes}")
+            let reasons = item.Issues |> List.map AuditCore.issueToDescription |> String.concat " | "
+            output.Info($"invalid-note {item.Commit} {codes} // {reasons}")
 
         if strict then
             output.Info "Strict mode: invalid notes are treated as failures."

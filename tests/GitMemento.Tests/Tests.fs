@@ -321,6 +321,13 @@ let ``audit core flags missing session marker`` () =
     Assert.Contains(MissingSessionIdMarker, issues)
 
 [<Fact>]
+let ``audit issue descriptions distinguish missing and invalid notes`` () =
+    let missing = AuditCore.issueToDescription MissingNote
+    let invalid = AuditCore.issueToDescription MissingSessionIdMarker
+    Assert.Contains("No git note was found", missing)
+    Assert.Contains("A note exists", invalid)
+
+[<Fact>]
 let ``session notes roundtrip preserves marker-like transcript text`` () =
     let entry =
         String.Join(
