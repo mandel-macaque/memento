@@ -254,10 +254,11 @@ npm run test:js
 
 ## Commit Note Comments + CI Gate (GitHub Action)
 
-This repository includes a reusable marketplace action with two modes:
+This repository includes a reusable marketplace action with three modes:
 
 - `mode: comment` (default): reads `git notes` created by `git-memento` and posts a commit comment.
 - `mode: gate`: runs `git memento audit` as a CI gate and fails if note coverage checks fail. `git-memento` must already be installed in the job.
+- `mode: merge-carry`: on merged pull requests, carries notes from PR commits onto the merge commit and pushes `refs/notes/*`.
 
 Action definition:
 
@@ -297,7 +298,7 @@ jobs:
 Inputs:
 
 - `github-token` (default: `${{ github.token }}`)
-- `mode` (default: `comment`) - `comment` or `gate`
+- `mode` (default: `comment`) - `comment`, `gate`, or `merge-carry`
 - `notes-fetch-refspec` (default: `refs/notes/*:refs/notes/*`)
 - `max-comment-length` (default: `65000`)
 - `audit-range` (optional, gate mode)
@@ -305,6 +306,11 @@ Inputs:
 - `strict` (default: `true`, gate mode)
 - `ignore-label` (default: `ignore-notes`, gate mode)
   - If present on a pull request, gate note checks are skipped and a PR comment with `Notes ignored` is posted.
+- `carry-onto` (optional, merge-carry mode) - target commit SHA. Defaults to `pull_request.merge_commit_sha`.
+- `carry-range` (optional, merge-carry mode) - explicit `<base>..<head>` source range.
+- `carry-base-sha` (optional, merge-carry mode) - base SHA used when `carry-range` is empty.
+- `carry-head-sha` (optional, merge-carry mode) - head SHA used when `carry-range` is empty.
+- `carry-provider` (default: `codex`, merge-carry mode) - provider value set in local git config for `notes-carry`.
 
 Installer action inputs:
 
@@ -345,6 +351,36 @@ jobs:
           ignore-label: "ignore-notes"
 ```
 
+Merge-carry example:
+
+```yaml
+name: memento-notes-merge-carry
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+
+jobs:
+  carry-notes-to-merge-commit:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: mandel-macaque/memento/install@v1
+        with:
+          memento-repo: mandel-macaque/memento
+
+      - uses: mandel-macaque/memento@v1
+        with:
+          mode: merge-carry
+```
+
 Installer action example:
 
 ```yaml
@@ -357,6 +393,10 @@ Local workflow in this repository:
 
 - `.github/workflows/memento-note-comments.yml`
 - `.github/workflows/memento-note-gate.yml`
+- `.github/workflows/memento-notes-merge-carry.yml`
+  - Uses the public action with `mode: merge-carry`.
+  - Carries notes from PR source commits onto the merge commit.
+  - Pushes updated `refs/notes/*` so merged commits keep note visibility in downstream checks.
 
 ### Publish This Action To GitHub Marketplace
 
