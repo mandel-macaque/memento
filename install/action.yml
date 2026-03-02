@@ -1,0 +1,39 @@
+name: install-git-memento
+description: Install git-memento from GitHub releases and add it to PATH.
+author: git-memento contributors
+branding:
+  icon: download
+  color: blue
+inputs:
+  memento-repo:
+    description: Repository that hosts git-memento release assets.
+    required: false
+    default: mandel-macaque/memento
+  install-dir:
+    description: Directory where git-memento will be installed.
+    required: false
+    default: ${{ runner.temp }}/git-memento-bin
+  verify:
+    description: Whether to run git memento version/help checks after install.
+    required: false
+    default: "true"
+runs:
+  using: composite
+  steps:
+    - name: Install git-memento
+      shell: bash
+      env:
+        GIT_MEMENTO_REPO: ${{ inputs.memento-repo }}
+        GIT_MEMENTO_INSTALL_DIR: ${{ inputs.install-dir }}
+      run: |
+        set -eu
+        sh "$GITHUB_ACTION_PATH/../install.sh"
+        echo "$GIT_MEMENTO_INSTALL_DIR" >> "$GITHUB_PATH"
+
+    - name: Verify git-memento install
+      if: inputs.verify == 'true'
+      shell: bash
+      run: |
+        set -eu
+        git memento --version
+        git memento help

@@ -170,15 +170,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Run install script
-        shell: bash
-        env:
-          GIT_MEMENTO_REPO: ${{ github.repository }}
-          GIT_MEMENTO_INSTALL_DIR: ${{ runner.temp }}/git-memento-bin
-        run: |
-          set -eu
-          sh ./install.sh
-          echo "$GIT_MEMENTO_INSTALL_DIR" >> "$GITHUB_PATH"
+      - name: Install git-memento
+        uses: ./install
+        with:
+          memento-repo: mandel-macaque/memento
+          verify: "false"
 
       - name: Verify git memento extension
         shell: bash

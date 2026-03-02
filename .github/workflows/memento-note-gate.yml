@@ -18,6 +18,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install git-memento
+        uses: ./install
+        with:
+          memento-repo: mandel-macaque/memento
+
       - name: Enforce memento note coverage
         uses: ./
         with:

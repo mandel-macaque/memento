@@ -222,11 +222,12 @@ npm run test:js
 This repository includes a reusable marketplace action with two modes:
 
 - `mode: comment` (default): reads `git notes` created by `git-memento` and posts a commit comment.
-- `mode: gate`: runs `git memento audit` as a CI gate and fails if note coverage checks fail.
+- `mode: gate`: runs `git memento audit` as a CI gate and fails if note coverage checks fail. `git-memento` must already be installed in the job.
 
 Action definition:
 
 - `action.yml` at repository root.
+- `install/action.yml` for reusable git-memento installation.
 - Renderer source: `src/note-comment-renderer.ts`
 - Runtime artifact committed for marketplace consumers: `dist/note-comment-renderer.js`
 
@@ -267,7 +268,12 @@ Inputs:
 - `audit-range` (optional, gate mode)
 - `base-ref` (optional, gate mode pull request inference)
 - `strict` (default: `true`, gate mode)
-- `memento-repo` (default: `mandel-macaque/memento`, gate mode installer source)
+
+Installer action inputs:
+
+- `memento-repo` (default: `mandel-macaque/memento`, release asset source)
+- `install-dir` (default: `${{ runner.temp }}/git-memento-bin`)
+- `verify` (default: `true`)
 
 CI gate example:
 
@@ -289,10 +295,22 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: mandel-macaque/memento/install@v1
+        with:
+          memento-repo: mandel-macaque/memento
+
       - uses: mandel-macaque/memento@v1
         with:
           mode: gate
           strict: "true"
+```
+
+Installer action example:
+
+```yaml
+- uses: mandel-macaque/memento/install@v1
+  with:
+    memento-repo: mandel-macaque/memento
 ```
 
 Local workflow in this repository:
@@ -310,7 +328,7 @@ npm run build:action
 git add src/note-comment-renderer.ts dist/note-comment-renderer.js
 ```
 
-2. Ensure `action.yml` is in the default branch root and README documents usage.
+2. Ensure `action.yml` and `install/action.yml` are in the default branch and README documents usage.
 3. Create and push a semantic version tag:
 
 ```bash

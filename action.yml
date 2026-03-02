@@ -13,10 +13,6 @@ inputs:
     description: GitHub token used to read/write commit comments.
     required: false
     default: ${{ github.token }}
-  memento-repo:
-    description: Repository used by install.sh when mode=gate.
-    required: false
-    default: mandel-macaque/memento
   notes-fetch-refspec:
     description: Refspec used to fetch git notes.
     required: false
@@ -44,16 +40,16 @@ runs:
       shell: bash
       run: git fetch origin '${{ inputs.notes-fetch-refspec }}' || true
 
-    - name: Install git-memento for gate mode
+    - name: Verify git-memento is installed for gate mode
       if: inputs.mode == 'gate'
       shell: bash
-      env:
-        GIT_MEMENTO_REPO: ${{ inputs.memento-repo }}
-        GIT_MEMENTO_INSTALL_DIR: ${{ runner.temp }}/git-memento-bin
       run: |
         set -eu
-        sh "$GITHUB_ACTION_PATH/install.sh"
-        echo "$GIT_MEMENTO_INSTALL_DIR" >> "$GITHUB_PATH"
+        if ! command -v git-memento >/dev/null 2>&1; then
+          echo "git-memento is required for gate mode and was not found in PATH."
+          echo "Install first with: uses: mandel-macaque/memento/install@v1"
+          exit 2
+        fi
         git memento --version
 
     - name: Enforce git-memento note coverage
