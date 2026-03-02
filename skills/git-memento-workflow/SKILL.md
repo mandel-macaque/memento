@@ -21,6 +21,9 @@ Run this workflow whenever work must be committed with an AI session note.
   - `git config --local memento.<provider>.bin <adapter-or-cli-path>`
   - `git config --local memento.<provider>.getArgs '<args with {id} placeholder>'`
   - `git config --local memento.<provider>.listArgs '<list args>'`
+- For summary mode, configure provider summary execution if defaults do not match your environment:
+  - `git config --local memento.<provider>.summary.bin <adapter-or-cli-path>`
+  - `git config --local memento.<provider>.summary.args '<args with {prompt}, optionally {skill} and {sessionId}>'`
 
 ## 3. Resolve Session ID
 
@@ -33,9 +36,16 @@ Run this workflow whenever work must be committed with an AI session note.
 - Stage files as needed (`git add ...`).
 - Run commit through memento so note attachment happens in the same flow:
   - `git memento commit <session-id> -m "<subject>"`
+  - Optional summary mode: `git memento commit <session-id> --summary-skill <skill|default> -m "<subject>"`
 - For amend flows:
   - `git memento amend -m "<amended-subject>"` to carry forward existing note(s) onto the amended commit.
   - `git memento amend <session-id> -m "<amended-subject>"` to carry forward existing note(s) and append a new session.
+  - Optional summary mode: `git memento amend <session-id> --summary-skill <skill|default> -m "<amended-subject>"`
+- Summary mode behavior:
+  - The CLI generates a markdown summary using the configured provider command.
+  - It prints the generated summary and requires explicit confirmation.
+  - If rejected, it asks for a user prompt and regenerates.
+  - It writes the summary into `refs/notes/commits` and stores the full session in `refs/notes/memento-full-audit`.
 - Backward compatibility:
   - Legacy single-session notes are preserved.
   - When append is needed, legacy notes are upgraded into the versioned multi-session envelope so no prior session content is lost.
@@ -50,6 +60,10 @@ Run this workflow whenever work must be committed with an AI session note.
   - `<!-- git-memento-note-version:1 -->`
   - `<!-- git-memento-session:start -->`
   - `<!-- git-memento-session:end -->`
+- Summary mode stores summary entries in `refs/notes/commits` and full sessions in `refs/notes/memento-full-audit`.
+- In summary mode, verify both refs:
+  - `git notes show <commit-hash>` (summary note)
+  - `git notes --ref refs/notes/memento-full-audit show <commit-hash>` (full session)
 - If note is missing, inspect provider command config and rerun commit flow after fixing.
 
 ## 6. Push Code and Sync Notes
@@ -58,6 +72,7 @@ Run this workflow whenever work must be committed with an AI session note.
 - For default remote, run `git memento push`.
 - Optional fallback: `git push <remote> <branch>` then `git memento share-notes <remote>`.
 - Verify notes exist remotely: `git ls-remote <remote> 'refs/notes/*'`.
+- `notes-sync`, `notes-rewrite-setup`, and `notes-carry` preserve both `refs/notes/commits` and `refs/notes/memento-full-audit`.
 
 ## 7. Failure Handling Checklist
 

@@ -5,18 +5,26 @@ open System.Threading.Tasks
 open Serilog
 
 type NotesSyncWorkflow(git: IGitService, output: IUserOutput) =
-    static member private LocalNotesRef = "refs/notes/commits"
+    static member private LocalNotesRefs =
+        [ "refs/notes/commits"
+          "refs/notes/memento-full-audit" ]
 
-    static member private BackupRef() =
+    static member private BackupRootRef() =
         $"refs/notes/memento-backups/{DateTimeOffset.UtcNow:yyyyMMddHHmmss}"
 
-    static member private MergeFailureMessage(backupRef: string, mergeError: string) =
+    static member private BackupRefFor(notesRef: string, backupRootRef: string) =
+        let suffix = notesRef.Replace("refs/notes/", "")
+        $"{backupRootRef}/{suffix}"
+
+    static member private MergeFailureMessage(notesRef: string, backupRef: string, mergeError: string) =
         let recoveryHint =
-            $"Notes merge failed. Local backup is at '{backupRef}'. You can restore with: git update-ref refs/notes/commits $(git rev-parse {backupRef})"
+            $"Notes merge failed for '{notesRef}'. Local backup is at '{backupRef}'. You can restore with: git update-ref {notesRef} $(git rev-parse {backupRef})"
 
         $"{mergeError}{Environment.NewLine}{recoveryHint}"
 
-    member private _.CreateBackupIfPresentAsync(backupRef: string, localObjectId: string option) : Task<Result<unit, string>> =
+    member private _.CreateBackupIfPresentAsync
+        (notesRef: string, backupRef: string, localObjectId: string option)
+        : Task<Result<unit, string>> =
         task {
             match localObjectId with
             | Some objectId ->
@@ -28,7 +36,7 @@ type NotesSyncWorkflow(git: IGitService, output: IUserOutput) =
                     output.Info($"Created notes backup at '{backupRef}'.")
                     return Ok()
             | None ->
-                output.Info("No local notes ref found yet; skipping backup creation.")
+                output.Info($"No local notes ref '{notesRef}' found yet; skipping backup creation.")
                 return Ok()
         }
 
@@ -42,44 +50,35 @@ type NotesSyncWorkflow(git: IGitService, output: IUserOutput) =
                 return CommandResult.Completed
         }
 
-    member private this.ReconcileAsync(
+    member private _.ReconcileRefAsync(
         remote: string,
         strategy: string,
+        notesRef: string,
         backupRef: string,
         remoteNotesRef: string,
         localObjectId: string option,
         remoteObjectId: string option
-    ) : Task<CommandResult> =
+    ) : Task<Result<bool, string>> =
         task {
             match localObjectId, remoteObjectId with
             | None, None ->
-                output.Info("No local or remote notes were found to sync.")
-                return CommandResult.Completed
+                output.Info($"No local or remote notes were found to sync for '{notesRef}'.")
+                return Ok false
             | None, Some objectId ->
-                Log.Debug("Initializing local notes ref from remote notes object {ObjectId}", objectId)
-                let! initResult = git.UpdateRefAsync(NotesSyncWorkflow.LocalNotesRef, objectId)
+                Log.Debug("Initializing local notes ref {Ref} from remote notes object {ObjectId}", notesRef, objectId)
+                let! initResult = git.UpdateRefAsync(notesRef, objectId)
                 match initResult with
-                | Error initError -> return CommandResult.Failed initError
-                | Ok _ ->
-                    return!
-                        this.ShareNotesAsync(
-                            remote,
-                            $"Initialized local notes from '{remote}' and shared them back."
-                        )
+                | Error initError -> return Error initError
+                | Ok _ -> return Ok true
             | Some _, None ->
-                output.Info($"No notes found on remote '{remote}' to merge; local notes unchanged.")
-                return CommandResult.Completed
+                output.Info($"No notes found on remote '{remote}' to merge for '{notesRef}'; local notes unchanged.")
+                return Ok false
             | Some _, Some _ ->
-                Log.Debug("Merging notes ref {SourceRef} using strategy {Strategy}", remoteNotesRef, strategy)
-                let! mergeResult = git.MergeNotesAsync(remoteNotesRef, strategy)
+                Log.Debug("Merging notes ref {SourceRef} into {TargetRef} using strategy {Strategy}", remoteNotesRef, notesRef, strategy)
+                let! mergeResult = git.MergeNotesAsync(notesRef, remoteNotesRef, strategy)
                 match mergeResult with
-                | Error mergeError -> return CommandResult.Failed(NotesSyncWorkflow.MergeFailureMessage(backupRef, mergeError))
-                | Ok _ ->
-                    return!
-                        this.ShareNotesAsync(
-                            remote,
-                            $"Synced git notes with remote '{remote}' using strategy '{strategy}'."
-                        )
+                | Error mergeError -> return Error(NotesSyncWorkflow.MergeFailureMessage(notesRef, backupRef, mergeError))
+                | Ok _ -> return Ok true
         }
 
     member this.ExecuteAsync(remote: string, strategy: string) : Task<CommandResult> =
@@ -89,41 +88,66 @@ type NotesSyncWorkflow(git: IGitService, output: IUserOutput) =
             match repoCheck with
             | Error message -> return CommandResult.Failed message
             | Ok _ ->
-                let backupRef = NotesSyncWorkflow.BackupRef()
+                let backupRootRef = NotesSyncWorkflow.BackupRootRef()
                 let remoteNamespace = $"refs/notes/remote/{remote}"
-                let remoteNotesRef = $"{remoteNamespace}/commits"
 
                 Log.Debug("Ensuring notes fetch config for remote {Remote}", remote)
                 let! configResult = git.EnsureNotesFetchConfiguredAsync(remote)
                 match configResult with
                 | Error configError -> return CommandResult.Failed configError
                 | Ok _ ->
-                    Log.Debug("Checking local notes ref {Ref}", NotesSyncWorkflow.LocalNotesRef)
-                    let! localRefResult = git.GetRefObjectIdAsync(NotesSyncWorkflow.LocalNotesRef)
-                    match localRefResult with
-                    | Error readError -> return CommandResult.Failed readError
-                    | Ok localObjectId ->
-                        let! backupResult = this.CreateBackupIfPresentAsync(backupRef, localObjectId)
-                        match backupResult with
-                        | Error backupError -> return CommandResult.Failed backupError
-                        | Ok _ ->
-                            // Fetch into a namespaced ref first so we can merge deliberately and keep control of conflicts.
-                            Log.Debug("Fetching notes from remote {Remote} into namespace {Namespace}", remote, remoteNamespace)
-                            let! fetchResult = git.FetchNotesToNamespaceAsync(remote, remoteNamespace)
-                            match fetchResult with
-                            | Error fetchError -> return CommandResult.Failed fetchError
-                            | Ok _ ->
-                                let! remoteRefResult = git.GetRefObjectIdAsync(remoteNotesRef)
-                                match remoteRefResult with
-                                | Error readError -> return CommandResult.Failed readError
-                                | Ok remoteObjectId ->
-                                    return!
-                                        this.ReconcileAsync(
-                                            remote,
-                                            strategy,
-                                            backupRef,
-                                            remoteNotesRef,
-                                            localObjectId,
-                                            remoteObjectId
-                                        )
+                    // Fetch into a namespaced ref first so we can merge deliberately and keep control of conflicts.
+                    Log.Debug("Fetching notes from remote {Remote} into namespace {Namespace}", remote, remoteNamespace)
+                    let! fetchResult = git.FetchNotesToNamespaceAsync(remote, remoteNamespace)
+                    match fetchResult with
+                    | Error fetchError -> return CommandResult.Failed fetchError
+                    | Ok _ ->
+                        let mutable changed = false
+                        let mutable failure: string option = None
+
+                        for notesRef in NotesSyncWorkflow.LocalNotesRefs do
+                            if failure.IsNone then
+                                let remoteSuffix = notesRef.Replace("refs/notes/", "")
+                                let remoteNotesRef = $"{remoteNamespace}/{remoteSuffix}"
+                                let scopedBackupRef = NotesSyncWorkflow.BackupRefFor(notesRef, backupRootRef)
+
+                                Log.Debug("Checking local notes ref {Ref}", notesRef)
+                                let! localRefResult = git.GetRefObjectIdAsync(notesRef)
+                                match localRefResult with
+                                | Error readError -> failure <- Some readError
+                                | Ok localObjectId ->
+                                    let! backupResult = this.CreateBackupIfPresentAsync(notesRef, scopedBackupRef, localObjectId)
+                                    match backupResult with
+                                    | Error backupError -> failure <- Some backupError
+                                    | Ok _ ->
+                                        let! remoteRefResult = git.GetRefObjectIdAsync(remoteNotesRef)
+                                        match remoteRefResult with
+                                        | Error readError -> failure <- Some readError
+                                        | Ok remoteObjectId ->
+                                            let! reconcileResult =
+                                                this.ReconcileRefAsync(
+                                                    remote,
+                                                    strategy,
+                                                    notesRef,
+                                                    scopedBackupRef,
+                                                    remoteNotesRef,
+                                                    localObjectId,
+                                                    remoteObjectId
+                                                )
+
+                                            match reconcileResult with
+                                            | Error err -> failure <- Some err
+                                            | Ok didChange -> changed <- changed || didChange
+
+                        match failure with
+                        | Some err -> return CommandResult.Failed err
+                        | None when not changed ->
+                            output.Info("No local or remote notes were found to sync.")
+                            return CommandResult.Completed
+                        | None ->
+                            return!
+                                this.ShareNotesAsync(
+                                    remote,
+                                    $"Synced git notes with remote '{remote}' using strategy '{strategy}'."
+                                )
         }

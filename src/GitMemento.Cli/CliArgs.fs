@@ -6,8 +6,8 @@ module CliArgs =
     let usage =
         "Usage:\n"
         + "  git memento init [codex|claude]\n"
-        + "  git memento commit <session-id> [-m \"commit message\"]...\n"
-        + "  git memento amend [session-id] [-m \"commit message\"]...\n"
+        + "  git memento commit <session-id> [-m \"commit message\"]... [--summary-skill <skill|default>]\n"
+        + "  git memento amend [session-id] [-m \"commit message\"]... [--summary-skill <skill|default>]\n"
         + "  git memento audit [--range <A..B>] [--strict] [--format <text|json>]\n"
         + "  git memento doctor [remote] [--format <text|json>]\n"
         + "  git memento push [remote]\n"
@@ -54,15 +54,20 @@ module CliArgs =
 
         let parseCommit (args: string array) : Result<Command, string> =
             if args.Length < 2 then
-                Error "Missing <session-id>. Usage: git memento commit <session-id> [-m \"commit message\"]..."
+                Error
+                    "Missing <session-id>. Usage: git memento commit <session-id> [-m \"commit message\"]... [--summary-skill <skill|default>]"
             else
                 let sessionId = args[1].Trim()
                 if isBlank sessionId then
                     Error "Session id cannot be empty."
                 else
-                    let rec loop (i: int) (messagesRev: string list) : Result<string list, string> =
+                    let rec loop
+                        (i: int)
+                        (messagesRev: string list)
+                        (summarySkill: string option)
+                        : Result<string list * string option, string> =
                         if i >= args.Length then
-                            Ok(List.rev messagesRev)
+                            Ok(List.rev messagesRev, summarySkill)
                         else
                             let current = args[i]
                             if current = "-m" || current = "--message" then
@@ -70,13 +75,32 @@ module CliArgs =
                                     Error "Flag -m/--message requires a non-empty commit message."
                                 else
                                     match toNonEmptyOption args[i + 1] with
-                                    | Some message -> loop (i + 2) (message :: messagesRev)
+                                    | Some message -> loop (i + 2) (message :: messagesRev) summarySkill
                                     | None -> Error "Flag -m/--message requires a non-empty commit message."
                             elif current.StartsWith("--message=", StringComparison.Ordinal) then
                                 let inlineValue = current.Substring("--message=".Length)
                                 match toNonEmptyOption inlineValue with
-                                | Some message -> loop (i + 1) (message :: messagesRev)
+                                | Some message -> loop (i + 1) (message :: messagesRev) summarySkill
                                 | None -> Error "Flag -m/--message requires a non-empty commit message."
+                            elif current = "--summary-skill" then
+                                if i + 1 >= args.Length then
+                                    Error "Flag --summary-skill requires a non-empty value."
+                                else
+                                    let value = args[i + 1].Trim()
+                                    if isBlank value then
+                                        Error "Flag --summary-skill requires a non-empty value."
+                                    elif summarySkill.IsSome then
+                                        Error "Flag --summary-skill can only be provided once."
+                                    else
+                                        loop (i + 2) messagesRev (Some value)
+                            elif current.StartsWith("--summary-skill=", StringComparison.Ordinal) then
+                                let value = current.Substring("--summary-skill=".Length).Trim()
+                                if isBlank value then
+                                    Error "Flag --summary-skill requires a non-empty value."
+                                elif summarySkill.IsSome then
+                                    Error "Flag --summary-skill can only be provided once."
+                                else
+                                    loop (i + 1) messagesRev (Some value)
                             elif current.StartsWith("-m", StringComparison.Ordinal) then
                                 let inlineValue = current.AsSpan(2).ToString()
                                 let normalizedInlineValue =
@@ -86,18 +110,22 @@ module CliArgs =
                                         inlineValue
 
                                 match toNonEmptyOption normalizedInlineValue with
-                                | Some message -> loop (i + 1) (message :: messagesRev)
+                                | Some message -> loop (i + 1) (message :: messagesRev) summarySkill
                                 | None -> Error "Flag -m/--message requires a non-empty commit message."
                             else
                                 Error $"Unknown argument: {current}"
 
-                    loop 2 [] |> Result.map (fun messages -> Command.Commit(sessionId, messages))
+                    loop 2 [] None |> Result.map (fun (messages, skill) -> Command.Commit(sessionId, messages, skill))
 
         let parseAmend (args: string array) : Result<Command, string> =
             let parseMessages (startIndex: int) =
-                let rec loop (i: int) (messagesRev: string list) : Result<string list, string> =
+                let rec loop
+                    (i: int)
+                    (messagesRev: string list)
+                    (summarySkill: string option)
+                    : Result<string list * string option, string> =
                     if i >= args.Length then
-                        Ok(List.rev messagesRev)
+                        Ok(List.rev messagesRev, summarySkill)
                     else
                         let current = args[i]
                         if current = "-m" || current = "--message" then
@@ -105,13 +133,32 @@ module CliArgs =
                                 Error "Flag -m/--message requires a non-empty commit message."
                             else
                                 match toNonEmptyOption args[i + 1] with
-                                | Some message -> loop (i + 2) (message :: messagesRev)
+                                | Some message -> loop (i + 2) (message :: messagesRev) summarySkill
                                 | None -> Error "Flag -m/--message requires a non-empty commit message."
                         elif current.StartsWith("--message=", StringComparison.Ordinal) then
                             let inlineValue = current.Substring("--message=".Length)
                             match toNonEmptyOption inlineValue with
-                            | Some message -> loop (i + 1) (message :: messagesRev)
+                            | Some message -> loop (i + 1) (message :: messagesRev) summarySkill
                             | None -> Error "Flag -m/--message requires a non-empty commit message."
+                        elif current = "--summary-skill" then
+                            if i + 1 >= args.Length then
+                                Error "Flag --summary-skill requires a non-empty value."
+                            else
+                                let value = args[i + 1].Trim()
+                                if isBlank value then
+                                    Error "Flag --summary-skill requires a non-empty value."
+                                elif summarySkill.IsSome then
+                                    Error "Flag --summary-skill can only be provided once."
+                                else
+                                    loop (i + 2) messagesRev (Some value)
+                        elif current.StartsWith("--summary-skill=", StringComparison.Ordinal) then
+                            let value = current.Substring("--summary-skill=".Length).Trim()
+                            if isBlank value then
+                                Error "Flag --summary-skill requires a non-empty value."
+                            elif summarySkill.IsSome then
+                                Error "Flag --summary-skill can only be provided once."
+                            else
+                                loop (i + 1) messagesRev (Some value)
                         elif current.StartsWith("-m", StringComparison.Ordinal) then
                             let inlineValue = current.AsSpan(2).ToString()
                             let normalizedInlineValue =
@@ -121,25 +168,31 @@ module CliArgs =
                                     inlineValue
 
                             match toNonEmptyOption normalizedInlineValue with
-                            | Some message -> loop (i + 1) (message :: messagesRev)
+                            | Some message -> loop (i + 1) (message :: messagesRev) summarySkill
                             | None -> Error "Flag -m/--message requires a non-empty commit message."
                         else
                             Error $"Unknown argument: {current}"
 
-                loop startIndex []
+                loop startIndex [] None
 
             if args.Length = 1 then
-                Ok(Command.Amend(None, []))
+                Ok(Command.Amend(None, [], None))
             else
                 let firstArg = args[1]
                 if firstArg.StartsWith("-", StringComparison.Ordinal) then
-                    parseMessages 1 |> Result.map (fun messages -> Command.Amend(None, messages))
+                    parseMessages 1
+                    |> Result.bind (fun (messages, skill) ->
+                        if skill.IsSome then
+                            Error "Flag --summary-skill requires an explicit session id with amend."
+                        else
+                            Ok(Command.Amend(None, messages, None)))
                 else
                     let sessionId = firstArg.Trim()
                     if isBlank sessionId then
                         Error "Session id cannot be empty."
                     else
-                        parseMessages 2 |> Result.map (fun messages -> Command.Amend(Some sessionId, messages))
+                        parseMessages 2
+                        |> Result.map (fun (messages, skill) -> Command.Amend(Some sessionId, messages, skill))
 
         let private parseFormatValue (value: string) =
             let normalized = value.Trim().ToLowerInvariant()

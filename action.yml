@@ -29,6 +29,10 @@ inputs:
     description: Whether invalid note structure should fail mode=gate.
     required: false
     default: "true"
+  ignore-label:
+    description: Pull request label that bypasses gate note coverage checks.
+    required: false
+    default: "ignore-notes"
   max-comment-length:
     description: Maximum comment body length to emit.
     required: false
@@ -52,8 +56,19 @@ runs:
         fi
         git memento --version
 
+    - name: Detect gate ignore label
+      if: inputs.mode == 'gate' && github.event_name == 'pull_request'
+      id: gate_label_check
+      shell: bash
+      env:
+        IGNORE_LABEL: ${{ inputs.ignore-label }}
+      run: |
+        set -eu
+        ignored="$(node -e 'const fs=require("fs"); const payload=JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH,"utf8")); const labels=(payload.pull_request?.labels||[]).map((l)=>l.name); process.stdout.write(labels.includes(process.env.IGNORE_LABEL) ? "true" : "false");')"
+        echo "ignored=$ignored" >> "$GITHUB_OUTPUT"
+
     - name: Enforce git-memento note coverage
-      if: inputs.mode == 'gate'
+      if: inputs.mode == 'gate' && (github.event_name != 'pull_request' || steps.gate_label_check.outputs.ignored != 'true')
       shell: bash
       run: |
         set -eu
@@ -97,6 +112,47 @@ runs:
         else
           git memento audit --range "$RANGE" --format text
         fi
+
+    - name: Skip gate when ignore label is present
+      if: inputs.mode == 'gate' && github.event_name == 'pull_request' && steps.gate_label_check.outputs.ignored == 'true'
+      continue-on-error: true
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const marker = "<!-- git-memento-notes-ignored -->";
+          const body = `${marker}\nNotes ignored`;
+          const { owner, repo } = context.repo;
+          const issue_number = context.payload.pull_request.number;
+
+          const comments = await github.paginate(github.rest.issues.listComments, {
+            owner,
+            repo,
+            issue_number,
+            per_page: 100
+          });
+          const existing = comments.find((c) => c.user.type === "Bot" && c.body && c.body.includes(marker));
+
+          try {
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body
+              });
+            }
+            core.info(`Gate skipped because label '${core.getInput("ignore-label")}' is present.`);
+          } catch (err) {
+            core.warning(`Gate skip comment could not be written (continuing): ${err.message}`);
+          }
 
     - name: Install note renderer dependencies
       if: inputs.mode == 'comment'

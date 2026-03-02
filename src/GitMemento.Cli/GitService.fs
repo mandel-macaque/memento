@@ -4,6 +4,7 @@ open System
 open System.Threading.Tasks
 
 type IGitService =
+    abstract member DefaultNotesRef: string
     abstract member EnsureInRepositoryAsync: unit -> Task<Result<unit, string>>
     abstract member GetLocalConfigValueAsync: key: string -> Task<Result<string option, string>>
     abstract member GetLocalConfigValuesAsync: key: string -> Task<Result<string list, string>>
@@ -13,24 +14,32 @@ type IGitService =
     abstract member CommitAmendAsync: messages: string list -> Task<Result<unit, string>>
     abstract member GetHeadHashAsync: unit -> Task<Result<string, string>>
     abstract member AddNoteAsync: hash: string * note: string -> Task<Result<unit, string>>
+    abstract member AddNoteInRefAsync: notesRef: string * hash: string * note: string -> Task<Result<unit, string>>
     abstract member PushAsync: remote: string -> Task<Result<unit, string>>
     abstract member EnsureNotesFetchConfiguredAsync: remote: string -> Task<Result<unit, string>>
     abstract member ShareNotesAsync: remote: string -> Task<Result<unit, string>>
     abstract member GetRefObjectIdAsync: refName: string -> Task<Result<string option, string>>
     abstract member UpdateRefAsync: refName: string * objectId: string -> Task<Result<unit, string>>
     abstract member FetchNotesToNamespaceAsync: remote: string * namespaceRoot: string -> Task<Result<unit, string>>
-    abstract member MergeNotesAsync: notesRef: string * strategy: string -> Task<Result<unit, string>>
+    abstract member MergeNotesAsync: targetRef: string * sourceRef: string * strategy: string -> Task<Result<unit, string>>
     abstract member ListRemoteRefsAsync: remote: string * pattern: string -> Task<Result<string list, string>>
     abstract member ResolveCommitAsync: revision: string -> Task<Result<string, string>>
     abstract member GetCommitsInRangeAsync: rangeSpec: string -> Task<Result<string list, string>>
     abstract member GetNoteAsync: hash: string -> Task<Result<string option, string>>
+    abstract member GetNoteInRefAsync: notesRef: string * hash: string -> Task<Result<string option, string>>
     abstract member AppendNoteAsync: hash: string * note: string -> Task<Result<unit, string>>
+    abstract member AppendNoteInRefAsync: notesRef: string * hash: string * note: string -> Task<Result<unit, string>>
 
 type GitService(runner: ICommandRunner) =
+    [<Literal>]
+    let DefaultNotesRef = "refs/notes/commits"
+
     let failWith stderr fallback =
         if String.IsNullOrWhiteSpace stderr then fallback else stderr
 
     interface IGitService with
+        member _.DefaultNotesRef = DefaultNotesRef
+
         member _.EnsureInRepositoryAsync() =
             task {
                 let! result = runner.RunCaptureAsync("git", [ "rev-parse"; "--is-inside-work-tree" ])
@@ -151,6 +160,15 @@ type GitService(runner: ICommandRunner) =
                     return Error(failWith result.StdErr result.StdOut)
             }
 
+        member _.AddNoteInRefAsync(notesRef: string, hash: string, note: string) =
+            task {
+                let! result = runner.RunCaptureAsync("git", [ "notes"; "--ref"; notesRef; "add"; "-f"; "-m"; note; hash ])
+                if result.ExitCode = 0 then
+                    return Ok()
+                else
+                    return Error(failWith result.StdErr result.StdOut)
+            }
+
         member _.PushAsync(remote: string) =
             task {
                 let! result = runner.RunCaptureAsync("git", [ "push"; remote ])
@@ -223,9 +241,9 @@ type GitService(runner: ICommandRunner) =
                     return Error(failWith result.StdErr result.StdOut)
             }
 
-        member _.MergeNotesAsync(notesRef: string, strategy: string) =
+        member _.MergeNotesAsync(targetRef: string, sourceRef: string, strategy: string) =
             task {
-                let! result = runner.RunCaptureAsync("git", [ "notes"; "merge"; "-s"; strategy; notesRef ])
+                let! result = runner.RunCaptureAsync("git", [ "notes"; "--ref"; targetRef; "merge"; "-s"; strategy; sourceRef ])
                 if result.ExitCode = 0 then
                     return Ok()
                 else
@@ -284,9 +302,29 @@ type GitService(runner: ICommandRunner) =
                     return Error(failWith result.StdErr result.StdOut)
             }
 
+        member _.GetNoteInRefAsync(notesRef: string, hash: string) =
+            task {
+                let! result = runner.RunCaptureAsync("git", [ "notes"; "--ref"; notesRef; "show"; hash ])
+                if result.ExitCode = 0 then
+                    return Ok(Some result.StdOut)
+                elif result.ExitCode = 1 then
+                    return Ok None
+                else
+                    return Error(failWith result.StdErr result.StdOut)
+            }
+
         member _.AppendNoteAsync(hash: string, note: string) =
             task {
                 let! result = runner.RunCaptureAsync("git", [ "notes"; "append"; "-m"; note; hash ])
+                if result.ExitCode = 0 then
+                    return Ok()
+                else
+                    return Error(failWith result.StdErr result.StdOut)
+            }
+
+        member _.AppendNoteInRefAsync(notesRef: string, hash: string, note: string) =
+            task {
+                let! result = runner.RunCaptureAsync("git", [ "notes"; "--ref"; notesRef; "append"; "-m"; note; hash ])
                 if result.ExitCode = 0 then
                     return Ok()
                 else

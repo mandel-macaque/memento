@@ -40,7 +40,9 @@ type InitWorkflow(git: IGitService, output: IUserOutput) =
                             [ ("memento.provider", settings.Provider)
                               (keyForProvider settings.Provider "bin", settings.Executable)
                               (keyForProvider settings.Provider "getArgs", settings.GetArgs)
-                              (keyForProvider settings.Provider "listArgs", settings.ListArgs) ]
+                              (keyForProvider settings.Provider "listArgs", settings.ListArgs)
+                              (keyForProvider settings.Provider "summary.bin", settings.SummaryExecutable)
+                              (keyForProvider settings.Provider "summary.args", settings.SummaryArgs) ]
 
                         let mutable writeError: string option = None
                         for (key, value) in writes do

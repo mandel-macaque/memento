@@ -4,10 +4,12 @@ on:
   push:
     branches: [ main ]
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
 
 permissions:
   contents: read
+  issues: write
+  pull-requests: write
 
 jobs:
   enforce-memento-notes:

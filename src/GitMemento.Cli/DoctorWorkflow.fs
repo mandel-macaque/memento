@@ -86,7 +86,9 @@ type DoctorWorkflow(git: IGitService, runner: ICommandRunner, output: IUserOutpu
                     let keyChecks =
                         [ $"{keyBase}.bin", settings.Executable
                           $"{keyBase}.getArgs", settings.GetArgs
-                          $"{keyBase}.listArgs", settings.ListArgs ]
+                          $"{keyBase}.listArgs", settings.ListArgs
+                          $"{keyBase}.summary.bin", settings.SummaryExecutable
+                          $"{keyBase}.summary.args", settings.SummaryArgs ]
 
                     for key, fallback in keyChecks do
                         match git.GetLocalConfigValueAsync(key).Result with
@@ -124,7 +126,7 @@ type DoctorWorkflow(git: IGitService, runner: ICommandRunner, output: IUserOutpu
             | Ok refs -> add checks "remote-notes" Pass $"Remote '{remote}' has {refs.Length} notes ref(s)."
 
             let rewriteKeys =
-                [ "notes.rewriteRef", "refs/notes/commits"
+                [ "notes.rewriteRef", "refs/notes/*"
                   "notes.rewriteMode", "concatenate"
                   "notes.rewrite.rebase", "true"
                   "notes.rewrite.amend", "true" ]
