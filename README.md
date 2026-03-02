@@ -8,7 +8,7 @@ It runs a commit and then stores a cleaned markdown conversation as a git note o
 
 - Create commits with normal Git flow (`-m` or editor).
 - Attach the AI session trace to the commit (`git notes`).
-- Keep provider support extensible (Codex first, others later).
+- Keep provider support extensible (Codex and Claude Code supported today).
 - Produce human-readable markdown notes.
 
 ## Command
@@ -149,7 +149,7 @@ Runtime behavior:
   - `memento.codex.bin`, `memento.codex.getArgs`, `memento.codex.listArgs`
   - `memento.claude.bin`, `memento.claude.getArgs`, `memento.claude.listArgs`
 
-If a session id is not found, `git-memento` asks Codex for available sessions and prints them.
+If a session id is not found, `git-memento` asks the configured provider for available sessions and prints them.
 
 ## Build (AOT)
 
