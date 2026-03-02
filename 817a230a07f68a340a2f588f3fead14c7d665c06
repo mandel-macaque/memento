@@ -1,0 +1,1807 @@
+<!-- git-memento-sessions:v1 -->
+
+<!-- git-memento-note-version:1 -->
+
+<!-- git-memento-session:start -->
+<!-- git-memento-full-audit:v1 -->
+- Session Kind: Full Session
+- Summary SHA256: f1bdf744f22a8ad9a3530a4023c6c87efcfd61876c5b3d6f6965744f371e4ca5
+- Original Session Log SHA256: 5956081669a4c49f5b6397a1a7fe4e6aa1669e6bdb17afb6f3b3ab9eecb0a654
+
+# Git Memento Session
+
+- Provider: Codex
+- Session ID: 019caf34-81a1-7e21-b177-68eaf17438b3
+- Session Title: # AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
+### Available skills
+- git-memento-workflow: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes. (file: /Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- skill-creator: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. (file: /Users/mandel/.codex/skills/.system/skill-creator/SKILL.md)
+- skill-installer: Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos). (file: /Users/mandel/.codex/skills/.system/skill-installer/SKILL.md)
+### How to use skills
+- Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths.
+- Trigger rules: If the user names a skill (with `$SkillName` or plain text) OR the task clearly matches a skill's description shown above, you must use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned.
+- Missing/blocked: If a named skill isn't in the list or the path can't be read, say so briefly and continue with the best fallback.
+- How to use a skill (progressive disclosure):
+  1) After deciding to use a skill, open its `SKILL.md`. Read only enough to follow the workflow.
+  2) When `SKILL.md` references relative paths (e.g., `scripts/foo.py`), resolve them relative to the skill directory listed above first, and only consider other paths if needed.
+  3) If `SKILL.md` points to extra folders such as `references/`, load only the specific files needed for the request; don't bulk-load everything.
+  4) If `scripts/` exist, prefer running or patching them instead of retyping large code blocks.
+  5) If `assets/` or templates exist, reuse them instead of recreating from scratch.
+- Coordination and sequencing:
+  - If multiple skills apply, choose the minimal set that covers the request and state the order you'll use them.
+  - Announce which skill(s) you're using and why (one short line). If you skip an obvious skill, say why.
+- Context hygiene:
+  - Keep context small: summarize long sections instead of pasting them; only load extra files when needed.
+  - Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
+  - When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
+- Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+</INSTRUCTIONS>
+- Committer: Manuel de la Pena
+- Captured At (UTC): 2026-03-02T18:24:39.2813260+00:00
+
+## Conversation
+
+### Manuel de la Pena
+
+# AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
+### Available skills
+- git-memento-workflow: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes. (file: /Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- skill-creator: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. (file: /Users/mandel/.codex/skills/.system/skill-creator/SKILL.md)
+- skill-installer: Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos). (file: /Users/mandel/.codex/skills/.system/skill-installer/SKILL.md)
+### How to use skills
+- Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths.
+- Trigger rules: If the user names a skill (with `$SkillName` or plain text) OR the task clearly matches a skill's description shown above, you must use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned.
+- Missing/blocked: If a named skill isn't in the list or the path can't be read, say so briefly and continue with the best fallback.
+- How to use a skill (progressive disclosure):
+1) After deciding to use a skill, open its `SKILL.md`. Read only enough to follow the workflow.
+2) When `SKILL.md` references relative paths (e.g., `scripts/foo.py`), resolve them relative to the skill directory listed above first, and only consider other paths if needed.
+3) If `SKILL.md` points to extra folders such as `references/`, load only the specific files needed for the request; don't bulk-load everything.
+4) If `scripts/` exist, prefer running or patching them instead of retyping large code blocks.
+5) If `assets/` or templates exist, reuse them instead of recreating from scratch.
+- Coordination and sequencing:
+- If multiple skills apply, choose the minimal set that covers the request and state the order you'll use them.
+- Announce which skill(s) you're using and why (one short line). If you skip an obvious skill, say why.
+- Context hygiene:
+- Keep context small: summarize long sections instead of pasting them; only load extra files when needed.
+- Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
+- When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
+- Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+</INSTRUCTIONS>
+
+### Manuel de la Pena
+
+<environment_context>
+<cwd>/Users/mandel/Work/memento</cwd>
+<shell>zsh</shell>
+</environment_context>
+
+### Manuel de la Pena
+
+We have decide to improve the way we link the information of a session in the notes added by the $git-memento-workflow
+
+To make thinks nicer I want you to:
+- Add a new flag to the commands that attach a session callend `summary-skill` that will take a skill and will call the ccoding agent with the skill to summarize the session
+- The summarize session will be added instead of the actual session. If that is the case, we will ensure that the envelop does state that we are dealing with a summary, not a real session.
+- We still want to keep track of the full session, therefore we want to add it to a second git notes branch (not the default used by git) called full audit or something that will also reference the original hash
+- Because the summary might no be correct by default we will print the summary to the user and ask for a confirmation. If they do not like the summayr we will require a prompt that will be use to generate the summary
+
+The idea is that for example we will call `codex exec <prompt>` the prompt will be something like `Using the skill <user-provided-sill> summarize the session with ID as a mark down file` The user will provide the skill to use.
+
+Because we want to support a default we will allow to pass default and in our reporsitory we will provide a skill to generate summary sessions. Write that skill so that:
+
+- Always use valid markdown
+- Remove any data that could be personal data of a user or details that migh identify users
+- Try to remove any interaction that ended in an not use path. We do not want to track parts of the conversation that provided no value
+- Remove any infomartion that might not be helpfule when reading the code. We want context
+- Make it redeable. Logs are to verbose, we want the summary to be proper prose and read like an specification
+
+Create a plan to understand what needs to be changed. How we can call claude similar to `codex exec`.
+
+### Manuel de la Pena
+
+<skill>
+<name>git-memento-workflow</name>
+<path>/Users/mandel/.codex/skills/git-memento-workflow/SKILL.md</path>
+---
+name: git-memento-workflow
+description: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes.
+---
+
+# Git Memento Workflow
+
+Run this workflow whenever work must be committed with an AI session note.
+
+## 1. Preflight
+
+- Confirm repository status with `git status --short` and branch with `git branch --show-current`.
+- Confirm `git memento` is available: `git memento help`.
+- If unavailable, install `git-memento` into a directory on `PATH` and re-check.
+
+## 2. Initialize Once Per Repository
+
+- Check configuration: `git config --local --get memento.provider`.
+- If missing, run `git memento init codex` or `git memento init claude`.
+- If provider CLI shape differs from expected `sessions get/list --json`, configure adapter command in local git config:
+- `git config --local memento.<provider>.bin <adapter-or-cli-path>`
+- `git config --local memento.<provider>.getArgs '<args with {id} placeholder>'`
+- `git config --local memento.<provider>.listArgs '<list args>'`
+
+## 3. Resolve Session ID
+
+- Prefer explicit session id from the user.
+- For Codex in this environment, default to `CODEX_THREAD_ID` when present.
+- Validate retrieval before commit by running provider command manually if needed.
+
+## 4. Create Memento Commit or Amend
+
+- Stage files as needed (`git add ...`).
+- Run commit through memento so note attachment happens in the same flow:
+- `git memento commit <session-id> -m "<subject>"`
+- For amend flows:
+- `git memento amend -m "<amended-subject>"` to carry forward existing note(s) onto the amended commit.
+- `git memento amend <session-id> -m "<amended-subject>"` to carry forward existing note(s) and append a new session.
+- Backward compatibility:
+- Legacy single-session notes are preserved.
+- When append is needed, legacy notes are upgraded into the versioned multi-session envelope so no prior session content is lost.
+- For longer body, use embedded newlines in `-m` or omit `-m` to use editor.
+
+## 5. Verify Note Attachment
+
+- Read latest commit: `git log -1 --pretty=fuller`.
+- Show note on that commit: `git notes show <commit-hash>`.
+- For multi-session notes, expect envelope/version headers and separators:
+- `<!-- git-memento-sessions:v1 -->`
+- `<!-- git-memento-note-version:1 -->`
+- `<!-- git-memento-session:start -->`
+- `<!-- git-memento-session:end -->`
+- If note is missing, inspect provider command config and rerun commit flow after fixing.
+
+## 6. Push Code and Sync Notes
+
+- Push commit branch and sync notes in one step: `git memento push <remote>`.
+- For default remote, run `git memento push`.
+- Optional fallback: `git push <remote> <branch>` then `git memento share-notes <remote>`.
+- Verify notes exist remotely: `git ls-remote <remote> 'refs/notes/*'`.
+
+## 7. Failure Handling Checklist
+
+- `git-memento is not configured`: run `git memento init ...`.
+- Provider command fails: verify `memento.<provider>.*` git config and executable permissions.
+- Session not found: list sessions using provider list command and retry with exact id.
+- Note push missing on remote: rerun `git memento push <remote>` (or `git memento share-notes <remote>`) and confirm remote ref output.
+
+</skill>
+
+### Codex
+
+Using `git-memento-workflow` because your request changes how session notes are generated/attached. I’ll inspect the current `git memento` implementation and then propose a concrete change plan, including a Claude invocation path equivalent to `codex exec`.
+
+### Codex
+
+I found the CLI sources and workflows; next I’m mapping where `commit/amend` fetch session content, build the note envelope, and run provider commands so the `summary-skill` design can be precise.
+
+### Codex
+
+I confirmed provider abstraction currently only supports `sessions get/list --json`. I’ll inspect command/domain and note-writing flows next to pin down exact schema and where a second notes ref can be added cleanly.
+
+### Codex
+
+I have enough of the code path to draft a concrete plan. I’ll quickly probe local CLI shapes for `codex` and `claude` so the “similar to `codex exec`” part is grounded in actual commands you can wire today.
+
+### Codex
+
+Local environment has `codex` but no `claude` binary (`claude --help` is unavailable), so for Claude we should design an adapter-driven command path via config rather than hard-coding a CLI shape. I’ll inspect `init`/config code to include this in the plan.
+
+### Codex
+
+Plan based on current codebase (`src/GitMemento.Cli/*`) and your requested behavior.
+
+**Using Skill**
+Using `git-memento-workflow` because this is a memento note-generation/change workflow.
+
+**Implementation Plan**
+1. Extend CLI args and command model.
+2. Add `--summary-skill <skill-name|default>` to `commit` and `amend`.
+3. Update [Domain.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/Domain.fs) command unions and [CliArgs.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/CliArgs.fs) parsing/usage text.
+4. Add a summarization runner abstraction.
+5. Introduce config keys for summarization command templates in [MementoConfig.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/MementoConfig.fs) and setup defaults in [InitWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/InitWorkflow.fs).
+6. For `codex`, default to a template equivalent to `codex exec "<prompt>"`.
+7. For `claude`, make it adapter-driven via config (`memento.claude.summary.*`) since `claude` CLI is not present in this environment to confirm shape.
+8. Add summary generation flow in [CommitWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/CommitWorkflow.fs) and [AmendWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/AmendWorkflow.fs):
+9. Fetch full session JSON as today.
+10. If `--summary-skill` is set, call summarizer command with prompt like: `Using skill <skill>, summarize session <id> as valid markdown`.
+11. Show summary to user and require confirmation.
+12. If rejected, require a user prompt and regenerate.
+13. Store summary in default notes ref (`refs/notes/commits`) instead of raw transcript.
+14. Add envelope metadata indicating summary record (not raw session), and include original session id/hash markers.
+15. Store full raw session in a second notes ref.
+16. Add support in [GitService.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/GitService.fs) for notes ref selection (`git notes --ref <ref> ...`).
+17. Use a dedicated ref like `refs/notes/memento-full-audit` (Git ref-safe name; no spaces).
+18. Ensure this ref is written alongside the summary note for `commit` and `amend`.
+19. Update note parsing/validation.
+20. Extend [SessionNotes.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/SessionNotes.fs) + [AuditCore.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/AuditCore.fs) to recognize summary metadata.
+21. Add/adjust docs and tests:
+22. [README.md](/Users/mandel/Work/memento/README.md) new flags/flow.
+23. [tests/GitMemento.Tests/Tests.fs](/Users/mandel/Work/memento/tests/GitMemento.Tests/Tests.fs) parser/unit coverage.
+24. [tests/GitMemento.Tests/IntegrationTests.fs](/Users/mandel/Work/memento/tests/GitMemento.Tests/IntegrationTests.fs) dual-note-ref + confirmation/retry behavior.
+
+**How to call Claude similar to `codex exec`**
+1. Add provider-specific summary command config, not hard-coded CLI assumptions:
+2. `memento.<provider>.summary.bin`
+3. `memento.<provider>.summary.args`
+4. Keep placeholders like `{skill}`, `{sessionId}`, `{prompt}`, maybe `{sessionJsonFile}`.
+5. `codex` default: `summary.bin=codex`, `summary.args=exec {prompt}`.
+6. `claude` default: either a known Claude non-interactive command if available in your environment, or an adapter script (recommended) that accepts standardized args and invokes Claude correctly.
+
+**Default summary skill to add in repo**
+1. Create `skills/session-summary-default/SKILL.md`.
+2. Include your required rules:
+3. Valid Markdown only.
+4. Remove personal/identifying data.
+5. Drop dead-end/unhelpful interaction paths.
+6. Keep only code-relevant context.
+7. Produce readable prose/spec style, not verbose logs.
+
+If you want, I can execute this plan now and implement it end-to-end on this branch.
+
+### Manuel de la Pena
+
+I have installted the claude cli for you to be able to make sure that it is correct. Re-run the plan
+
+### Codex
+
+I’ll re-check the local CLI capabilities now that Claude is installed, then I’ll revise the plan with exact command shapes for both Codex and Claude summarization.
+
+### Codex
+
+Claude still isn’t on PATH in this shell (`command not found`), so I’m checking common install locations and binary names (`claude`, `claude-code`) before I rerun the final plan.
+
+### Codex
+
+I still can’t see a Claude executable in standard paths, so I’m doing one last quick check of your PATH and common user-level bin directories to avoid a false negative.
+
+### Codex
+
+I found `claude` at `/Users/mandel/.local/bin/claude`; it isn’t on your PATH here. I’ll use the absolute path now and rerun the plan with verified Claude CLI syntax.
+
+### Codex
+
+I confirmed Claude CLI syntax for non-interactive mode (`-p/--print`). I’ll do one targeted check for `sessions get/list` support because current `git-memento` provider integration relies on those commands today.
+
+### Codex
+
+Re-run plan with verified CLI details:
+
+- `codex` supports non-interactive execution via `codex exec "<prompt>"`.
+- Claude is installed at `/Users/mandel/.local/bin/claude` in this environment (not on current PATH).
+- Claude supports non-interactive execution via `claude -p "<prompt>"`.
+- Claude help does not expose `sessions get/list` commands, so we should not hard-code those for summary generation.
+
+1. Add CLI flag
+2. Extend `commit` and `amend` parsing with `--summary-skill <skill|default>` in [CliArgs.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/CliArgs.fs) and [Domain.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/Domain.fs).
+3. Keep backward compatibility when flag is omitted.
+
+1. Add summary-generation provider config
+2. Introduce new config keys per provider:
+3. `memento.<provider>.summary.bin`
+4. `memento.<provider>.summary.args`
+5. Template placeholders: `{skill}`, `{sessionId}`, `{prompt}`.
+6. Load these in [MementoConfig.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/MementoConfig.fs), set defaults in [InitWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/InitWorkflow.fs).
+
+1. Default command templates
+2. Codex default: `summary.bin=codex`, `summary.args=exec {prompt}`.
+3. Claude default: `summary.bin=claude`, `summary.args=-p {prompt}`.
+4. In your machine you may set `memento.claude.summary.bin=/Users/mandel/.local/bin/claude` until PATH includes it.
+
+1. Generate and confirm summary
+2. In [CommitWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/CommitWorkflow.fs) and [AmendWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/AmendWorkflow.fs):
+3. Fetch full session as today.
+4. If `--summary-skill` present, build prompt:
+5. `Using the skill <skill>, summarize session <id> as valid markdown...`
+6. Run provider summary command.
+7. Print summary and ask confirmation.
+8. If rejected, require user prompt, regenerate, repeat until confirmed or abort.
+
+1. Dual-note write model
+2. Default notes ref (`refs/notes/commits`): write summary envelope (not raw transcript).
+3. New audit ref (`refs/notes/memento-full-audit`): write full raw session/transcript payload.
+4. Include linkage metadata in both (session id + content hash/cross-ref id).
+
+1. Envelope/version updates
+2. Extend [SessionNotes.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/SessionNotes.fs) markers to distinguish:
+3. `kind=summary` vs `kind=full-session`.
+4. Update audit validation in [AuditCore.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/AuditCore.fs).
+
+1. Git service changes
+2. Add note operations with explicit ref support (`git notes --ref <ref> add/show/append`) in [GitService.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/GitService.fs).
+
+1. Add default summary skill in repo
+2. Create `skills/session-summary-default/SKILL.md` with your rules:
+3. valid markdown only
+4. redact personal/identifying data
+5. remove dead-end/no-value interactions
+6. keep only code-relevant context
+7. write clear prose/spec style, not logs
+
+1. Tests and docs
+2. Update parser/unit tests in [Tests.fs](/Users/mandel/Work/memento/tests/GitMemento.Tests/Tests.fs).
+3. Add integration coverage for summary confirm/retry and dual-notes refs in [IntegrationTests.fs](/Users/mandel/Work/memento/tests/GitMemento.Tests/IntegrationTests.fs).
+4. Document new flags/config/refs in [README.md](/Users/mandel/Work/memento/README.md).
+
+If you want, I’ll implement this plan now (including the new default summary skill).
+
+### Manuel de la Pena
+
+Implement the plan
+
+### Codex
+
+I’m starting implementation now: I’ll add the new `--summary-skill` flag end-to-end (CLI/domain/config/workflows), then wire dual-note refs and confirmation loops, and finally add tests and the default summary skill file.
+
+### Codex
+
+I’m editing CLI parsing next so `commit`/`amend` accept `--summary-skill`, including validation and updated usage text.
+
+### Codex
+
+I’m wiring provider-level summarization now: config fields + execution method so both `codex exec` and `claude -p` can be used through one interface.
+
+### Codex
+
+I’m now replacing the commit workflow logic to support interactive summary approval and dual note writes (`refs/notes/commits` + `refs/notes/memento-full-audit`) when `--summary-skill` is used.
+
+### Codex
+
+I finished the first pass on commit workflow, but I need to quickly refactor one part for F# async expression correctness before moving on to amend and tests.
+
+### Codex
+
+I’m updating `amend` now so it mirrors `commit`: summary approval loop, summary in default notes, full session in `refs/notes/memento-full-audit`, and note carry-over across amended commits for both refs.
+
+### Codex
+
+I’m now aligning the tests with the new command shape and provider settings, then I’ll run the test suite to catch any remaining interface/signature gaps.
+
+### Codex
+
+I’ve aligned most code paths; next I’m adding the default in-repo summary skill file and then I’ll update README/help text and run tests to resolve any remaining compile issues.
+
+### Codex
+
+I spotted a likely integration-test break: `amend` now reads notes from a non-default ref, so I’m updating the fake `git` script in tests to support `git notes --ref ... show/add`.
+
+### Codex
+
+I’ve applied the core implementation and docs updates; I’m running the .NET test suite now to surface and fix any compile/runtime regressions from the new interfaces and workflow signatures.
+
+### Codex
+
+There are two small F# syntax issues (`Some retryPrompt.Trim()`); I’m fixing both and rerunning tests.
+
+### Codex
+
+I’m fixing the remaining `amend` task-expression typing issue by switching those note-write checks to explicit `if Result.isError` branches.
+
+### Codex
+
+All tests are passing. I’m doing one final functional check: `notes-sync` currently merged only `refs/notes/commits`, so I’m extending it to also merge the new `refs/notes/memento-full-audit` ref.
+
+### Codex
+
+I’m doing one final documentation alignment in the in-repo `git-memento-workflow` skill so it reflects the new `--summary-skill` flow and full-audit note ref.
+
+### Codex
+
+Implemented end-to-end.
+
+### What changed
+
+- Added `--summary-skill <skill|default>` to:
+- `git memento commit <session-id> ...`
+- `git memento amend <session-id> ...`
+- When `--summary-skill` is used:
+- Default notes ref (`refs/notes/commits`) stores a summary entry (not full transcript).
+- Full session entry is written to `refs/notes/memento-full-audit`.
+- Summary is printed and requires explicit confirmation.
+- If rejected, user must provide a prompt to regenerate summary.
+- Added `default` skill mapping to `session-summary-default`.
+- Added cross-reference hashes:
+- Summary stores full-session SHA256.
+- Full-audit entry stores summary SHA256.
+
+### Provider execution support
+
+- Added provider summary command config:
+- `memento.<provider>.summary.bin`
+- `memento.<provider>.summary.args`
+- Defaults:
+- Codex: `codex exec "{prompt}"`
+- Claude: `claude -p "{prompt}"`
+
+### New default skill
+
+- Added [skills/session-summary-default/SKILL.md](/Users/mandel/Work/memento/skills/session-summary-default/SKILL.md)
+
+### Main files updated
+
+- CLI/domain/program:
+- [CliArgs.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/CliArgs.fs)
+- [Domain.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/Domain.fs)
+- [Program.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/Program.fs)
+- Provider/config/init:
+- [AiProvider.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/AiProvider.fs)
+- [MementoConfig.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/MementoConfig.fs)
+- [InitWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/InitWorkflow.fs)
+- [DoctorWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/DoctorWorkflow.fs)
+- Note writing/rendering:
+- [CommitWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/CommitWorkflow.fs)
+- [AmendWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/AmendWorkflow.fs)
+- [GitService.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/GitService.fs)
+- [Markdown.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/Markdown.fs)
+- Docs/skill/tests:
+- [README.md](/Users/mandel/Work/memento/README.md)
+- [skills/git-memento-workflow/SKILL.md](/Users/mandel/Work/memento/skills/git-memento-workflow/SKILL.md)
+- [Tests.fs](/Users/mandel/Work/memento/tests/GitMemento.Tests/Tests.fs)
+- [IntegrationTests.fs](/Users/mandel/Work/memento/tests/GitMemento.Tests/IntegrationTests.fs)
+
+### Verification
+
+- Ran: `dotnet test GitMemento.slnx`
+- Result: all tests passed (`52/52`).
+
+### Note
+
+Claude exists at `/Users/mandel/.local/bin/claude` in this environment but may not be on PATH in some shells. If needed, set:
+- `git config --local memento.claude.summary.bin /Users/mandel/.local/bin/claude`
+
+### Manuel de la Pena
+
+Update the $git-memento-workflow skill, both locally and on the repo to include the new summary support. Also make sure that the README docs are updated with this new feature.
+
+### Manuel de la Pena
+
+<skill>
+<name>git-memento-workflow</name>
+<path>/Users/mandel/.codex/skills/git-memento-workflow/SKILL.md</path>
+---
+name: git-memento-workflow
+description: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes.
+---
+
+# Git Memento Workflow
+
+Run this workflow whenever work must be committed with an AI session note.
+
+## 1. Preflight
+
+- Confirm repository status with `git status --short` and branch with `git branch --show-current`.
+- Confirm `git memento` is available: `git memento help`.
+- If unavailable, install `git-memento` into a directory on `PATH` and re-check.
+
+## 2. Initialize Once Per Repository
+
+- Check configuration: `git config --local --get memento.provider`.
+- If missing, run `git memento init codex` or `git memento init claude`.
+- If provider CLI shape differs from expected `sessions get/list --json`, configure adapter command in local git config:
+- `git config --local memento.<provider>.bin <adapter-or-cli-path>`
+- `git config --local memento.<provider>.getArgs '<args with {id} placeholder>'`
+- `git config --local memento.<provider>.listArgs '<list args>'`
+
+## 3. Resolve Session ID
+
+- Prefer explicit session id from the user.
+- For Codex in this environment, default to `CODEX_THREAD_ID` when present.
+- Validate retrieval before commit by running provider command manually if needed.
+
+## 4. Create Memento Commit or Amend
+
+- Stage files as needed (`git add ...`).
+- Run commit through memento so note attachment happens in the same flow:
+- `git memento commit <session-id> -m "<subject>"`
+- For amend flows:
+- `git memento amend -m "<amended-subject>"` to carry forward existing note(s) onto the amended commit.
+- `git memento amend <session-id> -m "<amended-subject>"` to carry forward existing note(s) and append a new session.
+- Backward compatibility:
+- Legacy single-session notes are preserved.
+- When append is needed, legacy notes are upgraded into the versioned multi-session envelope so no prior session content is lost.
+- For longer body, use embedded newlines in `-m` or omit `-m` to use editor.
+
+## 5. Verify Note Attachment
+
+- Read latest commit: `git log -1 --pretty=fuller`.
+- Show note on that commit: `git notes show <commit-hash>`.
+- For multi-session notes, expect envelope/version headers and separators:
+- `<!-- git-memento-sessions:v1 -->`
+- `<!-- git-memento-note-version:1 -->`
+- `<!-- git-memento-session:start -->`
+- `<!-- git-memento-session:end -->`
+- If note is missing, inspect provider command config and rerun commit flow after fixing.
+
+## 6. Push Code and Sync Notes
+
+- Push commit branch and sync notes in one step: `git memento push <remote>`.
+- For default remote, run `git memento push`.
+- Optional fallback: `git push <remote> <branch>` then `git memento share-notes <remote>`.
+- Verify notes exist remotely: `git ls-remote <remote> 'refs/notes/*'`.
+
+## 7. Failure Handling Checklist
+
+- `git-memento is not configured`: run `git memento init ...`.
+- Provider command fails: verify `memento.<provider>.*` git config and executable permissions.
+- Session not found: list sessions using provider list command and retry with exact id.
+- Note push missing on remote: rerun `git memento push <remote>` (or `git memento share-notes <remote>`) and confirm remote ref output.
+
+</skill>
+
+### Codex
+
+Using `git-memento-workflow` for this update. I’ll compare the repository skill, the local installed skill, and README, then patch all three so summary mode and full-audit notes are documented consistently.
+
+### Codex
+
+I found the gap: the repository skill already mentions summary mode, but the local installed skill is still the old version. I’ll now align both skill files to the same updated content and tighten README with explicit default-skill guidance.
+
+### Codex
+
+I synced the repository skill into your local `~/.codex/skills` copy and I’m now verifying both files plus README content to confirm consistency.
+
+### Codex
+
+Done. I updated all requested docs for summary support:
+
+- Repository skill updated: [SKILL.md](/Users/mandel/Work/memento/skills/git-memento-workflow/SKILL.md)
+- Local installed skill updated and synced to match repo:
+- [SKILL.md](/Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- README updated with summary feature details:
+- [README.md](/Users/mandel/Work/memento/README.md)
+
+Key additions include:
+- `--summary-skill <skill|default>` usage for `commit` and `amend <session-id>`
+- Summary confirmation/regeneration flow
+- Dual notes refs (`refs/notes/commits` + `refs/notes/memento-full-audit`)
+- Provider summary config keys (`memento.<provider>.summary.bin/.summary.args`)
+- `default` mapping to `skills/session-summary-default/SKILL.md`
+- Verification commands for both note refs
+
+I also verified the local and repo skill files are identical after sync.
+
+### Manuel de la Pena
+
+<user_action>
+<context>User initiated a review task. Here's the full review output from reviewer model. User may select one or more comments to resolve.</context>
+<action>review</action>
+<results>
+The new summary workflow can produce ungrounded summaries because transcript content is not passed to the summarizer, and dual-note writes are non-atomic, allowing inconsistent note state on partial failure. These are functional issues in the newly introduced behavior.
+
+Full review comments:
+
+- [P1] Include session content when requesting summaries — /Users/mandel/Work/memento/src/GitMemento.Cli/AiProvider.fs:149-151
+The summary prompt only includes the skill name and session ID, but never includes `request.Session.Messages` (or any rendered transcript). With the default summary commands (`codex exec "{prompt}"` / `claude -p "{prompt}"`), the model receives no actual conversation content, so generated summaries can be fabricated or inaccurate for real sessions. This affects any setup where the summary command does not independently fetch transcript data by session ID.
+
+- [P2] Avoid leaving partial notes when full-audit write fails — /Users/mandel/Work/memento/src/GitMemento.Cli/CommitWorkflow.fs:156-158
+In summary mode, the default notes ref is written first and the full-audit ref is written second; if the second write fails, the command returns an error but leaves the summary note already attached. That creates an inconsistent state where `refs/notes/commits` references a full-session hash that was never stored in `refs/notes/memento-full-audit`, which breaks the intended audit linkage under partial failure conditions.
+</results>
+</user_action>
+
+### Codex
+
+The new summary workflow can produce ungrounded summaries because transcript content is not passed to the summarizer, and dual-note writes are non-atomic, allowing inconsistent note state on partial failure. These are functional issues in the newly introduced behavior.
+
+Full review comments:
+
+- [P1] Include session content when requesting summaries — /Users/mandel/Work/memento/src/GitMemento.Cli/AiProvider.fs:149-151
+The summary prompt only includes the skill name and session ID, but never includes `request.Session.Messages` (or any rendered transcript). With the default summary commands (`codex exec "{prompt}"` / `claude -p "{prompt}"`), the model receives no actual conversation content, so generated summaries can be fabricated or inaccurate for real sessions. This affects any setup where the summary command does not independently fetch transcript data by session ID.
+
+- [P2] Avoid leaving partial notes when full-audit write fails — /Users/mandel/Work/memento/src/GitMemento.Cli/CommitWorkflow.fs:156-158
+In summary mode, the default notes ref is written first and the full-audit ref is written second; if the second write fails, the command returns an error but leaves the summary note already attached. That creates an inconsistent state where `refs/notes/commits` references a full-session hash that was never stored in `refs/notes/memento-full-audit`, which breaks the intended audit linkage under partial failure conditions.
+
+### Manuel de la Pena
+
+Fix both of the issue. I thing that the prompt should do the following, rather than use the skill directly provided by the user, it should combine the default skill and the one provided by the user. That way the default skill will provide a basic standard. Update the prompt to tell the agent that if the defualt skill and the user skill contradict each other, that we should always respect the user one. That is a must, user is first
+
+### Codex
+
+I’ll patch both issues now: (1) include actual session transcript content in the summarizer prompt with default-skill + user-skill precedence rules, and (2) make summary/full-audit note writes order-safe so we don’t leave a summary without a full audit note on partial failure.
+
+### Codex
+
+I’m editing `AiProvider` first to pass transcript content and to enforce “default skill + user skill, with user skill taking precedence on conflicts” directly in the generated prompt.
+
+### Codex
+
+I caught a logic regression while patching: `default` got conflated with “no summary mode.” I’m correcting `commit`/`amend` so summary mode is triggered whenever the flag is present, including `--summary-skill default`.
+
+### Codex
+
+I’ve applied both logic fixes; next I’m running tests to confirm no regressions, then I’ll add a small targeted test for the new summary prompt precedence behavior.
+
+### Codex
+
+I added a targeted test for the new prompt semantics and it passes. I’ll make one brief README tweak so the “user skill overrides default skill on conflicts” rule is explicitly documented too.
+
+### Codex
+
+Fixed both issues.
+
+### 1) Grounded summaries + skill precedence
+Updated [AiProvider.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/AiProvider.fs):
+
+- Summary requests now include transcript content from `request.Session.Messages` in the prompt.
+- Prompt always applies baseline skill `session-summary-default`.
+- If user passes `--summary-skill <custom>`, prompt now combines baseline + user skill and explicitly states:
+- if they conflict, user skill wins.
+- `SummaryRequest` now carries `UserSkill: string option` instead of a single raw skill string.
+
+### 2) Prevent summary-without-audit partial state
+Updated [CommitWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/CommitWorkflow.fs):
+
+- In summary mode, writes now happen in safe order:
+- write `refs/notes/memento-full-audit` first
+- then write summary note in `refs/notes/commits`
+- This removes the failure mode where summary note exists without full-audit note.
+
+Also aligned [AmendWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/AmendWorkflow.fs) to the same ordering logic (audit first, summary second).
+
+### Tests
+Added/updated tests in [Tests.fs](/Users/mandel/Work/memento/tests/GitMemento.Tests/Tests.fs), including a new prompt test that verifies:
+- default skill included
+- user skill included
+- user-skill-precedence instruction included
+- transcript content included
+
+Ran:
+- `dotnet test GitMemento.slnx`
+- Result: Passed (`53/53`)
+
+### Docs
+Updated [README.md](/Users/mandel/Work/memento/README.md) to explicitly document that baseline summary skill is always applied and user-provided skill takes precedence on conflicts.
+
+### Manuel de la Pena
+
+<user_action>
+<context>User initiated a review task. Here's the full review output from reviewer model. User may select one or more comments to resolve.</context>
+<action>review</action>
+<results>
+The new summary-skill feature introduces a second notes ref but does not integrate it with existing note rewrite/carry/sync behavior. That creates a functional regression where full audit notes are not preserved in common history-rewrite workflows.
+
+Review comment:
+
+- [P1] Preserve memento-full-audit notes across rewrite/sync flows — /Users/mandel/Work/memento/src/GitMemento.Cli/CommitWorkflow.fs:157-157
+When `--summary-skill` is used, this path writes the full transcript to `refs/notes/memento-full-audit`, but the existing rewrite/carry/sync workflows still only operate on `refs/notes/commits` (for example `NotesRewriteSetupWorkflow`, `NotesCarryWorkflow`, and `NotesSyncWorkflow`). In repositories that use rebase/amend note rewriting or `git memento notes-carry`, the summary note is preserved but the full-audit note is left on old commit hashes, effectively dropping the audit trail from rewritten commits.
+</results>
+</user_action>
+
+### Codex
+
+The new summary-skill feature introduces a second notes ref but does not integrate it with existing note rewrite/carry/sync behavior. That creates a functional regression where full audit notes are not preserved in common history-rewrite workflows.
+
+Review comment:
+
+- [P1] Preserve memento-full-audit notes across rewrite/sync flows — /Users/mandel/Work/memento/src/GitMemento.Cli/CommitWorkflow.fs:157-157
+When `--summary-skill` is used, this path writes the full transcript to `refs/notes/memento-full-audit`, but the existing rewrite/carry/sync workflows still only operate on `refs/notes/commits` (for example `NotesRewriteSetupWorkflow`, `NotesCarryWorkflow`, and `NotesSyncWorkflow`). In repositories that use rebase/amend note rewriting or `git memento notes-carry`, the summary note is preserved but the full-audit note is left on old commit hashes, effectively dropping the audit trail from rewritten commits.
+
+### Manuel de la Pena
+
+Fix the issue. Also, now that you mention this, make sure that the action that creates a new comment, if the session was summarized, mentions that all logs are store in the audit notes
+
+### Codex
+
+I’m implementing this now by extending note rewrite/carry/sync to include `refs/notes/memento-full-audit`, then I’ll update the comment action renderer to mention audit notes whenever a summarized session is detected.
+
+### Codex
+
+I found where to patch the action message (`src/note-comment-renderer.ts` + `dist/note-comment-renderer.js`). I’ll now implement multi-ref preservation in rewrite/carry/sync workflows and then update the renderer plus JS tests.
+
+### Codex
+
+I’m now patching `notes-sync` to reconcile both note refs (`commits` and `memento-full-audit`) so remote sync preserves audit trails too.
+
+### Codex
+
+I hit a patch mismatch on `NotesSyncWorkflow`; I’m replacing that file in one clean edit to avoid context drift and keep behavior coherent across both refs.
+
+### Codex
+
+I’ve patched the renderer source. Next I’m updating tests and fake git behaviors for the new multi-ref carry/sync/rewrite logic, then rebuilding `dist` so action tests use the updated renderer.
+
+### Codex
+
+I also updated the repo skill to note that sync/rewrite/carry now cover full-audit notes. I’ll sync that skill change into your local `~/.codex/skills` copy so both stay aligned.
+
+### Codex
+
+Implemented both requested fixes.
+
+### Fixed P1: preserve `memento-full-audit` across rewrite/carry/sync
+
+- `notes-rewrite-setup` now configures:
+- `notes.rewriteRef=refs/notes/*` (instead of only `refs/notes/commits`)
+- file: [NotesRewriteSetupWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/NotesRewriteSetupWorkflow.fs)
+- `notes-carry` now carries notes from both refs:
+- default ref: `refs/notes/commits`
+- audit ref: `refs/notes/memento-full-audit`
+- files: [NotesCarryWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/NotesCarryWorkflow.fs), [GitService.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/GitService.fs) (added `AppendNoteInRefAsync`)
+- `notes-sync` now reconciles both refs (backup, remote read, merge, share):
+- files: [NotesSyncWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/NotesSyncWorkflow.fs)
+
+Also aligned doctor expectations for rewrite config:
+- file: [DoctorWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/DoctorWorkflow.fs)
+
+### Action comment update for summarized sessions
+
+When a note is summarized (`- Session Kind: Summary`), comment body now includes a notice that full logs are in audit notes:
+
+- source: [note-comment-renderer.ts](/Users/mandel/Work/memento/src/note-comment-renderer.ts)
+- built artifact: [note-comment-renderer.js](/Users/mandel/Work/memento/dist/note-comment-renderer.js)
+- added test: [note-comment-renderer.test.js](/Users/mandel/Work/memento/tests-js/note-comment-renderer.test.js)
+
+### Docs/skill updates
+
+- README updated for multi-ref sync/rewrite/carry:
+- [README.md](/Users/mandel/Work/memento/README.md)
+- Repo skill updated and synced to local skill copy:
+- repo: [SKILL.md](/Users/mandel/Work/memento/skills/git-memento-workflow/SKILL.md)
+- local: [SKILL.md](/Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- sync verified (`cmp` exit code `0`)
+
+### Verification
+
+- `dotnet test GitMemento.slnx` passed (`53/53`)
+- `npm run test:js` passed (`18/18`)
+
+### Manuel de la Pena
+
+We are seeing issues in the ci gate that tests the installation with the following failure:
+
+Prepare all required actions
+Run ./install
+Run set -eu
+curl: (56) The requested URL returned error: 404
+Could not download git-memento-osx-arm64.tar.gz from latest release in mandel-macaque/memento
+
+Check the releases of the project: https://github.com/mandel-macaque/memento and make sure that the install ci gate works
+
+We also want to make sure that the check-notes ci gate passes if no notes have been added. This will be done if the label `ignore-notes` is present. So:
+
+- If the label is present, do not check for the presence of a note, add a comment instead of the sesison with "Notes ignored"
+- If the labels are updated, we need to rerun the actions to set the PR build green
+
+### Codex
+
+I’ll inspect the release/install pipeline and the notes gate workflow/action logic, then patch both: fix install artifact resolution and add `ignore-notes` label behavior with rerun-on-label-changes.
+
+### Codex
+
+I confirmed the latest release (`v1.1`) has no assets attached, which explains the 404. I’m now checking other releases to pick a robust install fallback strategy when `latest` has no binaries.
+
+### Codex
+
+Next I’m patching the installer to fall back when `latest` has no assets, and then I’ll update the gate action/workflow to honor `ignore-notes` and rerun on label changes.
+
+### Codex
+
+I’m patching `install.sh` with release-asset fallback resolution (including `v1` and release API asset URLs), then updating the gate action/workflow for `ignore-notes` label + label-triggered reruns.
+
+### Codex
+
+I also need to validate the installer fix against the real GitHub releases API. I’ll run `install.sh` with your repo in a temp install dir to confirm it now succeeds even when `latest` lacks assets.
+
+### Codex
+
+Installer now succeeds against live releases. I’m making one final cleanup so the expected initial 404 from `latest` is handled quietly with explicit fallback messaging.
+
+### Codex
+
+I’m making the `ignore-notes` label detection explicit via an output step to avoid edge-case expression behavior, then I’ll rerun checks.
+
+### Codex
+
+Implemented both requested fixes and validated them locally.
+
+### Release/install CI fix
+Root cause confirmed from GitHub releases API:
+- `v1.1` (published `2026-03-02T00:02:15Z`) has `0` assets.
+- `v1` and several other releases have the expected assets (`git-memento-osx-arm64.tar.gz`, etc.).
+
+I updated installer fallback logic in [install.sh](/Users/mandel/Work/memento/install.sh):
+- Try `releases/latest/download/<asset>`.
+- If missing, fallback to `releases/download/v1/<asset>`.
+- If still missing, scan release asset URLs via GitHub API and download first match.
+- Added clearer fallback messages.
+
+I also validated end-to-end install against live GitHub:
+- `GIT_MEMENTO_REPO=mandel-macaque/memento sh ./install.sh` now succeeds.
+
+### `ignore-notes` gate behavior
+Updated [action.yml](/Users/mandel/Work/memento/action.yml):
+- Added new input: `ignore-label` (default: `ignore-notes`).
+- Gate mode now detects PR labels and:
+- skips `git memento audit` when ignore label is present
+- posts/updates a PR comment with exactly: `Notes ignored`
+- If label is absent, gate runs normally.
+
+### Re-run on label changes
+Updated workflows to re-trigger on label updates:
+- [memento-note-gate.yml](/Users/mandel/Work/memento/.github/workflows/memento-note-gate.yml): `pull_request.types` now includes `labeled`, `unlabeled`.
+- [memento-note-comments.yml](/Users/mandel/Work/memento/.github/workflows/memento-note-comments.yml): same trigger update.
+
+Also updated gate workflow permissions for PR comments:
+- `issues: write`
+- `pull-requests: write`
+
+### Docs updates
+Updated [README.md](/Users/mandel/Work/memento/README.md):
+- New `ignore-label` input docs.
+- Gate behavior with `ignore-notes` label.
+- PR trigger examples now include `labeled`/`unlabeled`.
+- Permission snippet includes `issues: write`.
+
+### Validation run
+- `sh -n install.sh` ✅
+- Live installer check against GitHub releases ✅
+- Existing project tests still pass:
+- `dotnet test GitMemento.slnx` ✅
+- `npm run test:js` ✅
+
+### Manuel de la Pena
+
+<user_action>
+<context>User initiated a review task. Here's the full review output from reviewer model. User may select one or more comments to resolve.</context>
+<action>review</action>
+<results>
+The multi-ref notes sync logic does not actually merge into the per-ref target for non-default refs, so the new full-audit sync behavior is functionally incorrect and can contaminate default notes.
+
+Review comment:
+
+- [P1] Merge each notes ref into its own target ref — /Users/mandel/Work/memento/src/GitMemento.Cli/NotesSyncWorkflow.fs:78-78
+When syncing `refs/notes/memento-full-audit`, this path still calls `git.MergeNotesAsync(remoteNotesRef, strategy)` without selecting `notesRef` as the active target, but `git notes merge` writes to the current/default notes ref (`refs/notes/commits`). In repositories where both local and remote full-audit refs exist, `notes-sync` will merge full-audit content into the default notes ref and leave the full-audit ref unsynced, which can expose full transcripts in the public note stream and produce incorrect synchronization.
+</results>
+</user_action>
+
+### Codex
+
+The multi-ref notes sync logic does not actually merge into the per-ref target for non-default refs, so the new full-audit sync behavior is functionally incorrect and can contaminate default notes.
+
+Review comment:
+
+- [P1] Merge each notes ref into its own target ref — /Users/mandel/Work/memento/src/GitMemento.Cli/NotesSyncWorkflow.fs:78-78
+When syncing `refs/notes/memento-full-audit`, this path still calls `git.MergeNotesAsync(remoteNotesRef, strategy)` without selecting `notesRef` as the active target, but `git notes merge` writes to the current/default notes ref (`refs/notes/commits`). In repositories where both local and remote full-audit refs exist, `notes-sync` will merge full-audit content into the default notes ref and leave the full-audit ref unsynced, which can expose full transcripts in the public note stream and produce incorrect synchronization.
+
+### Manuel de la Pena
+
+Fix the issue. Also lets add an extra data to the header of a note. If a note has been summarize, add a hash of the original session log so that we can verify that the audit log and the summary match
+
+### Codex
+
+I’ll fix the per-ref merge bug by making notes merge explicitly target each ref (`--ref <target>`), then update summary metadata to hash the original session log (not rendered markdown) and wire tests accordingly.
+
+### Codex
+
+I’m implementing the sync fix by making `git notes merge` target-aware (`--ref <target>`), and then switching summary hash generation to a canonical hash of the original session data instead of rendered markdown.
+
+### Codex
+
+I’ve patched core code; now I’m updating test doubles/integration fake git to the new merge signature (`notes --ref <target> merge ...`) and new summary hash header key.
+
+### Codex
+
+I updated unit-test stubs; now I’m patching integration fake git merge parsing to handle `git notes --ref <target> merge ...` and updating assertions for both refs.
+
+### Codex
+
+I noticed one test expectation mismatch: to verify full-audit merge we need that ref present in the spy setup. I’m fixing that and updating the integration fake git merge handler to parse target/source refs correctly.
+
+### Codex
+
+I’ve finished the merge-target and hash metadata code changes; I’m running the test suite now to catch any compile/regression issues from the new service signature and integration script updates.
+
+### Codex
+
+There’s a small F# interpolation parse issue in the new hash function; I’m fixing it with a local binding and rerunning tests.
+
+### Codex
+
+Implemented both requested changes.
+
+### 1) Fixed notes-sync merge target bug (P1)
+`notes-sync` now merges each remote notes ref into its matching local target ref explicitly.
+
+What changed:
+- `IGitService.MergeNotesAsync` now takes:
+- `targetRef`, `sourceRef`, `strategy`
+- Git command now uses target ref:
+- `git notes --ref <targetRef> merge -s <strategy> <sourceRef>`
+
+Updated files:
+- [GitService.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/GitService.fs)
+- [NotesSyncWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/NotesSyncWorkflow.fs)
+
+This prevents full-audit notes from being merged into default `refs/notes/commits`.
+
+### 2) Added hash of original session log for summarized notes
+For summarized notes, header now includes a canonical hash of the original session data (provider/id/title/messages/timestamps/content), not the rendered markdown.
+
+What changed:
+- Added `Markdown.originalSessionLogHash(session)`
+- Summary note header field:
+- `- Original Session Log SHA256: <hash>`
+- Full-audit note now also includes:
+- `- Original Session Log SHA256: <hash>`
+
+Updated files:
+- [Markdown.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/Markdown.fs)
+- [CommitWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/CommitWorkflow.fs)
+- [AmendWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/AmendWorkflow.fs)
+
+### Tests updated and passing
+Adjusted test doubles/integration harness for new merge signature and assertions:
+- [Tests.fs](/Users/mandel/Work/memento/tests/GitMemento.Tests/Tests.fs)
+- [IntegrationTests.fs](/Users/mandel/Work/memento/tests/GitMemento.Tests/IntegrationTests.fs)
+
+Validation:
+- `dotnet test GitMemento.slnx` passed (`53/53`).
+
+### Manuel de la Pena
+
+<user_action>
+<context>User initiated a review task. Here's the full review output from reviewer model. User may select one or more comments to resolve.</context>
+<action>review</action>
+<results>
+Most changes look coherent, but the new installer fallback logic can proceed with a bad archive after failed downloads in some environments. That is a functional regression in error handling for installation.
+
+Review comment:
+
+- [P2] Fail fast when all fallback downloads fail — /Users/mandel/Work/memento/install.sh:98-101
+The fallback path can treat a failed download as success because it only checks `-s "$archive"` after trying multiple URLs. With `wget`, a 404/HTML error body can leave a non-empty file, so if every candidate URL fails the script may continue into extraction with an invalid archive instead of exiting with the intended clear error. This shows up when `latest`, `v1`, and scanned release assets are all missing or inaccessible.
+</results>
+</user_action>
+
+### Codex
+
+Most changes look coherent, but the new installer fallback logic can proceed with a bad archive after failed downloads in some environments. That is a functional regression in error handling for installation.
+
+Review comment:
+
+- [P2] Fail fast when all fallback downloads fail — /Users/mandel/Work/memento/install.sh:98-101
+The fallback path can treat a failed download as success because it only checks `-s "$archive"` after trying multiple URLs. With `wget`, a 404/HTML error body can leave a non-empty file, so if every candidate URL fails the script may continue into extraction with an invalid archive instead of exiting with the intended clear error. This shows up when `latest`, `v1`, and scanned release assets are all missing or inaccessible.
+
+### Manuel de la Pena
+
+Fix the issue with the fallback logic
+
+### Codex
+
+I’ll patch `install.sh` so fallback only succeeds on a verified successful HTTP download, and it won’t continue based on file non-emptiness alone. Then I’ll run a shell syntax check.
+
+### Codex
+
+I found the exact bug: the fallback loop runs in a subshell and doesn’t track success reliably. I’m replacing it with an explicit success flag and atomic temp-file downloads so failed attempts can’t leave a misleading archive.
+
+### Codex
+
+Fixed.
+
+Changes in [install.sh](/Users/mandel/Work/memento/install.sh):
+
+- `try_download` is now atomic:
+- downloads to `"$archive.part"`
+- moves to `"$archive"` only on success
+- removes partial temp file on failure
+- Fallback scan now uses an explicit `downloaded` flag in the main shell (no subshell loop issue).
+- Final failure check now uses `downloaded=="true"` instead of `-s "$archive"`.
+
+This prevents continuing with a bad/non-archive file after all download attempts fail.
+
+Validation:
+- `sh -n install.sh` passes.
+- End-to-end install test against `mandel-macaque/memento` succeeds (`git-memento` installed).
+
+### Manuel de la Pena
+
+<user_action>
+<context>User initiated a review task. Here's the full review output from reviewer model. User may select one or more comments to resolve.</context>
+<action>review</action>
+<results>
+The patch introduces failure modes in key flows: summary generation can break on large sessions due to argv size limits, and ignore-label gate bypass can fail on fork PRs because comment writes are not always permitted. These issues can cause user-visible command/workflow failures.
+
+Full review comments:
+
+- [P2] Bound summary prompt size before passing it as CLI arg — /Users/mandel/Work/memento/src/GitMemento.Cli/AiProvider.fs:239-245
+`SummarizeSessionAsync` builds a prompt from the full session transcript and injects it into `settings.SummaryArgs` as a single command-line argument. Because each message is truncated individually but the total transcript is unbounded, long sessions can exceed OS argument-length limits (e.g., `Argument list too long`), making `commit/amend --summary-skill` fail for larger transcripts. This path should cap total prompt size or send prompt content via stdin/temp file instead of argv.
+
+- [P2] Avoid hard-failing gate bypass comment on fork pull requests — /Users/mandel/Work/memento/action.yml:118-149
+When the ignore label is present, the workflow unconditionally calls `issues.createComment/updateComment` in the skip path. On `pull_request` events from forks, `GITHUB_TOKEN` is read-only even if workflow permissions request write, so this API call returns 403 and the job fails instead of actually bypassing the gate. The skip path should be best-effort (or gated on writable token context) so labeled fork PRs can still proceed.
+</results>
+</user_action>
+
+### Codex
+
+The patch introduces failure modes in key flows: summary generation can break on large sessions due to argv size limits, and ignore-label gate bypass can fail on fork PRs because comment writes are not always permitted. These issues can cause user-visible command/workflow failures.
+
+Full review comments:
+
+- [P2] Bound summary prompt size before passing it as CLI arg — /Users/mandel/Work/memento/src/GitMemento.Cli/AiProvider.fs:239-245
+`SummarizeSessionAsync` builds a prompt from the full session transcript and injects it into `settings.SummaryArgs` as a single command-line argument. Because each message is truncated individually but the total transcript is unbounded, long sessions can exceed OS argument-length limits (e.g., `Argument list too long`), making `commit/amend --summary-skill` fail for larger transcripts. This path should cap total prompt size or send prompt content via stdin/temp file instead of argv.
+
+- [P2] Avoid hard-failing gate bypass comment on fork pull requests — /Users/mandel/Work/memento/action.yml:118-149
+When the ignore label is present, the workflow unconditionally calls `issues.createComment/updateComment` in the skip path. On `pull_request` events from forks, `GITHUB_TOKEN` is read-only even if workflow permissions request write, so this API call returns 403 and the job fails instead of actually bypassing the gate. The skip path should be best-effort (or gated on writable token context) so labeled fork PRs can still proceed.
+
+### Manuel de la Pena
+
+We should not be iserting the skill into the prompt, the llm should know how to load the skill, update the code so that we fwd the skill location to the llm so that it picks it up (or using an option from the command line, whatever is present).
+
+Update the actions as you mentioned.
+
+Also ensure that we are not going to be vulnerable to prompt injections by random commits
+
+### Codex
+
+I’ll harden summary generation in `AiProvider` now: cap total prompt size, treat transcript as untrusted data, and stop embedding skill instructions in prompt. I’ll pass resolved skill file paths via argument placeholders so CLIs can consume them directly.
+
+### Codex
+
+I’ve applied the action hardening. Next I’m updating the summary prompt unit test to match the new behavior (skill paths via args placeholders, no inline skill directives), then I’ll run tests.
+
+### Codex
+
+I’m adding a brief README note for the new summary arg placeholders (`{effectiveSkillPath}`, etc.) and the untrusted-transcript handling so behavior is explicit for custom provider commands.
+
+### Codex
+
+Implemented all requested updates.
+
+### Summary generation changes
+
+Updated [AiProvider.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/AiProvider.fs):
+
+- Stopped embedding skill directives in the prompt text.
+- Added support for forwarding skill file locations via args placeholders:
+- `{defaultSkillPath}`
+- `{userSkillPath}`
+- `{effectiveSkillPath}`
+- plus existing `{prompt}`, `{sessionId}`, `{skill}`
+- Added hard limits to prevent argv overflow:
+- per-message cap
+- total transcript cap
+- total prompt cap
+- Added explicit prompt-injection hardening:
+- transcript is labeled untrusted data
+- prompt instructs model not to follow transcript instructions
+
+This addresses both:
+- large-session arg length failures
+- injection risk from malicious transcript/commit content.
+
+### Gate skip comment hardening for fork PRs
+
+Updated [action.yml](/Users/mandel/Work/memento/action.yml):
+
+- `ignore-notes` skip path is now best-effort:
+- `continue-on-error: true`
+- comment write wrapped in `try/catch` with warning on failure
+- Gate still bypasses successfully even if comment write is forbidden (e.g. fork PR read-only token).
+
+### Docs update
+
+Updated [README.md](/Users/mandel/Work/memento/README.md) with:
+- new summary placeholders
+- untrusted-transcript security behavior
+
+### Validation
+
+- `dotnet test GitMemento.slnx` passed (`53/53`)
+- `npm run test:js` passed (`18/18`)
+
+### Manuel de la Pena
+
+<user_action>
+<context>User initiated a review task. Here's the full review output from reviewer model. User may select one or more comments to resolve.</context>
+<action>review</action>
+<results>
+The patch introduces a user-facing `--summary-skill` feature, but the shipped provider defaults do not pass any skill-related placeholders to the summary command, so the option is a no-op for default installs. This is a functional mismatch in core behavior.
+
+Review comment:
+
+- [P2] Include skill placeholders in default summary args — /Users/mandel/Work/memento/src/GitMemento.Cli/AiProvider.fs:337-345
+The new `--summary-skill` option is effectively ignored with default configuration because both provider defaults only pass `"{prompt}"` to the summary command. In `SummarizeSessionAsync`, skill selection is only propagated through placeholders like `{skill}` / `{effectiveSkillPath}`, so users running `git memento commit ... --summary-skill ...` without custom `memento.<provider>.summary.args` never get different behavior from their chosen skill.
+</results>
+</user_action>
+
+### Codex
+
+The patch introduces a user-facing `--summary-skill` feature, but the shipped provider defaults do not pass any skill-related placeholders to the summary command, so the option is a no-op for default installs. This is a functional mismatch in core behavior.
+
+Review comment:
+
+- [P2] Include skill placeholders in default summary args — /Users/mandel/Work/memento/src/GitMemento.Cli/AiProvider.fs:337-345
+The new `--summary-skill` option is effectively ignored with default configuration because both provider defaults only pass `"{prompt}"` to the summary command. In `SummarizeSessionAsync`, skill selection is only propagated through placeholders like `{skill}` / `{effectiveSkillPath}`, so users running `git memento commit ... --summary-skill ...` without custom `memento.<provider>.summary.args` never get different behavior from their chosen skill.
+
+### Manuel de la Pena
+
+Fix the issue reported.
+
+### Codex
+
+I’m fixing this by updating provider default summary command templates so they include skill-path placeholders in supported CLI options (not by embedding skill content in prompt). Then I’ll update README defaults and rerun tests.
+
+### Codex
+
+Fixed.
+
+### What I changed
+
+Updated provider default summary args so `--summary-skill` is no longer a no-op in default installs:
+
+- [AiProvider.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/AiProvider.fs)
+
+New defaults:
+
+- `codex`:
+- `exec -c skill.effective_path={effectiveSkillPath} -c skill.default_path={defaultSkillPath} -c skill.user_path={userSkillPath} "{prompt}"`
+- `claude`:
+- `-p --append-system-prompt "Skill paths: effective={effectiveSkillPath}; default={defaultSkillPath}; user={userSkillPath}. Prefer user skill when provided." "{prompt}"`
+
+This ensures skill path placeholders are always forwarded in default configuration.
+
+Also updated docs to match:
+
+- [README.md](/Users/mandel/Work/memento/README.md)
+
+### Validation
+
+- `dotnet test GitMemento.slnx` passed (`53/53`).
+
+### Manuel de la Pena
+
+<user_action>
+<context>User initiated a review task. Here's the full review output from reviewer model. User may select one or more comments to resolve.</context>
+<action>review</action>
+<results>
+I did not identify any discrete, actionable regressions introduced by these changes. The new summary-skill and multi-ref notes handling appear internally consistent across CLI parsing, workflows, git service interfaces, and tests.
+</results>
+</user_action>
+
+### Codex
+
+I did not identify any discrete, actionable regressions introduced by these changes. The new summary-skill and multi-ref notes handling appear internally consistent across CLI parsing, workflows, git service interfaces, and tests.
+
+### Manuel de la Pena
+
+Using the $git-memento-workflow and the default summary skill create a new commit for the current session. Add a one liner title about the change and a much longer commit message that explains all the changes. Add as much detail needed to understand the summary feature and its security concerns. Also mention the needed update in the changes. Before you commit, bump the version of the code by one minor version. Also create a new tag and release so that we can release the code in the github market place. Give me instructions on how to create the release so that we make sure that the blobs are present
+
+### Manuel de la Pena
+
+<skill>
+<name>git-memento-workflow</name>
+<path>/Users/mandel/.codex/skills/git-memento-workflow/SKILL.md</path>
+---
+name: git-memento-workflow
+description: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes.
+---
+
+# Git Memento Workflow
+
+Run this workflow whenever work must be committed with an AI session note.
+
+## 1. Preflight
+
+- Confirm repository status with `git status --short` and branch with `git branch --show-current`.
+- Confirm `git memento` is available: `git memento help`.
+- If unavailable, install `git-memento` into a directory on `PATH` and re-check.
+
+## 2. Initialize Once Per Repository
+
+- Check configuration: `git config --local --get memento.provider`.
+- If missing, run `git memento init codex` or `git memento init claude`.
+- If provider CLI shape differs from expected `sessions get/list --json`, configure adapter command in local git config:
+- `git config --local memento.<provider>.bin <adapter-or-cli-path>`
+- `git config --local memento.<provider>.getArgs '<args with {id} placeholder>'`
+- `git config --local memento.<provider>.listArgs '<list args>'`
+- For summary mode, configure provider summary execution if defaults do not match your environment:
+- `git config --local memento.<provider>.summary.bin <adapter-or-cli-path>`
+- `git config --local memento.<provider>.summary.args '<args with {prompt}, optionally {skill} and {sessionId}>'`
+
+## 3. Resolve Session ID
+
+- Prefer explicit session id from the user.
+- For Codex in this environment, default to `CODEX_THREAD_ID` when present.
+- Validate retrieval before commit by running provider command manually if needed.
+
+## 4. Create Memento Commit or Amend
+
+- Stage files as needed (`git add ...`).
+- Run commit through memento so note attachment happens in the same flow:
+- `git memento commit <session-id> -m "<subject>"`
+- Optional summary mode: `git memento commit <session-id> --summary-skill <skill|default> -m "<subject>"`
+- For amend flows:
+- `git memento amend -m "<amended-subject>"` to carry forward existing note(s) onto the amended commit.
+- `git memento amend <session-id> -m "<amended-subject>"` to carry forward existing note(s) and append a new session.
+- Optional summary mode: `git memento amend <session-id> --summary-skill <skill|default> -m "<amended-subject>"`
+- Summary mode behavior:
+- The CLI generates a markdown summary using the configured provider command.
+- It prints the generated summary and requires explicit confirmation.
+- If rejected, it asks for a user prompt and regenerates.
+- It writes the summary into `refs/notes/commits` and stores the full session in `refs/notes/memento-full-audit`.
+- Backward compatibility:
+- Legacy single-session notes are preserved.
+- When append is needed, legacy notes are upgraded into the versioned multi-session envelope so no prior session content is lost.
+- For longer body, use embedded newlines in `-m` or omit `-m` to use editor.
+
+## 5. Verify Note Attachment
+
+- Read latest commit: `git log -1 --pretty=fuller`.
+- Show note on that commit: `git notes show <commit-hash>`.
+- For multi-session notes, expect envelope/version headers and separators:
+- `<!-- git-memento-sessions:v1 -->`
+- `<!-- git-memento-note-version:1 -->`
+- `<!-- git-memento-session:start -->`
+- `<!-- git-memento-session:end -->`
+- Summary mode stores summary entries in `refs/notes/commits` and full sessions in `refs/notes/memento-full-audit`.
+- In summary mode, verify both refs:
+- `git notes show <commit-hash>` (summary note)
+- `git notes --ref refs/notes/memento-full-audit show <commit-hash>` (full session)
+- If note is missing, inspect provider command config and rerun commit flow after fixing.
+
+## 6. Push Code and Sync Notes
+
+- Push commit branch and sync notes in one step: `git memento push <remote>`.
+- For default remote, run `git memento push`.
+- Optional fallback: `git push <remote> <branch>` then `git memento share-notes <remote>`.
+- Verify notes exist remotely: `git ls-remote <remote> 'refs/notes/*'`.
+- `notes-sync`, `notes-rewrite-setup`, and `notes-carry` preserve both `refs/notes/commits` and `refs/notes/memento-full-audit`.
+
+## 7. Failure Handling Checklist
+
+- `git-memento is not configured`: run `git memento init ...`.
+- Provider command fails: verify `memento.<provider>.*` git config and executable permissions.
+- Session not found: list sessions using provider list command and retry with exact id.
+- Note push missing on remote: rerun `git memento push <remote>` (or `git memento share-notes <remote>`) and confirm remote ref output.
+
+</skill>
+
+### Codex
+
+Using `git-memento-workflow` for this. I’m starting with preflight and version inspection, then I’ll bump the minor version, stage the release changes, and create a memento commit with `--summary-skill default`.
+
+### Codex
+
+I found `CODEX_THREAD_ID`, and the project file is still `1.0.0`; I’m bumping to the next marketplace-safe minor (`1.2.0`, since `v1.1` already exists), then I’ll run tests and create the memento commit with `--summary-skill default`.
+
+### Codex
+
+Using the `git-memento-workflow` skill for this turn. I’ll verify the current version/tag state, bump the minor version, then create the commit with `--summary-skill default`, and finally prepare the exact tag/release steps so assets are guaranteed.
+
+### Codex
+
+I confirmed the skill instructions and current tree state; there are unstaged portions in a few files, so I’ll stage everything intentionally after the version bump to avoid leaving mixed edits out of the release commit. Next I’ll validate branch and `git memento` command availability.
+
+### Codex
+
+I’m applying the version bump now, then I’ll run tests, stage the full change-set, and create a memento commit with `--summary-skill default` and a detailed message.
+
+### Codex
+
+Tests are passing (`dotnet` and JS). Next I’ll stage all intended repo changes, compose the detailed commit body, and run the memento commit through the local CLI with `--summary-skill default`.
+
+### Codex
+
+I’m creating the commit now via the local CLI (`dotnet run ... commit`) with `--summary-skill default`, and I’ll approve the generated summary in the prompt so the note is attached in summary mode plus full-audit ref.
+
+### Codex
+
+The memento commit succeeded and attached both summary and full-audit notes. I’ll now create the new release tag (`v1.2.0`) and then attempt to create the GitHub release with assets; if network/auth blocks that step here, I’ll give exact commands.
+
+### Codex
+
+Tag `v1.2.0` is now pushed to `origin`. I’m checking the release workflow trigger conditions so I can give you exact steps to guarantee blobs are uploaded into the GitHub release.
+
+### Codex
+
+Implemented and committed with `git-memento-workflow` using `--summary-skill default`.
+
+- Commit: `b3b2191`
+- Title: `Add secure summary-skill notes workflow and audit persistence`
+- Message: one-line subject + detailed multi-paragraph body covering summary feature, security concerns, audit refs, CI/install fixes, and docs/skills updates.
+- Version bump: [`src/GitMemento.Cli/GitMemento.Cli.fsproj:7`](/Users/mandel/Work/memento/src/GitMemento.Cli/GitMemento.Cli.fsproj:7) from `1.0.0` -> `1.2.0`.
+- Memento note mode: summary note attached to default notes ref, full log stored in `refs/notes/memento-full-audit`.
+- Branch pushed: `dev/manuel/summarize-session`
+- Tag created and pushed: `v1.2.0`
+
+I could not create a GitHub release directly from this environment because `gh` auth is invalid (`gh auth status` reports invalid token), but the tag push is done.
+
+To publish the release with blobs guaranteed:
+
+1. Re-authenticate GitHub CLI:
+```bash
+gh auth login -h github.com
+```
+2. Check that tag CI succeeded (this repo’s `release.yml` runs from `workflow_run` of `ci`):
+- Actions -> `ci` -> run for tag `v1.2.0` must be green.
+3. Check `release` workflow run for same SHA is green.
+4. Verify release assets exist (must include all):
+- `git-memento-linux-x64.tar.gz`
+- `git-memento-osx-arm64.tar.gz`
+- `git-memento-osx-x64.tar.gz`
+- `git-memento-win-x64.zip`
+5. Verify with CLI:
+```bash
+gh release view v1.2.0 --repo mandel-macaque/memento --json tagName,isLatest,assets,url
+```
+6. For Marketplace major tag compatibility, update `v1`:
+```bash
+git tag -f v1 v1.2.0
+git push -f origin v1
+```
+
+If you want, I can also prepare a PR from `dev/manuel/summarize-session` to `main` with a release checklist in the description.
+
+### Manuel de la Pena
+
+It looks like the gate to check if a note is present on a commit is failing when we run it on a PR:
+
+Prepare all required actions
+Getting action download info
+Download action repository 'actions/github-script@v7' (SHA:f28e40c7f34bde8b3046d885e986cb6290c5673b)
+Run ./
+Run git fetch origin 'refs/notes/*:refs/notes/*' || true
+From https://github.com/mandel-macaque/memento
+* [new ref]         refs/notes/commits -> refs/notes/commits
+Run set -eu
+git-memento 1.0 (commit 7b4b43a, date 2026-03-02T12:28:10-05:00)
+Run set -eu
+Run set -eu
+From https://github.com/mandel-macaque/memento
+* branch            main       -> FETCH_HEAD
+Running git memento audit on range: origin/main..b3b2191af555564ed72b5c1257a78d18d16ddb5b
+Audit range: origin/main..b3b2191af555564ed72b5c1257a78d18d16ddb5b
+Commits scanned: 1
+Missing notes: 1
+Invalid notes: 0
+missing-note b3b2191af555564ed72b5c1257a78d18d16ddb5b
+Strict mode: invalid notes are treated as failures.
+Audit found note coverage problems.
+
+We should:
+
+- Make a diff between an invalid note and a missing one
+- Make sure this pr passes the gate
+
+### Codex
+
+I’ll inspect the audit/gate code path to separate `missing` vs `invalid` diagnostics clearly, then patch the CI gate behavior so this PR can pass in a deterministic way. I’ll also verify whether the current failure is due to notes not being pushed with the commit.
+
+### Codex
+
+I found the likely root cause: the gate audits the PR head SHA from remote, but notes are fetched from `refs/notes/*` and your commit note wasn’t on remote notes yet, so it is classified as `missing-note` (not `invalid-note`). I’m pushing notes now and adding clearer missing-vs-invalid output in `audit` so failures are easier to interpret.
+
+### Codex
+
+I pushed notes to `origin` and verified with the current source build that the exact PR range now audits cleanly (`Missing notes: 0`, `Invalid notes: 0`). I’ll now patch audit output so it explicitly explains the difference between missing and invalid note failures.
+
+### Codex
+
+I added a concrete missing-vs-invalid distinction in `audit` output and tests are green. I’ll commit these changes with memento notes and push both branch and notes so the PR gate evaluates the new head cleanly.
+
+### Codex
+
+Implemented both requests and pushed everything needed for the PR gate.
+
+- New commit: `dd9d4f2` on `dev/manuel/summarize-session`
+- Notes pushed to remote: `refs/notes/commits` (includes note for new PR head)
+- I also pushed notes for the previous head commit, which was the direct reason for the `missing-note` failure.
+
+**What changed for missing vs invalid**
+- Added explicit distinction text in audit output:
+- `missing-note`: no note in `refs/notes/commits`
+- `invalid-note`: note exists but structure/markers are invalid
+- Added per-issue human-readable reasons.
+
+Files:
+- [AuditWorkflow.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/AuditWorkflow.fs)
+- [AuditCore.fs](/Users/mandel/Work/memento/src/GitMemento.Cli/AuditCore.fs)
+- [Tests.fs](/Users/mandel/Work/memento/tests/GitMemento.Tests/Tests.fs)
+
+**Verification**
+- `dotnet test GitMemento.slnx` passed (`54` tests).
+- Local audit simulation for PR head passed:
+- Range: `origin/main..dd9d4f2dac46d628cd404b7db9fabbadfd27be02`
+- `Missing notes: 0`
+- `Invalid notes: 0`
+
+If the previous PR check is still red in GitHub UI, rerun the failed workflow job (or wait for the new push-triggered run to complete).
+
+### Manuel de la Pena
+
+Build the project and install it locally "/Users/mandel/.local/bin/git-memento.dll"
+
+### Codex
+
+I’ll build the CLI in `Release` mode first, then copy the built `git-memento.dll` to `/Users/mandel/.local/bin/git-memento.dll`.
+
+### Codex
+
+Build succeeded. I’ll now create `/Users/mandel/.local/bin` if needed and install the DLL at the exact path you requested.
+
+### Codex
+
+Built and installed successfully.
+
+- Built: `src/GitMemento.Cli/bin/Release/net10.0/git-memento.dll`
+- Installed to: `/Users/mandel/.local/bin/git-memento.dll`
+
+### Manuel de la Pena
+
+We are gatting the following error:
+
+Failed to run as a self-contained app.
+- The application was run as a self-contained app because '/Users/mandel/.local/bin/git-memento.runtimeconfig.json' was not found.
+- If this should be a framework-dependent app, add the '/Users/mandel/.local/bin/git-memento.runtimeconfig.json' file and specify the appropriate framework.
+
+### Codex
+
+That error is expected when only the `.dll` is copied without its `.runtimeconfig.json` and `.deps.json`. I’ll publish the CLI and install the full framework-dependent output into `/Users/mandel/.local/bin`, then verify it runs.
+
+### Codex
+
+The runtime files are in place, but dependency assemblies (like `FSharp.Core.dll`) also need to be installed next to the DLL. I’ll copy the full publish output into `/Users/mandel/.local/bin` and re-verify.
+
+### Codex
+
+The error is fixed.
+
+Cause:
+- Copying only `git-memento.dll` is not enough for a framework-dependent .NET app.
+
+What I installed to `/Users/mandel/.local/bin`:
+- `git-memento.dll`
+- `git-memento.runtimeconfig.json`
+- `git-memento.deps.json`
+- All dependent assemblies (including `FSharp.Core.dll`, `Serilog*.dll`, etc.)
+
+Verification:
+- `dotnet /Users/mandel/.local/bin/git-memento.dll --version` works
+- `dotnet /Users/mandel/.local/bin/git-memento.dll help` works and shows the new commands/options.
+
+### Manuel de la Pena
+
+We have an issue, when we do a PR merge we do no get the notes of the branch that was merged after the merge. This looks like something that will need to be part of an action that copies the notes over from the commit from the PR and the hash of the merge. Create a plan to fix this problem with the workflow
+
+### Codex
+
+**Plan**
+
+1. Confirm the merge scenario and source commits
+- Reproduce on a test PR merged into `main` (merge, squash, rebase).
+- Capture these SHAs from event payload: `base.sha`, `head.sha`, `merge_commit_sha`, PR number.
+- Verify which notes refs are affected: `refs/notes/commits` and `refs/notes/memento-full-audit`.
+
+2. Add a merge-note carry workflow
+- Create a new workflow (for example `.github/workflows/memento-notes-merge-carry.yml`) triggered on:
+- `pull_request` `types: [closed]`
+- with condition `github.event.pull_request.merged == true`
+- Steps:
+- checkout with full history (`fetch-depth: 0`)
+- fetch notes refs (`refs/notes/*:refs/notes/*`)
+- install `git-memento`
+- fetch PR head robustly via `refs/pull/<number>/head` (works even if source branch is deleted/forked)
+- run `git memento notes-carry --onto <merge_commit_sha> --from-range <base_sha>..<pr_head_sha>`
+- push notes (`git push origin 'refs/notes/*'`)
+
+3. Make it idempotent
+- Add a guard so re-running the workflow does not append duplicate carry entries.
+- Recommended: write a stable marker (PR number + merge SHA + source range hash) and skip if marker already exists in merge commit note.
+
+4. Preserve both note streams
+- Ensure carry logic includes both refs:
+- summary/public notes (`refs/notes/commits`)
+- full-audit notes (`refs/notes/memento-full-audit`)
+- Fail workflow if one ref updates and the other fails, with a clear error.
+
+5. Add tests
+- Integration test for merged PR note carry behavior:
+- source commit has notes on both refs
+- carry to merge commit
+- verify both refs on merge commit
+- Idempotency test: second run does not duplicate carried sections.
+
+6. Rollout and verification
+- Dry-run on a branch with a test PR.
+- Merge test PR and verify:
+- `git notes show <merge_sha>`
+- `git notes --ref refs/notes/memento-full-audit show <merge_sha>`
+- Add docs section in README: “Notes after PR merge”.
+
+**Why this fixes it**
+- Git notes are not automatically moved to the merge result commit by GitHub’s server-side merge.
+- This workflow explicitly copies/carries notes from PR commits to the merge commit after merge, so note coverage remains intact.
+
+### Manuel de la Pena
+
+Implement the needed changes
+
+### Codex
+
+I’m implementing this now by adding a dedicated post-merge workflow that carries notes from the PR commit range onto the merge commit and then pushes notes refs back to origin. I’ll align it with existing install and notes commands.
+
+### Codex
+
+I found one important detail: `notes-carry` requires minimal memento config, so the workflow must set `memento.provider` before running it. I’m adding a new `pull_request: closed` workflow that fetches PR head + notes refs, carries notes onto the merge commit, and pushes notes back.
+
+### Codex
+
+I’ve added the new workflow file. Next I’m updating README to document the post-merge note carry behavior so team members understand why merged PR commits now retain notes on the merge SHA.
+
+### Codex
+
+Implementation is in place (new merge-carry workflow + README docs). I’m doing a quick sanity pass on the logic paths and then I’ll summarize exactly how it works and what to run to validate on a merged PR.
+
+### Codex
+
+Implemented.
+
+### Changes made
+
+1. Added new workflow: [memento-notes-merge-carry.yml](/Users/mandel/Work/memento/.github/workflows/memento-notes-merge-carry.yml)
+
+- Trigger: `pull_request` with `types: [closed]`
+- Guard: runs only when `github.event.pull_request.merged == true`
+- Behavior:
+- Checks out full history
+- Fetches all notes refs (`refs/notes/*`)
+- Fetches base SHA, merge SHA, and PR head via `refs/pull/<PR>/head`
+- Configures minimal local memento config (`memento.provider=codex`) so `notes-carry` can run
+- Runs:
+- `dotnet run --project src/GitMemento.Cli -- notes-carry --onto <merge_sha> --from-range <base_sha>..<pr_head_sha>`
+- Pushes notes back:
+- `git push origin 'refs/notes/*'`
+
+- Includes idempotency check:
+- If merge commit note already contains `- Source range: <base..head>`, carry is skipped.
+
+2. Updated docs: [README.md](/Users/mandel/Work/memento/README.md)
+
+- Added the new workflow to the “Local workflow in this repository” section.
+- Documented that it carries PR notes to merge commit and pushes notes refs.
+
+### Why this fixes your issue
+
+GitHub merge creates a new commit SHA, and notes attached to PR commits do not automatically move to that merge commit. This workflow explicitly carries them after merge so gate/comment tooling sees notes on the merge SHA.
+
+### Validation to run
+
+1. Merge a PR with notes on its commits.
+2. Confirm workflow `memento-notes-merge-carry` ran successfully.
+3. Verify note exists on merge commit:
+- `git fetch origin 'refs/notes/*:refs/notes/*'`
+- `git notes show <merge_sha>`
+4. Verify full-audit notes too:
+- `git notes --ref refs/notes/memento-full-audit show <merge_sha>`
+
+### Manuel de la Pena
+
+This looks to be an action that should be public and shared in the github market place
+
+### Codex
+
+Agreed. I’ll promote this into the marketplace action itself by adding a new `mode: merge-carry`, then switch the repo workflow to consume that mode so it’s reusable across repositories. I’ll update the README docs accordingly.
+
+### Codex
+
+I’ve added `mode: merge-carry` directly to the public action with configurable inputs and built-in skip/idempotency behavior. Next I’m switching the repo workflow to call this new mode instead of bespoke scripts.
+
+### Codex
+
+Implemented: merge-note carry is now part of the public marketplace action, not just a repo-local script.
+
+### What changed
+
+- Updated [`action.yml`](/Users/mandel/Work/memento/action.yml):
+- Added new mode: `merge-carry`
+- Extended mode description to include `merge-carry`
+- Added merge-carry inputs:
+- `carry-onto`
+- `carry-range`
+- `carry-base-sha`
+- `carry-head-sha`
+- `carry-provider` (default `codex`)
+- `git-memento` install check now runs for both `gate` and `merge-carry`
+- Added `Carry notes to merge commit` step that:
+- Runs only for merged `pull_request.closed`
+- Resolves merge target and source range
+- Fetches PR head via `refs/pull/<pr>/head`
+- Avoids duplicate carry by checking existing carried range marker
+- Runs `git memento notes-carry`
+- Pushes `refs/notes/*`
+
+- Updated local workflow to consume the public action mode:
+- [`memento-notes-merge-carry.yml`](/Users/mandel/Work/memento/.github/workflows/memento-notes-merge-carry.yml)
+- Now uses:
+- `./install`
+- `./` with `mode: merge-carry`
+
+- Updated docs in [`README.md`](/Users/mandel/Work/memento/README.md):
+- Action now documented as having 3 modes: `comment`, `gate`, `merge-carry`
+- Added merge-carry input docs
+- Added full merge-carry workflow example
+- Updated local workflow listing accordingly
+
+### Validation
+
+- Ran `dotnet test GitMemento.slnx` successfully (`54` passed, `0` failed).
+
+If you want, I can now create a memento commit for this change and prepare the release/tag steps so this new mode is available via `mandel-macaque/memento@v1`.
+
+### Manuel de la Pena
+
+<user_action>
+<context>User initiated a review task. Here's the full review output from reviewer model. User may select one or more comments to resolve.</context>
+<action>review</action>
+<results>
+The new merge-carry mode can compute an invalid default commit range on merged PR events, causing note carry to no-op for standard merge-commit merges. This is a functional issue in the primary new behavior.
+
+Review comment:
+
+- [P1] Use pre-merge base SHA for default carry range — /Users/mandel/Work/memento/action.yml:203-213
+When `carry-range` is omitted, the action builds `RANGE` from `pull_request.base.sha..head`. On a merged `pull_request` closed event, `pull_request.base.sha` is the current tip of the base branch (typically the merge commit), so for normal merge-commit workflows the computed range becomes empty and `git memento notes-carry` has no PR commits to carry. This makes `mode=merge-carry` silently ineffective in a common merge scenario unless callers manually pass `carry-range`/`carry-base-sha`.
+</results>
+</user_action>
+
+### Codex
+
+The new merge-carry mode can compute an invalid default commit range on merged PR events, causing note carry to no-op for standard merge-commit merges. This is a functional issue in the primary new behavior.
+
+Review comment:
+
+- [P1] Use pre-merge base SHA for default carry range — /Users/mandel/Work/memento/action.yml:203-213
+When `carry-range` is omitted, the action builds `RANGE` from `pull_request.base.sha..head`. On a merged `pull_request` closed event, `pull_request.base.sha` is the current tip of the base branch (typically the merge commit), so for normal merge-commit workflows the computed range becomes empty and `git memento notes-carry` has no PR commits to carry. This makes `mode=merge-carry` silently ineffective in a common merge scenario unless callers manually pass `carry-range`/`carry-base-sha`.
+
+### Manuel de la Pena
+
+fix the review issues
+
+### Codex
+
+I’ll patch `merge-carry` range resolution to derive a true pre-merge base commit automatically, so default behavior works for merge commits without manual `carry-range`. Then I’ll run tests and show the exact logic change.
+
+### Codex
+
+I’m updating the merge-carry script to compute a pre-merge base boundary from the merge commit parent plus `git merge-base`, and I’ll make idempotency skip only when both note refs already contain the carried range marker.
+
+### Codex
+
+Fixed the review issue in [`action.yml`](/Users/mandel/Work/memento/action.yml).
+
+### What changed
+
+- `mode=merge-carry` no longer defaults range from `pull_request.base.sha`.
+- Default carry range now uses a pre-merge boundary:
+- Resolve `ONTO_COMMIT` (defaults to `pull_request.merge_commit_sha`).
+- Fetch PR head SHA if not provided.
+- Compute base via merge-base:
+- If merge target has a parent: `merge-base(ONTO_COMMIT^1, HEAD_SHA)`
+- Fallback: `merge-base(ONTO_COMMIT, HEAD_SHA)`
+- Build default range as `BASE_SHA..HEAD_SHA`.
+
+This avoids empty/no-op ranges on merged PR closed events with standard merge commits.
+
+### Additional hardening included
+
+- Early explicit failure when merge target commit cannot be resolved.
+- Idempotency skip now happens only if both refs already contain the carried range marker:
+- default notes ref
+- `refs/notes/memento-full-audit`
+
+### Validation
+
+- `dotnet test GitMemento.slnx` passed (`54` tests).
+
+### Manuel de la Pena
+
+Add a new commit using the $git-memento-workflow  so that we can test the PR process. Use the current session with a summary, then push using memento to make sure that the notes are synced
+
+### Manuel de la Pena
+
+<skill>
+<name>git-memento-workflow</name>
+<path>/Users/mandel/.codex/skills/git-memento-workflow/SKILL.md</path>
+---
+name: git-memento-workflow
+description: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes.
+---
+
+# Git Memento Workflow
+
+Run this workflow whenever work must be committed with an AI session note.
+
+## 1. Preflight
+
+- Confirm repository status with `git status --short` and branch with `git branch --show-current`.
+- Confirm `git memento` is available: `git memento help`.
+- If unavailable, install `git-memento` into a directory on `PATH` and re-check.
+
+## 2. Initialize Once Per Repository
+
+- Check configuration: `git config --local --get memento.provider`.
+- If missing, run `git memento init codex` or `git memento init claude`.
+- If provider CLI shape differs from expected `sessions get/list --json`, configure adapter command in local git config:
+- `git config --local memento.<provider>.bin <adapter-or-cli-path>`
+- `git config --local memento.<provider>.getArgs '<args with {id} placeholder>'`
+- `git config --local memento.<provider>.listArgs '<list args>'`
+- For summary mode, configure provider summary execution if defaults do not match your environment:
+- `git config --local memento.<provider>.summary.bin <adapter-or-cli-path>`
+- `git config --local memento.<provider>.summary.args '<args with {prompt}, optionally {skill} and {sessionId}>'`
+
+## 3. Resolve Session ID
+
+- Prefer explicit session id from the user.
+- For Codex in this environment, default to `CODEX_THREAD_ID` when present.
+- Validate retrieval before commit by running provider command manually if needed.
+
+## 4. Create Memento Commit or Amend
+
+- Stage files as needed (`git add ...`).
+- Run commit through memento so note attachment happens in the same flow:
+- `git memento commit <session-id> -m "<subject>"`
+- Optional summary mode: `git memento commit <session-id> --summary-skill <skill|default> -m "<subject>"`
+- For amend flows:
+- `git memento amend -m "<amended-subject>"` to carry forward existing note(s) onto the amended commit.
+- `git memento amend <session-id> -m "<amended-subject>"` to carry forward existing note(s) and append a new session.
+- Optional summary mode: `git memento amend <session-id> --summary-skill <skill|default> -m "<amended-subject>"`
+- Summary mode behavior:
+- The CLI generates a markdown summary using the configured provider command.
+- It prints the generated summary and requires explicit confirmation.
+- If rejected, it asks for a user prompt and regenerates.
+- It writes the summary into `refs/notes/commits` and stores the full session in `refs/notes/memento-full-audit`.
+- Backward compatibility:
+- Legacy single-session notes are preserved.
+- When append is needed, legacy notes are upgraded into the versioned multi-session envelope so no prior session content is lost.
+- For longer body, use embedded newlines in `-m` or omit `-m` to use editor.
+
+## 5. Verify Note Attachment
+
+- Read latest commit: `git log -1 --pretty=fuller`.
+- Show note on that commit: `git notes show <commit-hash>`.
+- For multi-session notes, expect envelope/version headers and separators:
+- `<!-- git-memento-sessions:v1 -->`
+- `<!-- git-memento-note-version:1 -->`
+- `<!-- git-memento-session:start -->`
+- `<!-- git-memento-session:end -->`
+- Summary mode stores summary entries in `refs/notes/commits` and full sessions in `refs/notes/memento-full-audit`.
+- In summary mode, verify both refs:
+- `git notes show <commit-hash>` (summary note)
+- `git notes --ref refs/notes/memento-full-audit show <commit-hash>` (full session)
+- If note is missing, inspect provider command config and rerun commit flow after fixing.
+
+## 6. Push Code and Sync Notes
+
+- Push commit branch and sync notes in one step: `git memento push <remote>`.
+- For default remote, run `git memento push`.
+- Optional fallback: `git push <remote> <branch>` then `git memento share-notes <remote>`.
+- Verify notes exist remotely: `git ls-remote <remote> 'refs/notes/*'`.
+- `notes-sync`, `notes-rewrite-setup`, and `notes-carry` preserve both `refs/notes/commits` and `refs/notes/memento-full-audit`.
+
+## 7. Failure Handling Checklist
+
+- `git-memento is not configured`: run `git memento init ...`.
+- Provider command fails: verify `memento.<provider>.*` git config and executable permissions.
+- Session not found: list sessions using provider list command and retry with exact id.
+- Note push missing on remote: rerun `git memento push <remote>` (or `git memento share-notes <remote>`) and confirm remote ref output.
+
+</skill>
+
+### Codex
+
+Using `git-memento-workflow` now. I’ll run preflight (status, branch, `git memento` availability, provider/session id), then create a summary-mode memento commit from the current session and push via `git memento push` so notes sync with code.
+
+### Codex
+
+Preflight shows your working tree has exactly the merge-carry changes pending on `dev/manuel/pr-workflow`. The installed `git memento` binary is still an older build, so I’ll use the current source CLI via `dotnet run --project ...` to do a summary commit reliably, then push with memento so notes are synced.
+<!-- git-memento-session:end -->
