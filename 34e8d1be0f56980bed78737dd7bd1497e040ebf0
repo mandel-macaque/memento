@@ -1,0 +1,273 @@
+<!-- git-memento-sessions:v1 -->
+
+<!-- git-memento-note-version:1 -->
+
+<!-- git-memento-session:start -->
+# Git Memento Session
+
+- Provider: Codex
+- Session ID: 019cabd0-9244-73c1-973e-4d5d7c635bea
+- Session Title: # AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
+### Available skills
+- git-memento-workflow: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes. (file: /Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- skill-creator: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. (file: /Users/mandel/.codex/skills/.system/skill-creator/SKILL.md)
+- skill-installer: Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos). (file: /Users/mandel/.codex/skills/.system/skill-installer/SKILL.md)
+### How to use skills
+- Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths.
+- Trigger rules: If the user names a skill (with `$SkillName` or plain text) OR the task clearly matches a skill's description shown above, you must use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned.
+- Missing/blocked: If a named skill isn't in the list or the path can't be read, say so briefly and continue with the best fallback.
+- How to use a skill (progressive disclosure):
+  1) After deciding to use a skill, open its `SKILL.md`. Read only enough to follow the workflow.
+  2) When `SKILL.md` references relative paths (e.g., `scripts/foo.py`), resolve them relative to the skill directory listed above first, and only consider other paths if needed.
+  3) If `SKILL.md` points to extra folders such as `references/`, load only the specific files needed for the request; don't bulk-load everything.
+  4) If `scripts/` exist, prefer running or patching them instead of retyping large code blocks.
+  5) If `assets/` or templates exist, reuse them instead of recreating from scratch.
+- Coordination and sequencing:
+  - If multiple skills apply, choose the minimal set that covers the request and state the order you'll use them.
+  - Announce which skill(s) you're using and why (one short line). If you skip an obvious skill, say why.
+- Context hygiene:
+  - Keep context small: summarize long sections instead of pasting them; only load extra files when needed.
+  - Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
+  - When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
+- Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+</INSTRUCTIONS>
+- Committer: Manuel de la Pena
+- Captured At (UTC): 2026-03-02T00:01:20.0482750+00:00
+
+## Conversation
+
+### Manuel de la Pena
+
+# AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
+### Available skills
+- git-memento-workflow: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes. (file: /Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- skill-creator: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. (file: /Users/mandel/.codex/skills/.system/skill-creator/SKILL.md)
+- skill-installer: Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos). (file: /Users/mandel/.codex/skills/.system/skill-installer/SKILL.md)
+### How to use skills
+- Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths.
+- Trigger rules: If the user names a skill (with `$SkillName` or plain text) OR the task clearly matches a skill's description shown above, you must use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned.
+- Missing/blocked: If a named skill isn't in the list or the path can't be read, say so briefly and continue with the best fallback.
+- How to use a skill (progressive disclosure):
+1) After deciding to use a skill, open its `SKILL.md`. Read only enough to follow the workflow.
+2) When `SKILL.md` references relative paths (e.g., `scripts/foo.py`), resolve them relative to the skill directory listed above first, and only consider other paths if needed.
+3) If `SKILL.md` points to extra folders such as `references/`, load only the specific files needed for the request; don't bulk-load everything.
+4) If `scripts/` exist, prefer running or patching them instead of retyping large code blocks.
+5) If `assets/` or templates exist, reuse them instead of recreating from scratch.
+- Coordination and sequencing:
+- If multiple skills apply, choose the minimal set that covers the request and state the order you'll use them.
+- Announce which skill(s) you're using and why (one short line). If you skip an obvious skill, say why.
+- Context hygiene:
+- Keep context small: summarize long sections instead of pasting them; only load extra files when needed.
+- Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
+- When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
+- Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+</INSTRUCTIONS>
+
+### Manuel de la Pena
+
+<environment_context>
+<cwd>/Users/mandel/Work/memento</cwd>
+<shell>zsh</shell>
+</environment_context>
+
+### Manuel de la Pena
+
+The memento memento-note-gate is failing because it needs memento to be installed in the image that runs the action. Since we have a install script in the repo, use that script to install the tool and then allow it to performan the gate.
+
+### Codex
+
+I’ll update the `memento-note-gate` workflow to install `memento` using the repo’s existing install script before the gate step runs, then validate the workflow file for correctness. I’m checking the current workflow and install script now.
+
+### Codex
+
+I found the gate workflow and `install.sh`; next I’ll quickly load the `git-memento-workflow` skill instructions and then patch the workflow to run the installer before the gate check.
+
+### Codex
+
+Using the `git-memento-workflow` skill for this troubleshooting change. I’m now aligning the gate workflow with the same install pattern already used in CI.
+
+### Codex
+
+I confirmed the composite action has a gate-mode installer, but the workflow doesn’t preinstall on the runner. I’m adding an explicit install step in `memento-note-gate.yml` (using `install.sh` + `GITHUB_PATH`) and passing `memento-repo` so the gate uses the current repository release assets.
+
+### Codex
+
+Updated `memento-note-gate` to install `git-memento` on the runner before the gate runs, using the repo’s `install.sh`.
+
+Changes made in [memento-note-gate.yml](/Users/mandel/Work/memento/.github/workflows/memento-note-gate.yml):
+- Added `Install git-memento` step that runs:
+- `sh ./install.sh`
+- appends install dir to `GITHUB_PATH`
+- verifies with `git memento --version`
+- Set `GIT_MEMENTO_REPO` to `${{ github.repository }}` so install pulls assets from the current repo.
+- Passed `memento-repo: ${{ github.repository }}` into the gate action input to keep action-side install aligned.
+
+If you want, I can also remove the install logic from `action.yml` gate mode to avoid double-install and keep install responsibility only in workflows.
+
+### Manuel de la Pena
+
+I do not like the approach of using the current checkedout repo, that makes it a bad example for other repo. Use the  url of the github repo we use (git remote -v should give you the oriting repo) to do the installation. Also make sure that all actions only install the tool once. Whats more, lets create a reusable action to install it so that we can share it via github market place.
+
+Once you have updated the actions, used the correct repo, update the examples in the README file to match the need to install the tool
+
+### Codex
+
+I’ll switch to a reusable installer action and make gate usage require that installer explicitly, so installation happens exactly once. I’m checking remotes, current workflows, and README examples before patching.
+
+### Codex
+
+I confirmed origin is `mandel-macaque/memento`, so I’ll hard-code that as the default source instead of `${{ github.repository }}`. Next I’ll add a reusable installer action and refactor workflows/action usage so gate install happens only once.
+
+### Codex
+
+I’m now editing four areas: a new `install` composite action, removal of installer logic from the root gate action, workflow updates to call installer explicitly once, and README examples/input docs to reflect that gate now expects a prior install step.
+
+### Codex
+
+I’ve applied the action/workflow refactor; next I’m updating README examples and input docs so gate mode explicitly installs via `mandel-macaque/memento/install@v1` and no longer suggests `github.repository`-based install sources.
+
+### Codex
+
+I’ve finished the refactor and verified diffs. I’m doing one final pass for any remaining `mode: gate` usage without an explicit installer step and then I’ll summarize exactly what changed.
+
+### Codex
+
+Implemented. Installation now uses the canonical repo (`mandel-macaque/memento`, from `origin git@github.com:mandel-macaque/memento.git`), gate mode installs only once, and there is a reusable installer action for Marketplace usage.
+
+Changes:
+
+- Added reusable installer action: [install/action.yml](/Users/mandel/Work/memento/install/action.yml)
+- Installs via repo `mandel-macaque/memento` by default.
+- Adds install dir to `PATH`.
+- Optional verify step (`git memento --version`, `git memento help`).
+
+- Updated main action to stop auto-installing in gate mode: [action.yml](/Users/mandel/Work/memento/action.yml)
+- Removed gate installer input/step.
+- Gate mode now checks `git-memento` exists and fails with a clear message if missing.
+- This prevents double installs when workflows install first.
+
+- Updated gate workflow to install once via reusable action: [memento-note-gate.yml](/Users/mandel/Work/memento/.github/workflows/memento-note-gate.yml)
+- Uses `./install` with `memento-repo: mandel-macaque/memento`.
+- Then runs gate action (`mode: gate`).
+
+- Updated CI install smoke to use reusable installer action: [ci.yml](/Users/mandel/Work/memento/.github/workflows/ci.yml)
+- Replaced inline `install.sh` step with `uses: ./install`.
+- Keeps explicit verify step in the job.
+
+- Updated docs/examples for required install-before-gate flow: [README.md](/Users/mandel/Work/memento/README.md)
+- Added installer action definition and inputs.
+- Updated gate example to include `mandel-macaque/memento/install@v1` before `mode: gate`.
+- Removed old implication that gate action installs internally.
+
+I did not run workflow execution tests locally (only static edits/diff validation).
+Next step if you want: tag/release including `install/action.yml` so `mandel-macaque/memento/install@v1` is immediately usable from Marketplace.
+
+### Manuel de la Pena
+
+<user_action>
+<context>User initiated a review task. Here's the full review output from reviewer model. User may select one or more comments to resolve.</context>
+<action>review</action>
+<results>
+I did not identify any actionable regressions in the modified workflows, root action metadata, or new installer sub-action. The changes are internally consistent: gate mode now requires a preinstalled `git-memento`, and the workflows/README were updated to install it explicitly.
+</results>
+</user_action>
+
+### Codex
+
+I did not identify any actionable regressions in the modified workflows, root action metadata, or new installer sub-action. The changes are internally consistent: gate mode now requires a preinstalled `git-memento`, and the workflows/README were updated to install it explicitly.
+
+### Manuel de la Pena
+
+Using the $git-memento-workflow create a new commit with the current session, then create a tag/release including install/action.yml so mandel-macaque/memento/install@v1 is immediately usable from Marketplace. The new version will be 1.1
+
+### Manuel de la Pena
+
+<skill>
+<name>git-memento-workflow</name>
+<path>/Users/mandel/.codex/skills/git-memento-workflow/SKILL.md</path>
+---
+name: git-memento-workflow
+description: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes.
+---
+
+# Git Memento Workflow
+
+Run this workflow whenever work must be committed with an AI session note.
+
+## 1. Preflight
+
+- Confirm repository status with `git status --short` and branch with `git branch --show-current`.
+- Confirm `git memento` is available: `git memento help`.
+- If unavailable, install `git-memento` into a directory on `PATH` and re-check.
+
+## 2. Initialize Once Per Repository
+
+- Check configuration: `git config --local --get memento.provider`.
+- If missing, run `git memento init codex` or `git memento init claude`.
+- If provider CLI shape differs from expected `sessions get/list --json`, configure adapter command in local git config:
+- `git config --local memento.<provider>.bin <adapter-or-cli-path>`
+- `git config --local memento.<provider>.getArgs '<args with {id} placeholder>'`
+- `git config --local memento.<provider>.listArgs '<list args>'`
+
+## 3. Resolve Session ID
+
+- Prefer explicit session id from the user.
+- For Codex in this environment, default to `CODEX_THREAD_ID` when present.
+- Validate retrieval before commit by running provider command manually if needed.
+
+## 4. Create Memento Commit or Amend
+
+- Stage files as needed (`git add ...`).
+- Run commit through memento so note attachment happens in the same flow:
+- `git memento commit <session-id> -m "<subject>"`
+- For amend flows:
+- `git memento amend -m "<amended-subject>"` to carry forward existing note(s) onto the amended commit.
+- `git memento amend <session-id> -m "<amended-subject>"` to carry forward existing note(s) and append a new session.
+- Backward compatibility:
+- Legacy single-session notes are preserved.
+- When append is needed, legacy notes are upgraded into the versioned multi-session envelope so no prior session content is lost.
+- For longer body, use embedded newlines in `-m` or omit `-m` to use editor.
+
+## 5. Verify Note Attachment
+
+- Read latest commit: `git log -1 --pretty=fuller`.
+- Show note on that commit: `git notes show <commit-hash>`.
+- For multi-session notes, expect envelope/version headers and separators:
+- `<!-- git-memento-sessions:v1 -->`
+- `<!-- git-memento-note-version:1 -->`
+- `<!-- git-memento-session:start -->`
+- `<!-- git-memento-session:end -->`
+- If note is missing, inspect provider command config and rerun commit flow after fixing.
+
+## 6. Push Code and Sync Notes
+
+- Push commit branch and sync notes in one step: `git memento push <remote>`.
+- For default remote, run `git memento push`.
+- Optional fallback: `git push <remote> <branch>` then `git memento share-notes <remote>`.
+- Verify notes exist remotely: `git ls-remote <remote> 'refs/notes/*'`.
+
+## 7. Failure Handling Checklist
+
+- `git-memento is not configured`: run `git memento init ...`.
+- Provider command fails: verify `memento.<provider>.*` git config and executable permissions.
+- Session not found: list sessions using provider list command and retry with exact id.
+- Note push missing on remote: rerun `git memento push <remote>` (or `git memento share-notes <remote>`) and confirm remote ref output.
+
+</skill>
+
+### Codex
+
+I’ll run the `git-memento-workflow` now: preflight checks, resolve this session ID, create a memento commit, verify attached note, then tag/release `v1.1` so `install/action.yml` is available via `mandel-macaque/memento/install@v1`.
+
+### Codex
+
+Preflight passed (`git memento` available, provider configured, session ID resolved from `CODEX_THREAD_ID`). I’m staging the workflow/action/doc changes and creating the memento commit with this session ID now.
+<!-- git-memento-session:end -->
