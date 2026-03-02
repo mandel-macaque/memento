@@ -6,6 +6,9 @@ open System.Threading.Tasks
 open Serilog
 
 type NotesCarryWorkflow(git: IGitService, output: IUserOutput) =
+    [<Literal>]
+    let FullAuditNotesRef = "refs/notes/memento-full-audit"
+
     static member private InvalidRangeMessage =
         "Invalid --from-range value. Expected format: <base>..<head>"
 
@@ -28,14 +31,19 @@ type NotesCarryWorkflow(git: IGitService, output: IUserOutput) =
 
         markdown.ToString().TrimEnd()
 
-    member private _.CollectNotesAsync(commits: string list) : Task<Result<(string * string) list, string>> =
+    member private _.CollectNotesAsync
+        (commits: string list, notesRef: string option)
+        : Task<Result<(string * string) list, string>> =
         task {
             let collected = ResizeArray<string * string>()
             let mutable failure: string option = None
 
             for commitHash in commits do
                 if failure.IsNone then
-                    let! noteResult = git.GetNoteAsync(commitHash)
+                    let! noteResult =
+                        match notesRef with
+                        | None -> git.GetNoteAsync(commitHash)
+                        | Some refName -> git.GetNoteInRefAsync(refName, commitHash)
                     match noteResult with
                     | Error err -> failure <- Some err
                     | Ok None -> ()
@@ -67,18 +75,48 @@ type NotesCarryWorkflow(git: IGitService, output: IUserOutput) =
                             output.Info($"No commits found in range '{fromRange}'.")
                             return CommandResult.Completed
                         | Ok commits ->
-                            let! collectedResult = this.CollectNotesAsync(commits)
-                            match collectedResult with
+                            let! defaultNotesResult = this.CollectNotesAsync(commits, None)
+                            match defaultNotesResult with
                             | Error err -> return CommandResult.Failed err
-                            | Ok [] ->
-                                output.Info($"No notes found in source range '{fromRange}'.")
-                                return CommandResult.Completed
-                            | Ok notes ->
-                                let markdown = NotesCarryWorkflow.BuildCarryMarkdown(fromRange, notes)
-                                let! appendResult = git.AppendNoteAsync(ontoCommit, markdown)
-                                match appendResult with
+                            | Ok defaultNotes ->
+                                let! auditNotesResult = this.CollectNotesAsync(commits, Some FullAuditNotesRef)
+                                match auditNotesResult with
                                 | Error err -> return CommandResult.Failed err
-                                | Ok _ ->
-                                    output.Info($"Carried {notes.Length} source note(s) from '{fromRange}' onto commit '{ontoCommit}'.")
-                                    return CommandResult.Completed
+                                | Ok auditNotes ->
+                                    if List.isEmpty defaultNotes && List.isEmpty auditNotes then
+                                        output.Info($"No notes found in source range '{fromRange}'.")
+                                        return CommandResult.Completed
+                                    else
+                                        let! appendAuditResult =
+                                            if List.isEmpty auditNotes then
+                                                Task.FromResult(Ok())
+                                            else
+                                                let auditMarkdown = NotesCarryWorkflow.BuildCarryMarkdown(fromRange, auditNotes)
+                                                git.AppendNoteInRefAsync(FullAuditNotesRef, ontoCommit, auditMarkdown)
+
+                                        if Result.isError appendAuditResult then
+                                            let err =
+                                                match appendAuditResult with
+                                                | Error value -> value
+                                                | Ok _ -> String.Empty
+                                            return CommandResult.Failed err
+                                        else
+                                            let! appendResult =
+                                                if List.isEmpty defaultNotes then
+                                                    Task.FromResult(Ok())
+                                                else
+                                                    let markdown = NotesCarryWorkflow.BuildCarryMarkdown(fromRange, defaultNotes)
+                                                    git.AppendNoteAsync(ontoCommit, markdown)
+
+                                            if Result.isError appendResult then
+                                                let err =
+                                                    match appendResult with
+                                                    | Error value -> value
+                                                    | Ok _ -> String.Empty
+                                                return CommandResult.Failed err
+                                            else
+                                                output.Info(
+                                                    $"Carried {defaultNotes.Length} default note(s) and {auditNotes.Length} full-audit note(s) from '{fromRange}' onto commit '{ontoCommit}'."
+                                                )
+                                                return CommandResult.Completed
         }

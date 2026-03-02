@@ -26,8 +26,10 @@ git memento init claude
 ```bash
 git memento commit <session-id> -m "Normal commit message"
 git memento commit <session-id> -m "Subject line" -m "Body paragraph"
+git memento commit <session-id> --summary-skill default -m "Subject line"
 git memento amend -m "Amended subject"
 git memento amend <new-session-id> -m "Amended subject" -m "Amended body"
+git memento amend <new-session-id> --summary-skill session-summary-default -m "Amended subject"
 git memento audit --range main..HEAD --strict
 git memento doctor
 ```
@@ -45,6 +47,21 @@ When `-m` is omitted, `git commit` opens your default editor.
 - Without a session id, it copies the note(s) from the previous HEAD onto the amended commit.
 - With a session id, it copies previous note(s) and appends the new fetched session as an additional session entry.
 - A single commit note can contain sessions from different AI providers.
+
+`--summary-skill <skill|default>` (for `commit` and `amend <session-id>`) changes note behavior:
+- The default notes ref (`refs/notes/commits`) stores a summary record instead of the full transcript.
+- The full session is stored in `refs/notes/memento-full-audit`.
+- The CLI prints the generated summary and asks for confirmation.
+- If rejected, you must provide a prompt to regenerate.
+- `default` maps to the repository skill at `skills/session-summary-default/SKILL.md`.
+- The default summary skill is always applied as a baseline; if a user-provided summary skill conflicts with it, user-provided instructions take precedence.
+
+You can verify both notes after a summary run:
+
+```bash
+git notes show <commit-hash>
+git notes --ref refs/notes/memento-full-audit show <commit-hash>
+```
 
 Share notes with the repository remote (default: `origin`):
 
@@ -74,9 +91,10 @@ git memento notes-sync upstream --strategy union
 
 This command:
 - Ensures notes fetch mapping is configured.
-- Creates a backup ref under `refs/notes/memento-backups/<timestamp>`.
+- Creates backup refs under `refs/notes/memento-backups/<timestamp>/...`.
 - Fetches remote notes into `refs/notes/remote/<remote>/*`.
 - Merges remote notes into local notes and pushes synced notes back to the remote.
+- Syncs both `refs/notes/commits` and `refs/notes/memento-full-audit`.
 
 Configure automatic note carry-over for rewritten commits (`rebase` / `commit --amend`):
 
@@ -85,7 +103,7 @@ git memento notes-rewrite-setup
 ```
 
 This sets local git config:
-- `notes.rewriteRef=refs/notes/commits`
+- `notes.rewriteRef=refs/notes/*`
 - `notes.rewriteMode=concatenate`
 - `notes.rewrite.rebase=true`
 - `notes.rewrite.amend=true`
@@ -96,7 +114,8 @@ Carry notes from a rewritten range (for squash/rewrite flows) onto a new target 
 git memento notes-carry --onto <new-commit> --from-range <base>..<head>
 ```
 
-This reads notes from commits in `<base>..<head>` and appends a provenance block to `<new-commit>`.
+This reads notes from commits in `<base>..<head>` and appends provenance blocks to `<new-commit>`.
+It carries both `refs/notes/commits` and `refs/notes/memento-full-audit`.
 
 Audit note coverage and note metadata in a commit range:
 
@@ -136,9 +155,25 @@ Provider defaults can come from env vars, and `init` persists the selected provi
 - `MEMENTO_CODEX_BIN` (default: `codex`)
 - `MEMENTO_CODEX_GET_ARGS` (default: `sessions get {id} --json`)
 - `MEMENTO_CODEX_LIST_ARGS` (default: `sessions list --json`)
+- `MEMENTO_CODEX_SUMMARY_BIN` (default: `codex`)
+- `MEMENTO_CODEX_SUMMARY_ARGS` (default: `exec -c skill.effective_path={effectiveSkillPath} -c skill.default_path={defaultSkillPath} -c skill.user_path={userSkillPath} "{prompt}"`)
 - `MEMENTO_CLAUDE_BIN` (default: `claude`)
 - `MEMENTO_CLAUDE_GET_ARGS` (default: `sessions get {id} --json`)
 - `MEMENTO_CLAUDE_LIST_ARGS` (default: `sessions list --json`)
+- `MEMENTO_CLAUDE_SUMMARY_BIN` (default: `claude`)
+- `MEMENTO_CLAUDE_SUMMARY_ARGS` (default: `-p --append-system-prompt "Skill paths: effective={effectiveSkillPath}; default={defaultSkillPath}; user={userSkillPath}. Prefer user skill when provided." "{prompt}"`)
+
+Summary args template placeholders:
+- `{prompt}`: generated summary prompt
+- `{sessionId}`: session id
+- `{skill}`: user skill name or `session-summary-default`
+- `{defaultSkillPath}`: default skill file path (`skills/session-summary-default/SKILL.md`)
+- `{userSkillPath}`: user skill file path (empty when `--summary-skill default`)
+- `{effectiveSkillPath}`: user skill path when provided, otherwise default skill path
+
+Security behavior:
+- Session transcript is treated as untrusted data.
+- Summary prompt explicitly instructs the model not to follow instructions embedded in transcript content.
 
 Set `MEMENTO_AI_PROVIDER=claude` to use Claude Code.
 
@@ -146,8 +181,8 @@ Runtime behavior:
 - If the repository is not configured yet, `commit`, `amend <session-id>`, `push`, `share-notes`, `notes-sync`, `notes-rewrite-setup`, and `notes-carry` fail with a message to run `git memento init` first.
 - Stored git metadata keys include:
   - `memento.provider`
-  - `memento.codex.bin`, `memento.codex.getArgs`, `memento.codex.listArgs`
-  - `memento.claude.bin`, `memento.claude.getArgs`, `memento.claude.listArgs`
+  - `memento.codex.bin`, `memento.codex.getArgs`, `memento.codex.listArgs`, `memento.codex.summary.bin`, `memento.codex.summary.args`
+  - `memento.claude.bin`, `memento.claude.getArgs`, `memento.claude.listArgs`, `memento.claude.summary.bin`, `memento.claude.summary.args`
 
 If a session id is not found, `git-memento` asks Codex for available sessions and prints them.
 
@@ -239,7 +274,7 @@ name: memento-note-comments
 on:
   push:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
 
 permissions:
   contents: write
@@ -268,6 +303,8 @@ Inputs:
 - `audit-range` (optional, gate mode)
 - `base-ref` (optional, gate mode pull request inference)
 - `strict` (default: `true`, gate mode)
+- `ignore-label` (default: `ignore-notes`, gate mode)
+  - If present on a pull request, gate note checks are skipped and a PR comment with `Notes ignored` is posted.
 
 Installer action inputs:
 
@@ -282,10 +319,12 @@ name: memento-note-gate
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
 
 permissions:
   contents: read
+  issues: write
+  pull-requests: write
 
 jobs:
   enforce-memento-notes:
@@ -303,6 +342,7 @@ jobs:
         with:
           mode: gate
           strict: "true"
+          ignore-label: "ignore-notes"
 ```
 
 Installer action example:

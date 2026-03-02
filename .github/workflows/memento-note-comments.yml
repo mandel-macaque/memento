@@ -3,7 +3,7 @@ name: memento-note-comments
 on:
   push:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
 
 permissions:
   contents: write

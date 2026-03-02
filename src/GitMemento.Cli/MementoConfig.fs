@@ -31,8 +31,16 @@ module MementoConfig =
                         match read $"{keyBase}.listArgs" defaults.ListArgs with
                         | Error err -> Error err
                         | Ok listArgs ->
-                            Ok
-                                { Provider = provider
-                                  Executable = executable
-                                  GetArgs = getArgs
-                                  ListArgs = listArgs }
+                            match read $"{keyBase}.summary.bin" defaults.SummaryExecutable with
+                            | Error err -> Error err
+                            | Ok summaryExecutable ->
+                                match read $"{keyBase}.summary.args" defaults.SummaryArgs with
+                                | Error err -> Error err
+                                | Ok summaryArgs ->
+                                    Ok
+                                        { Provider = provider
+                                          Executable = executable
+                                          GetArgs = getArgs
+                                          ListArgs = listArgs
+                                          SummaryExecutable = summaryExecutable
+                                          SummaryArgs = summaryArgs }

@@ -1,6 +1,7 @@
 namespace GitMemento
 
 open System
+open System.Security.Cryptography
 open System.Text
 
 module Markdown =
@@ -49,6 +50,54 @@ module Markdown =
                 sb.AppendLine() |> ignore
 
         sb.ToString().Trim() + Environment.NewLine
+
+    let sha256Hex (value: string) =
+        let bytes = Encoding.UTF8.GetBytes(value)
+        let hash = SHA256.HashData(bytes)
+        Convert.ToHexString(hash).ToLowerInvariant()
+
+    let originalSessionLogHash (session: SessionData) =
+        let sb = StringBuilder(4096)
+        sb.AppendLine($"Provider={session.Provider}") |> ignore
+        sb.AppendLine($"SessionId={session.Id}") |> ignore
+        sb.AppendLine($"SessionTitle={session.Title |> Option.defaultValue String.Empty}") |> ignore
+        for message in session.Messages do
+            let timestamp =
+                message.Timestamp
+                |> Option.map (fun ts -> ts.ToString("O"))
+                |> Option.defaultValue String.Empty
+            sb.AppendLine($"Role={message.Role}") |> ignore
+            sb.AppendLine($"Timestamp={timestamp}") |> ignore
+            sb.AppendLine("Content:") |> ignore
+            sb.AppendLine(message.Content) |> ignore
+            sb.AppendLine("---") |> ignore
+        sha256Hex (sb.ToString())
+
+    let renderSummaryEntry (session: SessionData) (summaryMarkdown: string) (originalSessionLogHash: string) =
+        let sb = StringBuilder(1024)
+        sb.AppendLine("# Git Memento Session Summary") |> ignore
+        sb.AppendLine() |> ignore
+        sb.AppendLine("- Session Kind: Summary") |> ignore
+        sb.AppendLine($"- Provider: {session.Provider}") |> ignore
+        sb.AppendLine($"- Session ID: {session.Id}") |> ignore
+        sb.AppendLine($"- Original Session Log SHA256: {originalSessionLogHash}") |> ignore
+        sb.AppendLine($"- Captured At (UTC): {DateTimeOffset.UtcNow:O}") |> ignore
+        sb.AppendLine() |> ignore
+        sb.AppendLine("## Summary") |> ignore
+        sb.AppendLine() |> ignore
+        sb.AppendLine(summaryMarkdown.Trim()) |> ignore
+        sb.ToString().Trim() + Environment.NewLine
+
+    let renderFullAuditEntry (conversationMarkdown: string) (summaryHash: string) (originalSessionLogHash: string) =
+        let sb = StringBuilder(conversationMarkdown.Length + 256)
+        sb.AppendLine("<!-- git-memento-full-audit:v1 -->") |> ignore
+        sb.AppendLine($"- Session Kind: Full Session") |> ignore
+        sb.AppendLine($"- Summary SHA256: {summaryHash}") |> ignore
+        sb.AppendLine($"- Original Session Log SHA256: {originalSessionLogHash}") |> ignore
+        sb.AppendLine() |> ignore
+        sb.Append(conversationMarkdown.TrimEnd()) |> ignore
+        sb.AppendLine() |> ignore
+        sb.ToString()
 
     let buildSummary (session: SessionData) =
         session.Messages

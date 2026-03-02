@@ -334,3 +334,19 @@ test("renders escaped marker lines from multi-session envelope as literal conten
   assert.match(body, /<!-- git-memento-note-version:1 -->/);
   assert.doesNotMatch(body, /\\<!-- git-memento-note-version:1 -->/);
 });
+
+test("mentions audit notes when rendered session is a summary", () => {
+  const note = `# Git Memento Session Summary
+
+- Session Kind: Summary
+- Provider: Codex
+- Session ID: sess-summary
+- Full Session SHA256: deadbeef
+
+## Summary
+
+- implemented work`;
+
+  const body = buildBody(note, 65000);
+  assert.match(body, /Full logs are stored in git notes ref `refs\/notes\/memento-full-audit`/);
+});

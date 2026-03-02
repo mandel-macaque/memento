@@ -39,24 +39,83 @@ case "$uname_s" in
 esac
 
 download_url="https://github.com/$REPO/releases/latest/download/$asset"
+major_tag_url="https://github.com/$REPO/releases/download/v1/$asset"
+releases_api_url="https://api.github.com/repos/$REPO/releases?per_page=100"
 
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
 
 archive="$tmpdir/$asset"
+downloader=""
 if command -v curl >/dev/null 2>&1; then
-  if ! curl -fsSL "$download_url" -o "$archive"; then
-    echo "Could not download $asset from latest release in $REPO" >&2
-    exit 1
-  fi
+  downloader="curl"
 elif command -v wget >/dev/null 2>&1; then
-  if ! wget -qO "$archive" "$download_url"; then
-    echo "Could not download $asset from latest release in $REPO" >&2
-    exit 1
-  fi
+  downloader="wget"
 else
   echo "Neither curl nor wget is available to download release assets." >&2
   exit 1
+fi
+
+try_download() {
+  url="$1"
+  tmp_archive="$archive.part"
+  rm -f "$tmp_archive"
+  case "$downloader" in
+    curl)
+      if curl -fsSL "$url" -o "$tmp_archive" 2>/dev/null; then
+        mv "$tmp_archive" "$archive"
+        return 0
+      fi
+      ;;
+    wget)
+      if wget -qO "$tmp_archive" "$url" 2>/dev/null; then
+        mv "$tmp_archive" "$archive"
+        return 0
+      fi
+      ;;
+  esac
+  rm -f "$tmp_archive"
+  return 1
+}
+
+read_urls() {
+  url="$1"
+  case "$downloader" in
+    curl)
+      curl -fsSL "$url"
+      ;;
+    wget)
+      wget -qO- "$url"
+      ;;
+  esac
+}
+
+if ! try_download "$download_url"; then
+  echo "Latest release is missing $asset; trying fallback release tags..." >&2
+  if ! try_download "$major_tag_url"; then
+    echo "Fallback tag v1 is missing $asset; scanning published release assets..." >&2
+    release_urls="$(read_urls "$releases_api_url" | sed -n "s/.*\"browser_download_url\": \"\\([^\"]*\\/$asset\\)\".*/\\1/p" || true)"
+    downloaded="false"
+    if [ -n "$release_urls" ]; then
+      old_ifs="$IFS"
+      IFS='
+'
+      for candidate in $release_urls; do
+        if [ -n "$candidate" ]; then
+          if try_download "$candidate"; then
+            downloaded="true"
+            break
+          fi
+        fi
+      done
+      IFS="$old_ifs"
+    fi
+
+    if [ "$downloaded" != "true" ]; then
+      echo "Could not download $asset from latest release, v1, or release assets in $REPO" >&2
+      exit 1
+    fi
+  fi
 fi
 
 mkdir -p "$INSTALL_DIR"

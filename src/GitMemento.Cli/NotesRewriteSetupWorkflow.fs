@@ -12,7 +12,7 @@ type NotesRewriteSetupWorkflow(git: IGitService, output: IUserOutput) =
             | Error message -> return CommandResult.Failed message
             | Ok _ ->
                 let configToSet =
-                    [ "notes.rewriteRef", "refs/notes/commits"
+                    [ "notes.rewriteRef", "refs/notes/*"
                       "notes.rewriteMode", "concatenate"
                       "notes.rewrite.rebase", "true"
                       "notes.rewrite.amend", "true" ]
@@ -31,6 +31,6 @@ type NotesRewriteSetupWorkflow(git: IGitService, output: IUserOutput) =
                 | Some err -> return CommandResult.Failed err
                 | None ->
                     output.Info("Configured git notes rewrite for rebase and amend.")
-                    output.Info("Rewritten commits will carry notes from refs/notes/commits using concatenate mode.")
+                    output.Info("Rewritten commits will carry notes from refs/notes/* using concatenate mode.")
                     return CommandResult.Completed
         }

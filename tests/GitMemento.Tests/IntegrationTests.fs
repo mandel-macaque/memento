@@ -217,6 +217,36 @@ if [ "$cmd" = "notes" ] && [ "${2:-}" = "add" ]; then
   exit 0
 fi
 
+if [ "$cmd" = "notes" ] && [ "${2:-}" = "--ref" ] && [ "${4:-}" = "add" ]; then
+  notes_ref="${3:-}"
+  shift
+  shift
+  shift
+  shift
+  note=""
+  hash=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -f)
+        shift
+        ;;
+      -m)
+        note="$2"
+        shift
+        shift
+        ;;
+      *)
+        hash="$1"
+        shift
+        ;;
+    esac
+  done
+  safe_ref=$(echo "$notes_ref" | tr '/.-' '___')
+  printf "%s" "$note" > "$state/note-$safe_ref.md"
+  printf "%s" "$hash" > "$state/note-$safe_ref-hash"
+  exit 0
+fi
+
 if [ "$cmd" = "notes" ] && [ "${2:-}" = "show" ]; then
   hash="${3:-}"
   if [ -f "$state/note-hash" ] && [ -f "$state/note.md" ]; then
@@ -233,6 +263,20 @@ if [ "$cmd" = "notes" ] && [ "${2:-}" = "show" ]; then
   if [ "$hash" = "c2" ]; then
     printf "source note two"
     exit 0
+  fi
+  exit 1
+fi
+
+if [ "$cmd" = "notes" ] && [ "${2:-}" = "--ref" ] && [ "${4:-}" = "show" ]; then
+  notes_ref="${3:-}"
+  hash="${5:-}"
+  safe_ref=$(echo "$notes_ref" | tr '/.-' '___')
+  if [ -f "$state/note-$safe_ref-hash" ] && [ -f "$state/note-$safe_ref.md" ]; then
+    current_hash=$(cat "$state/note-$safe_ref-hash")
+    if [ "$hash" = "$current_hash" ]; then
+      cat "$state/note-$safe_ref.md"
+      exit 0
+    fi
   fi
   exit 1
 fi
@@ -260,10 +304,12 @@ if [ "$cmd" = "notes" ] && [ "${2:-}" = "append" ]; then
   exit 0
 fi
 
-if [ "$cmd" = "notes" ] && [ "${2:-}" = "merge" ]; then
-  # git notes merge -s <strategy> <notes-ref>
-  strategy="${4:-}"
-  source_ref="${5:-}"
+if [ "$cmd" = "notes" ] && [ "${2:-}" = "--ref" ] && [ "${4:-}" = "merge" ]; then
+  # git notes --ref <target-ref> merge -s <strategy> <source-ref>
+  target_ref="${3:-}"
+  strategy="${6:-}"
+  source_ref="${7:-}"
+  printf "%s" "$target_ref" > "$state/notes-merge-target-ref"
   printf "%s" "$strategy" > "$state/notes-merge-strategy"
   printf "%s" "$source_ref" > "$state/notes-merge-source-ref"
   exit 0
@@ -335,12 +381,14 @@ let ``integration commit flow writes note using fake git and codex binaries`` ()
         { Provider = "codex"
           Executable = "codex"
           GetArgs = "sessions get {id} --json"
-          ListArgs = "sessions list --json" }
+          ListArgs = "sessions list --json"
+          SummaryExecutable = "codex"
+          SummaryArgs = "exec \"{prompt}\"" }
     let provider = AiProviderFactory.createFromSettings runner providerSettings
     let output = CaptureOutput()
     let workflow = CommitWorkflow(git, provider, output :> IUserOutput)
 
-    let result = workflow.ExecuteAsync("good-session", [ "ship it" ]).Result
+    let result = workflow.ExecuteAsync("good-session", [ "ship it" ], None).Result
 
     Assert.Equal(CommandResult.Completed, result)
     let commitMessages = File.ReadAllLines(Path.Combine(stateDir, "commit-messages"))
@@ -380,12 +428,14 @@ let ``integration commit flow forwards multiple -m message parts`` () =
         { Provider = "codex"
           Executable = "codex"
           GetArgs = "sessions get {id} --json"
-          ListArgs = "sessions list --json" }
+          ListArgs = "sessions list --json"
+          SummaryExecutable = "codex"
+          SummaryArgs = "exec \"{prompt}\"" }
     let provider = AiProviderFactory.createFromSettings runner providerSettings
     let output = CaptureOutput()
     let workflow = CommitWorkflow(git, provider, output :> IUserOutput)
 
-    let result = workflow.ExecuteAsync("good-session", [ "subject"; "body paragraph" ]).Result
+    let result = workflow.ExecuteAsync("good-session", [ "subject"; "body paragraph" ], None).Result
 
     Assert.Equal(CommandResult.Completed, result)
     let commitMessages = File.ReadAllLines(Path.Combine(stateDir, "commit-messages"))
@@ -419,16 +469,18 @@ let ``integration amend flow copies existing note when no new session is provide
         { Provider = "codex"
           Executable = "codex"
           GetArgs = "sessions get {id} --json"
-          ListArgs = "sessions list --json" }
+          ListArgs = "sessions list --json"
+          SummaryExecutable = "codex"
+          SummaryArgs = "exec \"{prompt}\"" }
     let provider = AiProviderFactory.createFromSettings runner providerSettings
     let output = CaptureOutput()
     let commitWorkflow = CommitWorkflow(git, provider, output :> IUserOutput)
 
-    let commitResult = commitWorkflow.ExecuteAsync("good-session", [ "initial" ]).Result
+    let commitResult = commitWorkflow.ExecuteAsync("good-session", [ "initial" ], None).Result
     Assert.Equal(CommandResult.Completed, commitResult)
 
     let amendWorkflow = AmendWorkflow(git, None, output :> IUserOutput)
-    let amendResult = amendWorkflow.ExecuteAsync(None, [ "amended" ]).Result
+    let amendResult = amendWorkflow.ExecuteAsync(None, [ "amended" ], None).Result
 
     Assert.Equal(CommandResult.Completed, amendResult)
     Assert.Equal("true", File.ReadAllText(Path.Combine(stateDir, "commit-amend-mode")))
@@ -466,16 +518,18 @@ let ``integration amend flow appends a new session to copied note`` () =
         { Provider = "codex"
           Executable = "codex"
           GetArgs = "sessions get {id} --json"
-          ListArgs = "sessions list --json" }
+          ListArgs = "sessions list --json"
+          SummaryExecutable = "codex"
+          SummaryArgs = "exec \"{prompt}\"" }
     let provider = AiProviderFactory.createFromSettings runner providerSettings
     let output = CaptureOutput()
     let commitWorkflow = CommitWorkflow(git, provider, output :> IUserOutput)
 
-    let commitResult = commitWorkflow.ExecuteAsync("good-session", [ "initial" ]).Result
+    let commitResult = commitWorkflow.ExecuteAsync("good-session", [ "initial" ], None).Result
     Assert.Equal(CommandResult.Completed, commitResult)
 
     let amendWorkflow = AmendWorkflow(git, Some provider, output :> IUserOutput)
-    let amendResult = amendWorkflow.ExecuteAsync(Some "amend-session", [ "amended" ]).Result
+    let amendResult = amendWorkflow.ExecuteAsync(Some "amend-session", [ "amended" ], None).Result
 
     Assert.Equal(CommandResult.Completed, amendResult)
     let note = File.ReadAllText(Path.Combine(stateDir, "note.md"))
@@ -570,6 +624,8 @@ let ``integration notes-sync workflow backs up merges and shares notes`` () =
     Assert.Equal("origin refs/notes/*:refs/notes/remote/origin/*", fetchArgs)
     let mergeStrategy = File.ReadAllText(Path.Combine(stateDir, "notes-merge-strategy")).Trim()
     Assert.Equal("cat_sort_uniq", mergeStrategy)
+    let mergeTarget = File.ReadAllText(Path.Combine(stateDir, "notes-merge-target-ref")).Trim()
+    Assert.Equal("refs/notes/commits", mergeTarget)
     let mergeSource = File.ReadAllText(Path.Combine(stateDir, "notes-merge-source-ref")).Trim()
     Assert.Equal("refs/notes/remote/origin/commits", mergeSource)
     let pushLog = File.ReadAllLines(Path.Combine(stateDir, "push-log"))
@@ -600,7 +656,7 @@ let ``integration notes-rewrite-setup stores rewrite config in local git metadat
     let result = workflow.ExecuteAsync().Result
 
     Assert.Equal(CommandResult.Completed, result)
-    Assert.Equal("refs/notes/commits", File.ReadAllText(Path.Combine(stateDir, "local-config-notes_rewriteRef")))
+    Assert.Equal("refs/notes/*", File.ReadAllText(Path.Combine(stateDir, "local-config-notes_rewriteRef")))
     Assert.Equal("concatenate", File.ReadAllText(Path.Combine(stateDir, "local-config-notes_rewriteMode")))
     Assert.Equal("true", File.ReadAllText(Path.Combine(stateDir, "local-config-notes_rewrite_rebase")))
     Assert.Equal("true", File.ReadAllText(Path.Combine(stateDir, "local-config-notes_rewrite_amend")))
