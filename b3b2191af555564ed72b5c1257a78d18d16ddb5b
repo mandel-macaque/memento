@@ -1,0 +1,62 @@
+<!-- git-memento-sessions:v1 -->
+
+<!-- git-memento-note-version:1 -->
+
+<!-- git-memento-session:start -->
+# Git Memento Session Summary
+
+- Session Kind: Summary
+- Provider: Codex
+- Session ID: 019caf34-81a1-7e21-b177-68eaf17438b3
+- Original Session Log SHA256: d2641d2b7aa4744afaa36de85d4822f19a0aef7b7a97bb954bc12ec81f4fbaac
+- Captured At (UTC): 2026-03-02T17:18:55.9878350+00:00
+
+## Summary
+
+# Session Summary
+
+## Skill Context
+- Used `git-memento-workflow` because the work focused on `git memento` note-generation, provider integration, and note-sync behavior.
+
+## Objective
+- Add summary-based note support to `git memento` so commits/amends can store:
+  - A reviewed markdown summary in the default notes ref.
+  - The full raw session in a separate audit notes ref.
+
+## Main Design Decisions
+- Added `--summary-skill <skill|default>` to `commit` and `amend <session-id>`.
+- Summary mode behavior:
+  - Generate summary via provider CLI command.
+  - Show summary to user and require confirmation.
+  - If rejected, require a custom prompt and regenerate.
+- Dual-note model:
+  - `refs/notes/commits`: summarized note.
+  - `refs/notes/memento-full-audit`: full session record.
+- Added provider summary command config:
+  - `memento.<provider>.summary.bin`
+  - `memento.<provider>.summary.args`
+- Default summary command templates:
+  - Codex: `codex exec {prompt}`
+  - Claude: `claude -p {prompt}`
+- Added default summary-skill mapping to in-repo `session-summary-default`.
+
+## Implementation Scope
+- Updated CLI parsing/domain/program flow for new flag.
+- Extended provider/config/init flows for summary command execution.
+- Updated commit/amend workflows for summary approval + dual-note writes.
+- Updated git notes service to support non-default notes refs.
+- Updated notes sync behavior to include full-audit notes ref.
+- Added/updated docs and skill files in both repo and local skill install.
+
+## Verification Outcome
+- Full test suite passed after resolving F# syntax/type issues.
+- Documentation updated to include:
+  - New flag usage.
+  - Confirmation/regeneration flow.
+  - Dual-ref verification commands.
+  - Provider summary config keys.
+
+## Open Review Findings (Not Yet Resolved)
+- **P1**: Summary prompt does not include transcript content, which can produce ungrounded summaries if provider command does not independently fetch session data.
+- **P2**: Dual-note writes are not atomic; failure writing full-audit note can leave partial state (summary written, audit missing).
+<!-- git-memento-session:end -->
