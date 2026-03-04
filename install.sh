@@ -1,13 +1,8 @@
 #!/bin/sh
 set -eu
 
-REPO="${GIT_MEMENTO_REPO:-<YOUR_ORG>/<YOUR_REPO>}"
+REPO="mandel-macaque/memento"
 INSTALL_DIR="${GIT_MEMENTO_INSTALL_DIR:-$HOME/.local/bin}"
-
-if [ "$REPO" = "<YOUR_ORG>/<YOUR_REPO>" ]; then
-  echo "Set GIT_MEMENTO_REPO to your GitHub repo (owner/name)." >&2
-  exit 1
-fi
 
 uname_s="$(uname -s)"
 uname_m="$(uname -m)"
@@ -140,4 +135,41 @@ case "$asset" in
 esac
 
 echo "Installed git-memento to $INSTALL_DIR"
-echo "Ensure $INSTALL_DIR is in your PATH."
+
+normalize_dir() {
+  dir="$1"
+  while [ "${dir%/}" != "$dir" ]; do
+    dir="${dir%/}"
+  done
+  printf "%s" "$dir"
+}
+
+path_has_dir_with_delim() {
+  delim="$1"
+  target="$2"
+  old_ifs="$IFS"
+  IFS="$delim"
+  for path_entry in $PATH; do
+    if [ "$(normalize_dir "$path_entry")" = "$target" ]; then
+      IFS="$old_ifs"
+      return 0
+    fi
+  done
+  IFS="$old_ifs"
+  return 1
+}
+
+install_dir_normalized="$(normalize_dir "$INSTALL_DIR")"
+path_contains_install_dir="false"
+if path_has_dir_with_delim ":" "$install_dir_normalized" || path_has_dir_with_delim ";" "$install_dir_normalized"; then
+  path_contains_install_dir="true"
+fi
+
+if [ "$path_contains_install_dir" = "true" ]; then
+  echo "$INSTALL_DIR is already in your PATH."
+else
+  echo "$INSTALL_DIR is not currently in your PATH."
+  echo "Add it for your current shell session:"
+  echo "  export PATH=\"$INSTALL_DIR:\$PATH\""
+  echo "Persist this in your shell profile (for example ~/.zshrc or ~/.bashrc), then restart your shell."
+fi

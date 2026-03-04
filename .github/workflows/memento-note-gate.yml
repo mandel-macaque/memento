@@ -22,8 +22,6 @@ jobs:
 
       - name: Install git-memento
         uses: ./install
-        with:
-          memento-repo: mandel-macaque/memento
 
       - name: Enforce memento note coverage
         uses: ./

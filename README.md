@@ -308,7 +308,6 @@ Inputs:
 
 Installer action inputs:
 
-- `memento-repo` (default: `mandel-macaque/memento`, release asset source)
 - `install-dir` (default: `${{ runner.temp }}/git-memento-bin`)
 - `verify` (default: `true`)
 
@@ -335,8 +334,6 @@ jobs:
           fetch-depth: 0
 
       - uses: mandel-macaque/memento/install@v1
-        with:
-          memento-repo: mandel-macaque/memento
 
       - uses: mandel-macaque/memento@v1
         with:
@@ -349,8 +346,6 @@ Installer action example:
 
 ```yaml
 - uses: mandel-macaque/memento/install@v1
-  with:
-    memento-repo: mandel-macaque/memento
 ```
 
 Local workflow in this repository:
