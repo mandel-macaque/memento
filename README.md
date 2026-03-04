@@ -22,6 +22,7 @@
 
 ## What is git-memento?
 
+
 git-memento solves a critical problem in AI-assisted development: when an AI assistant produces a commit, the conversation that led to that change is typically lost. Team members see *what* changed but not *why* the AI was asked to change it, what alternatives were considered, or what constraints were given.
 
 git-memento:
@@ -210,11 +211,7 @@ This runs `git push <remote>` and then performs the same notes sync as `share-no
 
 ### Sync notes from remote
 
-```bash
-git memento notes-sync
-git memento notes-sync upstream
-git memento notes-sync upstream --strategy union
-```
+If a session id is not found, `git-memento` asks the configured provider for available sessions and prints them.
 
 This command:
 - Ensures notes fetch mapping is configured
@@ -222,6 +219,12 @@ This command:
 - Fetches remote notes into `refs/notes/remote/<remote>/*`
 - Merges remote notes into local notes and pushes synced notes back to the remote
 - Syncs both `refs/notes/commits` and `refs/notes/memento-full-audit`
+
+```bash
+git memento notes-sync
+git memento notes-sync upstream
+git memento notes-sync upstream --strategy union
+```
 
 Default remote is `origin`, default strategy is `cat_sort_uniq`.
 
