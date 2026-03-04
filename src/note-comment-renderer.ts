@@ -18,6 +18,7 @@ type ParsedNote = {
   provider: string;
   sessionId: string;
   committer: string;
+  sessionKind: string;
 };
 
 type HeadingEntry = {
@@ -41,6 +42,7 @@ type RenderedSession = {
   agentId: string;
   renderedNote: string;
   sections: MarkdownSection[];
+  isSummary: boolean;
 };
 
 const normalizeLineEndings = (value: string): string => value.replace(/\r\n/g, "\n");
@@ -114,11 +116,13 @@ const parseNote = (note: string): ParsedNote => {
   const providerMatch = note.match(/^- Provider:\s*(.+)$/m);
   const sessionIdMatch = note.match(/^- Session ID:\s*(.+)$/m);
   const committerMatch = note.match(/^- Committer:\s*(.+)$/m);
+  const sessionKindMatch = note.match(/^- Session Kind:\s*(.+)$/m);
 
   return {
     provider: providerMatch ? providerMatch[1].trim() : "unknown",
     sessionId: sessionIdMatch ? sessionIdMatch[1].trim() : "",
     committer: committerMatch ? committerMatch[1].trim() : "",
+    sessionKind: sessionKindMatch ? sessionKindMatch[1].trim() : "",
   };
 };
 
@@ -424,11 +428,12 @@ export const buildBody = (note: string, maxBodyLength: number): string => {
   const normalizedNote = normalizeLineEndings(note).trim();
   const sessionNotes = extractSessionNotes(normalizedNote);
   const renderedSessions: RenderedSession[] = sessionNotes.map((sessionNote: string, index: number) => {
-    const { provider, sessionId, committer } = parseNote(sessionNote);
+    const { provider, sessionId, committer, sessionKind } = parseNote(sessionNote);
     const agentId = sessionId ? `${provider} / ${sessionId}` : provider;
     const { noteBody, sections } = extractMarkdownFileSectionsForProvider(sessionNote, provider, committer);
     const renderedNote = noteBody || sessionNote;
-    return { index, agentId, renderedNote, sections };
+    const isSummary = sessionKind.toLowerCase() === "summary";
+    return { index, agentId, renderedNote, sections, isSummary };
   });
 
   if (renderedSessions.length === 0) {
@@ -440,6 +445,10 @@ export const buildBody = (note: string, maxBodyLength: number): string => {
   const heading = isSingleSession
     ? `${marker}\nThis commit has a prompt attached to it created with agent ${agents[0]}:`
     : `${marker}\nThis commit has prompts attached to it created with agents ${agents.join(", ")}:`;
+  const includesSummary = renderedSessions.some((session: RenderedSession) => session.isSummary);
+  const auditNotice = includesSummary
+    ? "\n\n_Session content was summarized in this note. Full logs are stored in git notes ref `refs/notes/memento-full-audit` for the same commit._"
+    : "";
 
   const renderedNote = isSingleSession
     ? renderedSessions[0].renderedNote
@@ -457,16 +466,16 @@ export const buildBody = (note: string, maxBodyLength: number): string => {
       );
   const renderedSections = renderMarkdownSections(allSections);
 
-  let body = `${heading}\n\n<details>\n<summary>The note attached to the commit</summary>\n\n${renderedNote}\n\n</details>${renderedSections}`;
+  let body = `${heading}${auditNotice}\n\n<details>\n<summary>The note attached to the commit</summary>\n\n${renderedNote}\n\n</details>${renderedSections}`;
 
   if (body.length > maxBodyLength) {
-    const withoutSections = `${heading}\n\n<details>\n<summary>The note attached to the commit</summary>\n\n${renderedNote}\n\n</details>\n\n_Nested markdown sections omitted due to GitHub comment size limits._`;
+    const withoutSections = `${heading}${auditNotice}\n\n<details>\n<summary>The note attached to the commit</summary>\n\n${renderedNote}\n\n</details>\n\n_Nested markdown sections omitted due to GitHub comment size limits._`;
     body = withoutSections;
   }
 
   if (body.length > maxBodyLength) {
     const reserve = "\n\n_Note truncated due to GitHub comment size limits._\n\n</details>";
-    const head = `${heading}\n\n<details>\n<summary>The note attached to the commit</summary>\n\n`;
+    const head = `${heading}${auditNotice}\n\n<details>\n<summary>The note attached to the commit</summary>\n\n`;
     const available = Math.max(0, maxBodyLength - head.length - reserve.length);
     body = `${head}${renderedNote.slice(0, available)}${reserve}`;
   }

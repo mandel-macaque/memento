@@ -6,7 +6,7 @@ branding:
   color: blue
 inputs:
   mode:
-    description: Action mode. Use "comment" to post commit comments, "gate" to enforce note coverage.
+    description: Action mode. Use "comment" to post commit comments, "gate" to enforce note coverage, or "merge-carry" to copy PR notes onto merge commits.
     required: false
     default: comment
   github-token:
@@ -29,10 +29,34 @@ inputs:
     description: Whether invalid note structure should fail mode=gate.
     required: false
     default: "true"
+  ignore-label:
+    description: Pull request label that bypasses gate note coverage checks.
+    required: false
+    default: "ignore-notes"
   max-comment-length:
     description: Maximum comment body length to emit.
     required: false
     default: "65000"
+  carry-onto:
+    description: Optional target commit for mode=merge-carry. Defaults to pull_request.merge_commit_sha.
+    required: false
+    default: ""
+  carry-range:
+    description: Optional explicit source range for mode=merge-carry (format <base>..<head>).
+    required: false
+    default: ""
+  carry-base-sha:
+    description: Optional base SHA for mode=merge-carry when carry-range is not provided.
+    required: false
+    default: ""
+  carry-head-sha:
+    description: Optional head SHA for mode=merge-carry when carry-range is not provided.
+    required: false
+    default: ""
+  carry-provider:
+    description: Provider name to set in local git config for mode=merge-carry.
+    required: false
+    default: "codex"
 runs:
   using: composite
   steps:
@@ -40,20 +64,31 @@ runs:
       shell: bash
       run: git fetch origin '${{ inputs.notes-fetch-refspec }}' || true
 
-    - name: Verify git-memento is installed for gate mode
-      if: inputs.mode == 'gate'
+    - name: Verify git-memento is installed for gate and merge-carry modes
+      if: inputs.mode == 'gate' || inputs.mode == 'merge-carry'
       shell: bash
       run: |
         set -eu
         if ! command -v git-memento >/dev/null 2>&1; then
-          echo "git-memento is required for gate mode and was not found in PATH."
+          echo "git-memento is required for mode '${{ inputs.mode }}' and was not found in PATH."
           echo "Install first with: uses: mandel-macaque/memento/install@v1"
           exit 2
         fi
         git memento --version
 
+    - name: Detect gate ignore label
+      if: inputs.mode == 'gate' && github.event_name == 'pull_request'
+      id: gate_label_check
+      shell: bash
+      env:
+        IGNORE_LABEL: ${{ inputs.ignore-label }}
+      run: |
+        set -eu
+        ignored="$(node -e 'const fs=require("fs"); const payload=JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH,"utf8")); const labels=(payload.pull_request?.labels||[]).map((l)=>l.name); process.stdout.write(labels.includes(process.env.IGNORE_LABEL) ? "true" : "false");')"
+        echo "ignored=$ignored" >> "$GITHUB_OUTPUT"
+
     - name: Enforce git-memento note coverage
-      if: inputs.mode == 'gate'
+      if: inputs.mode == 'gate' && (github.event_name != 'pull_request' || steps.gate_label_check.outputs.ignored != 'true')
       shell: bash
       run: |
         set -eu
@@ -97,6 +132,121 @@ runs:
         else
           git memento audit --range "$RANGE" --format text
         fi
+
+    - name: Skip gate when ignore label is present
+      if: inputs.mode == 'gate' && github.event_name == 'pull_request' && steps.gate_label_check.outputs.ignored == 'true'
+      continue-on-error: true
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const marker = "<!-- git-memento-notes-ignored -->";
+          const body = `${marker}\nNotes ignored`;
+          const { owner, repo } = context.repo;
+          const issue_number = context.payload.pull_request.number;
+
+          const comments = await github.paginate(github.rest.issues.listComments, {
+            owner,
+            repo,
+            issue_number,
+            per_page: 100
+          });
+          const existing = comments.find((c) => c.user.type === "Bot" && c.body && c.body.includes(marker));
+
+          try {
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body
+              });
+            }
+            core.info(`Gate skipped because label '${core.getInput("ignore-label")}' is present.`);
+          } catch (err) {
+            core.warning(`Gate skip comment could not be written (continuing): ${err.message}`);
+          }
+
+    - name: Carry notes to merge commit
+      if: inputs.mode == 'merge-carry'
+      shell: bash
+      run: |
+        set -eu
+
+        if [ "${GITHUB_EVENT_NAME}" != "pull_request" ]; then
+          echo "mode=merge-carry is intended for pull_request events. Skipping."
+          exit 0
+        fi
+
+        if [ "${{ github.event.action }}" != "closed" ] || [ "${{ github.event.pull_request.merged }}" != "true" ]; then
+          echo "Pull request is not a merged close event. Skipping."
+          exit 0
+        fi
+
+        PR_NUMBER="${{ github.event.pull_request.number }}"
+        ONTO_COMMIT="${{ inputs.carry-onto }}"
+        BASE_SHA="${{ inputs.carry-base-sha }}"
+        HEAD_SHA="${{ inputs.carry-head-sha }}"
+        RANGE="${{ inputs.carry-range }}"
+
+        if [ -z "$ONTO_COMMIT" ]; then
+          ONTO_COMMIT="${{ github.event.pull_request.merge_commit_sha }}"
+        fi
+
+        if [ -z "$ONTO_COMMIT" ]; then
+          echo "Unable to resolve merge target commit. Set carry-onto explicitly for mode=merge-carry."
+          exit 2
+        fi
+
+        git fetch origin "$ONTO_COMMIT"
+        if [ -z "$HEAD_SHA" ]; then
+          git fetch origin "refs/pull/${PR_NUMBER}/head:refs/remotes/origin/pr/${PR_NUMBER}/head"
+          HEAD_SHA="$(git rev-parse "refs/remotes/origin/pr/${PR_NUMBER}/head")"
+        fi
+
+        if [ -z "$BASE_SHA" ]; then
+          if git rev-parse --verify --quiet "${ONTO_COMMIT}^1" >/dev/null; then
+            ONTO_PARENT_SHA="$(git rev-parse "${ONTO_COMMIT}^1")"
+            BASE_SHA="$(git merge-base "$ONTO_PARENT_SHA" "$HEAD_SHA")"
+          else
+            BASE_SHA="$(git merge-base "$ONTO_COMMIT" "$HEAD_SHA")"
+          fi
+        fi
+
+        if [ -z "$RANGE" ]; then
+          RANGE="${BASE_SHA}..${HEAD_SHA}"
+        fi
+
+        if [ -z "$RANGE" ]; then
+          echo "Unable to resolve merge-carry parameters. onto='${ONTO_COMMIT}' range='${RANGE}'"
+          exit 2
+        fi
+
+        DEFAULT_ALREADY_CARRIED="false"
+        if git notes show "$ONTO_COMMIT" 2>/dev/null | grep -Fq -- "- Source range: ${RANGE}"; then
+          DEFAULT_ALREADY_CARRIED="true"
+        fi
+
+        AUDIT_ALREADY_CARRIED="false"
+        if git notes --ref refs/notes/memento-full-audit show "$ONTO_COMMIT" 2>/dev/null | grep -Fq -- "- Source range: ${RANGE}"; then
+          AUDIT_ALREADY_CARRIED="true"
+        fi
+
+        if [ "$DEFAULT_ALREADY_CARRIED" = "true" ] && [ "$AUDIT_ALREADY_CARRIED" = "true" ]; then
+          echo "Default and full-audit notes already include carried range '${RANGE}' on ${ONTO_COMMIT}. Skipping."
+          exit 0
+        fi
+
+        git config --local memento.provider "${{ inputs.carry-provider }}"
+        git memento notes-carry --onto "$ONTO_COMMIT" --from-range "$RANGE"
+        git push origin 'refs/notes/*'
 
     - name: Install note renderer dependencies
       if: inputs.mode == 'comment'

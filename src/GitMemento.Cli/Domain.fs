@@ -24,8 +24,8 @@ type SessionRef =
       Title: string option }
 
 type Command =
-    | Commit of sessionId: string * messages: string list
-    | Amend of sessionId: string option * messages: string list
+    | Commit of sessionId: string * messages: string list * summarySkill: string option
+    | Amend of sessionId: string option * messages: string list * summarySkill: string option
     | Audit of range: string option * strict: bool * outputFormat: string
     | Doctor of remote: string * outputFormat: string
     | ShareNotes of remote: string

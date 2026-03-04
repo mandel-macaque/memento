@@ -1,18 +1,15 @@
-name: memento-note-gate
+name: memento-notes-merge-carry
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
-    types: [opened, synchronize, reopened, labeled, unlabeled]
+    types: [closed]
 
 permissions:
-  contents: read
-  issues: write
-  pull-requests: write
+  contents: write
 
 jobs:
-  enforce-memento-notes:
+  carry-notes-to-merge-commit:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,8 +22,7 @@ jobs:
         with:
           memento-repo: mandel-macaque/memento
 
-      - name: Enforce memento note coverage
+      - name: Carry notes from merged PR commits to merge commit
         uses: ./
         with:
-          mode: gate
-          strict: "true"
+          mode: merge-carry
