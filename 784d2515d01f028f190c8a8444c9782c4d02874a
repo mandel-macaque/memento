@@ -1,0 +1,51 @@
+<!-- git-memento-sessions:v1 -->
+
+<!-- git-memento-note-version:1 -->
+
+<!-- git-memento-session:start -->
+# Git Memento Session Summary
+
+- Session Kind: Summary
+- Provider: Codex
+- Session ID: 019cb9b9-7f70-7202-a84c-f3e36122ed9e
+- Original Session Log SHA256: aa19cd71e6df2b1ea6dae9bff2bfaaf47130676ad010a2025892726271ae7fb3
+- Captured At (UTC): 2026-03-04T17:22:17.4158370+00:00
+
+## Summary
+
+## Session Summary
+
+- **Provider:** Codex
+- **Session ID:** `019cb9b9-7f70-7202-a84c-f3e36122ed9e`
+- **Title:** AGENTS.md instructions for project repository
+
+## Implemented Work
+
+- Updated installer behavior to stop requiring a user-provided repo variable.
+- Changed install source to always fetch the latest release from the canonical upstream repository.
+- Improved `PATH` handling in `install.sh`:
+  - Detects whether install dir is already on `PATH`.
+  - Prints confirmation when present.
+  - Prints explicit shell guidance when missing (temporary export + persist in shell rc file).
+  - Added separator tolerance for both `:` and `;` path styles.
+- Removed repo-selection input from installer action config to avoid user confusion.
+- Updated CI/workflows/docs to match new installer behavior.
+- Added installer PATH-focused shell tests and wired them into CI.
+- Local validation reported as passing for shell syntax and the new PATH test script.
+
+## In-Progress / Interrupted Follow-up
+
+- User requested compile + local install + memento commit with summary + push with notes.
+- Assistant began `git-memento-workflow` execution and verified preflight/config.
+- Found an older `git-memento` binary behavior mismatch (`--summary-skill` support), then switched to rebuilding and reinstalling.
+- Diagnosed local install issue: apphost binary was loading stale sidecar DLLs.
+- Last recorded step: replacing full local payload so new CLI behavior is actually used.
+- No confirmed final commit/push completion is shown in the transcript segment provided.
+
+## Useful Technical Context Retained
+
+- Installer now targets canonical upstream latest release flow.
+- PATH discoverability and user guidance are now test-covered.
+- CI includes explicit checks for install discoverability via `command -v`.
+- Memento summary-mode availability depends on the installed CLI version and complete payload consistency.
+<!-- git-memento-session:end -->
