@@ -1,0 +1,395 @@
+<!-- git-memento-sessions:v1 -->
+
+<!-- git-memento-note-version:1 -->
+
+<!-- git-memento-session:start -->
+<!-- git-memento-full-audit:v1 -->
+- Session Kind: Full Session
+- Summary SHA256: 0dd91572e92acd2a7e4a868ba120154d41207a5bb31f6690fcef294b83ef4793
+- Original Session Log SHA256: aa19cd71e6df2b1ea6dae9bff2bfaaf47130676ad010a2025892726271ae7fb3
+
+# Git Memento Session
+
+- Provider: Codex
+- Session ID: 019cb9b9-7f70-7202-a84c-f3e36122ed9e
+- Session Title: # AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
+### Available skills
+- git-memento-workflow: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes. (file: /Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- skill-creator: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. (file: /Users/mandel/.codex/skills/.system/skill-creator/SKILL.md)
+- skill-installer: Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos). (file: /Users/mandel/.codex/skills/.system/skill-installer/SKILL.md)
+### How to use skills
+- Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths.
+- Trigger rules: If the user names a skill (with `$SkillName` or plain text) OR the task clearly matches a skill's description shown above, you must use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned.
+- Missing/blocked: If a named skill isn't in the list or the path can't be read, say so briefly and continue with the best fallback.
+- How to use a skill (progressive disclosure):
+  1) After deciding to use a skill, open its `SKILL.md`. Read only enough to follow the workflow.
+  2) When `SKILL.md` references relative paths (e.g., `scripts/foo.py`), resolve them relative to the skill directory listed above first, and only consider other paths if needed.
+  3) If `SKILL.md` points to extra folders such as `references/`, load only the specific files needed for the request; don't bulk-load everything.
+  4) If `scripts/` exist, prefer running or patching them instead of retyping large code blocks.
+  5) If `assets/` or templates exist, reuse them instead of recreating from scratch.
+- Coordination and sequencing:
+  - If multiple skills apply, choose the minimal set that covers the request and state the order you'll use them.
+  - Announce which skill(s) you're using and why (one short line). If you skip an obvious skill, say why.
+- Context hygiene:
+  - Keep context small: summarize long sections instead of pasting them; only load extra files when needed.
+  - Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
+  - When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
+- Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+</INSTRUCTIONS>
+- Committer: Manuel de la Pena
+- Captured At (UTC): 2026-03-04T17:21:24.1751780+00:00
+
+## Conversation
+
+### Manuel de la Pena
+
+# AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
+### Available skills
+- git-memento-workflow: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes. (file: /Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- skill-creator: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. (file: /Users/mandel/.codex/skills/.system/skill-creator/SKILL.md)
+- skill-installer: Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos). (file: /Users/mandel/.codex/skills/.system/skill-installer/SKILL.md)
+### How to use skills
+- Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths.
+- Trigger rules: If the user names a skill (with `$SkillName` or plain text) OR the task clearly matches a skill's description shown above, you must use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned.
+- Missing/blocked: If a named skill isn't in the list or the path can't be read, say so briefly and continue with the best fallback.
+- How to use a skill (progressive disclosure):
+1) After deciding to use a skill, open its `SKILL.md`. Read only enough to follow the workflow.
+2) When `SKILL.md` references relative paths (e.g., `scripts/foo.py`), resolve them relative to the skill directory listed above first, and only consider other paths if needed.
+3) If `SKILL.md` points to extra folders such as `references/`, load only the specific files needed for the request; don't bulk-load everything.
+4) If `scripts/` exist, prefer running or patching them instead of retyping large code blocks.
+5) If `assets/` or templates exist, reuse them instead of recreating from scratch.
+- Coordination and sequencing:
+- If multiple skills apply, choose the minimal set that covers the request and state the order you'll use them.
+- Announce which skill(s) you're using and why (one short line). If you skip an obvious skill, say why.
+- Context hygiene:
+- Keep context small: summarize long sections instead of pasting them; only load extra files when needed.
+- Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
+- When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
+- Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+</INSTRUCTIONS>
+
+### Manuel de la Pena
+
+<environment_context>
+<cwd>/Users/mandel/Work/memento</cwd>
+<shell>zsh</shell>
+</environment_context>
+
+### Manuel de la Pena
+
+The following is a feedback from a user:
+
+during installation. The curl install script shows Set GIT_MEMENTO_REPO, but it's not clear that it should be mandel-macaque/memento. It looks like you're supposed to set my own repo name there. Maybe it's just me.
+
+We should not ask a user to point to the GIT_MEMENTO_REPO. The install script should grap the current release of the main repo (https://github.com/mandel-macaque/memento) and use it. Get the last release and make sure it is added to the user path and usable. Fix the install.sh and add a test to make sure that it is in the path of the user. If it is not in the user path, print a message on how to add it to the path
+
+### Codex
+
+I’ll update the installer to always use the latest release from `mandel-macaque/memento` without requiring `GIT_MEMENTO_REPO`, then add tests to verify PATH handling and guidance messaging. I’m starting by locating `install.sh` and the existing installer tests.
+
+### Codex
+
+I found the problematic lines in `install.sh`; next I’m reading the script and existing install-related tests/workflows so I can patch behavior and add coverage without breaking current CI expectations.
+
+### Codex
+
+I confirmed the script still uses a placeholder repo and a generic PATH note. I’m now checking CI workflow tests that exercise `install.sh` so I can add a targeted PATH assertion there.
+
+### Codex
+
+I’m going to make the installer repo source fixed to `mandel-macaque/memento`, add explicit PATH detection with actionable guidance, and align the install action/docs so users are no longer prompted for repo configuration. Then I’ll add a shell test for PATH messaging and wire it into CI.
+
+### Codex
+
+I’m now applying the edits across `install.sh`, the composite install action, and docs/workflows, then I’ll add an executable shell test that mocks downloads and asserts PATH behavior/messages.
+
+### Codex
+
+I’ve patched the installer and workflows; next I’m updating README examples to remove `memento-repo` and adding the installer PATH test script plus local validation runs.
+
+### Codex
+
+I hit a bug in the new test script (`nounset` + `trap RETURN` scope). I’m patching that and re-running the test and grep checks.
+
+### Codex
+
+I’m making one more robustness tweak: PATH detection in `install.sh` will now check both `:` and `;` separators so the message is correct across shell environments on Windows/macOS/Linux.
+
+### Codex
+
+I tightened the CI PATH assertion to be OS-path-style tolerant and validate discoverability via `command -v`. I’m doing a quick syntax check on the touched shell scripts now.
+
+### Codex
+
+Implemented the installer fix and PATH coverage you requested.
+
+### What changed
+
+1. `install.sh` no longer asks for `GIT_MEMENTO_REPO`; it always targets the main repo (`mandel-macaque/memento`) and downloads from `releases/latest`.
+- [install.sh](/Users/mandel/Work/memento/install.sh)
+
+2. `install.sh` now checks whether the install directory is already in `PATH`.
+- If in `PATH`: prints confirmation.
+- If not in `PATH`: prints explicit guidance including:
+- `export PATH="<install-dir>:$PATH"`
+- note to persist in `~/.zshrc`/`~/.bashrc`
+- [install.sh](/Users/mandel/Work/memento/install.sh)
+
+3. Installer action no longer exposes `memento-repo` input (so users are not asked to point at a repo).
+- [install/action.yml](/Users/mandel/Work/memento/install/action.yml)
+
+4. Workflows/docs updated to remove `memento-repo` usage and keep behavior aligned.
+- [.github/workflows/ci.yml](/Users/mandel/Work/memento/.github/workflows/ci.yml)
+- [.github/workflows/memento-note-gate.yml](/Users/mandel/Work/memento/.github/workflows/memento-note-gate.yml)
+- [README.md](/Users/mandel/Work/memento/README.md)
+
+5. Added installer test coverage for PATH behavior/messages.
+- New test script:
+- [tests/install/install-script-path-tests.sh](/Users/mandel/Work/memento/tests/install/install-script-path-tests.sh)
+- CI now runs this in a dedicated job and also asserts install-smoke PATH discoverability.
+- [.github/workflows/ci.yml](/Users/mandel/Work/memento/.github/workflows/ci.yml)
+
+### Validation run
+
+- `sh -n install.sh` passed
+- `bash -n tests/install/install-script-path-tests.sh` passed
+- `bash tests/install/install-script-path-tests.sh` passed (`install.sh PATH tests passed`)
+
+### Manuel de la Pena
+
+Add a new commit using $git-memento-workflow with a summary for the current session. Then push the code with the notes synced to origin with the same branch we are using atm
+
+### Manuel de la Pena
+
+<skill>
+<name>git-memento-workflow</name>
+<path>/Users/mandel/.codex/skills/git-memento-workflow/SKILL.md</path>
+---
+name: git-memento-workflow
+description: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes.
+---
+
+# Git Memento Workflow
+
+Run this workflow whenever work must be committed with an AI session note.
+
+## 1. Preflight
+
+- Confirm repository status with `git status --short` and branch with `git branch --show-current`.
+- Confirm `git memento` is available: `git memento help`.
+- If unavailable, install `git-memento` into a directory on `PATH` and re-check.
+
+## 2. Initialize Once Per Repository
+
+- Check configuration: `git config --local --get memento.provider`.
+- If missing, run `git memento init codex` or `git memento init claude`.
+- If provider CLI shape differs from expected `sessions get/list --json`, configure adapter command in local git config:
+- `git config --local memento.<provider>.bin <adapter-or-cli-path>`
+- `git config --local memento.<provider>.getArgs '<args with {id} placeholder>'`
+- `git config --local memento.<provider>.listArgs '<list args>'`
+- For summary mode, configure provider summary execution if defaults do not match your environment:
+- `git config --local memento.<provider>.summary.bin <adapter-or-cli-path>`
+- `git config --local memento.<provider>.summary.args '<args with {prompt}, optionally {skill} and {sessionId}>'`
+
+## 3. Resolve Session ID
+
+- Prefer explicit session id from the user.
+- For Codex in this environment, default to `CODEX_THREAD_ID` when present.
+- Validate retrieval before commit by running provider command manually if needed.
+
+## 4. Create Memento Commit or Amend
+
+- Stage files as needed (`git add ...`).
+- Run commit through memento so note attachment happens in the same flow:
+- `git memento commit <session-id> -m "<subject>"`
+- Optional summary mode: `git memento commit <session-id> --summary-skill <skill|default> -m "<subject>"`
+- For amend flows:
+- `git memento amend -m "<amended-subject>"` to carry forward existing note(s) onto the amended commit.
+- `git memento amend <session-id> -m "<amended-subject>"` to carry forward existing note(s) and append a new session.
+- Optional summary mode: `git memento amend <session-id> --summary-skill <skill|default> -m "<amended-subject>"`
+- Summary mode behavior:
+- The CLI generates a markdown summary using the configured provider command.
+- It prints the generated summary and requires explicit confirmation.
+- If rejected, it asks for a user prompt and regenerates.
+- It writes the summary into `refs/notes/commits` and stores the full session in `refs/notes/memento-full-audit`.
+- Backward compatibility:
+- Legacy single-session notes are preserved.
+- When append is needed, legacy notes are upgraded into the versioned multi-session envelope so no prior session content is lost.
+- For longer body, use embedded newlines in `-m` or omit `-m` to use editor.
+
+## 5. Verify Note Attachment
+
+- Read latest commit: `git log -1 --pretty=fuller`.
+- Show note on that commit: `git notes show <commit-hash>`.
+- For multi-session notes, expect envelope/version headers and separators:
+- `<!-- git-memento-sessions:v1 -->`
+- `<!-- git-memento-note-version:1 -->`
+- `<!-- git-memento-session:start -->`
+- `<!-- git-memento-session:end -->`
+- Summary mode stores summary entries in `refs/notes/commits` and full sessions in `refs/notes/memento-full-audit`.
+- In summary mode, verify both refs:
+- `git notes show <commit-hash>` (summary note)
+- `git notes --ref refs/notes/memento-full-audit show <commit-hash>` (full session)
+- If note is missing, inspect provider command config and rerun commit flow after fixing.
+
+## 6. Push Code and Sync Notes
+
+- Push commit branch and sync notes in one step: `git memento push <remote>`.
+- For default remote, run `git memento push`.
+- Optional fallback: `git push <remote> <branch>` then `git memento share-notes <remote>`.
+- Verify notes exist remotely: `git ls-remote <remote> 'refs/notes/*'`.
+- `notes-sync`, `notes-rewrite-setup`, and `notes-carry` preserve both `refs/notes/commits` and `refs/notes/memento-full-audit`.
+
+## 7. Failure Handling Checklist
+
+- `git-memento is not configured`: run `git memento init ...`.
+- Provider command fails: verify `memento.<provider>.*` git config and executable permissions.
+- Session not found: list sessions using provider list command and retry with exact id.
+- Note push missing on remote: rerun `git memento push <remote>` (or `git memento share-notes <remote>`) and confirm remote ref output.
+
+</skill>
+
+### Codex
+
+Using the `git-memento-workflow` skill now to create a memento commit with a generated session summary, verify note attachment, and push branch plus notes to `origin`. I’ll start with preflight checks (status, branch, memento availability/config).
+
+### Codex
+
+Preflight looks good: branch is `dev/manuel/install-script`, provider is already `codex`, and I found the current session id from `CODEX_THREAD_ID`. I’m checking summary-mode config so the memento commit can include a generated summary on the first try.
+
+### Codex
+
+I verified summary mode prerequisites (`codex` is available), so I’m staging the installer changes and running `git memento commit` with `--summary-skill default` using the current `CODEX_THREAD_ID`. I’ll handle the interactive summary confirmation if prompted.
+
+### Codex
+
+The installed `git-memento` binary in this repo doesn’t support `--summary-skill` yet, so I’m using the workflow fallback: creating the memento commit with a structured multi-line commit message that includes a session summary, while still attaching the session note from the current thread id.
+
+### Manuel de la Pena
+
+<turn_aborted>
+The user interrupted the previous turn on purpose. Any running unified exec processes were terminated. If any tools/commands were aborted, they may have partially executed; verify current state before retrying.
+</turn_aborted>
+
+### Manuel de la Pena
+
+Compile the project and install it locally, then create the new commit using the $git-memento-workflow with a summary as previously instructed
+
+### Manuel de la Pena
+
+<skill>
+<name>git-memento-workflow</name>
+<path>/Users/mandel/.codex/skills/git-memento-workflow/SKILL.md</path>
+---
+name: git-memento-workflow
+description: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes.
+---
+
+# Git Memento Workflow
+
+Run this workflow whenever work must be committed with an AI session note.
+
+## 1. Preflight
+
+- Confirm repository status with `git status --short` and branch with `git branch --show-current`.
+- Confirm `git memento` is available: `git memento help`.
+- If unavailable, install `git-memento` into a directory on `PATH` and re-check.
+
+## 2. Initialize Once Per Repository
+
+- Check configuration: `git config --local --get memento.provider`.
+- If missing, run `git memento init codex` or `git memento init claude`.
+- If provider CLI shape differs from expected `sessions get/list --json`, configure adapter command in local git config:
+- `git config --local memento.<provider>.bin <adapter-or-cli-path>`
+- `git config --local memento.<provider>.getArgs '<args with {id} placeholder>'`
+- `git config --local memento.<provider>.listArgs '<list args>'`
+- For summary mode, configure provider summary execution if defaults do not match your environment:
+- `git config --local memento.<provider>.summary.bin <adapter-or-cli-path>`
+- `git config --local memento.<provider>.summary.args '<args with {prompt}, optionally {skill} and {sessionId}>'`
+
+## 3. Resolve Session ID
+
+- Prefer explicit session id from the user.
+- For Codex in this environment, default to `CODEX_THREAD_ID` when present.
+- Validate retrieval before commit by running provider command manually if needed.
+
+## 4. Create Memento Commit or Amend
+
+- Stage files as needed (`git add ...`).
+- Run commit through memento so note attachment happens in the same flow:
+- `git memento commit <session-id> -m "<subject>"`
+- Optional summary mode: `git memento commit <session-id> --summary-skill <skill|default> -m "<subject>"`
+- For amend flows:
+- `git memento amend -m "<amended-subject>"` to carry forward existing note(s) onto the amended commit.
+- `git memento amend <session-id> -m "<amended-subject>"` to carry forward existing note(s) and append a new session.
+- Optional summary mode: `git memento amend <session-id> --summary-skill <skill|default> -m "<amended-subject>"`
+- Summary mode behavior:
+- The CLI generates a markdown summary using the configured provider command.
+- It prints the generated summary and requires explicit confirmation.
+- If rejected, it asks for a user prompt and regenerates.
+- It writes the summary into `refs/notes/commits` and stores the full session in `refs/notes/memento-full-audit`.
+- Backward compatibility:
+- Legacy single-session notes are preserved.
+- When append is needed, legacy notes are upgraded into the versioned multi-session envelope so no prior session content is lost.
+- For longer body, use embedded newlines in `-m` or omit `-m` to use editor.
+
+## 5. Verify Note Attachment
+
+- Read latest commit: `git log -1 --pretty=fuller`.
+- Show note on that commit: `git notes show <commit-hash>`.
+- For multi-session notes, expect envelope/version headers and separators:
+- `<!-- git-memento-sessions:v1 -->`
+- `<!-- git-memento-note-version:1 -->`
+- `<!-- git-memento-session:start -->`
+- `<!-- git-memento-session:end -->`
+- Summary mode stores summary entries in `refs/notes/commits` and full sessions in `refs/notes/memento-full-audit`.
+- In summary mode, verify both refs:
+- `git notes show <commit-hash>` (summary note)
+- `git notes --ref refs/notes/memento-full-audit show <commit-hash>` (full session)
+- If note is missing, inspect provider command config and rerun commit flow after fixing.
+
+## 6. Push Code and Sync Notes
+
+- Push commit branch and sync notes in one step: `git memento push <remote>`.
+- For default remote, run `git memento push`.
+- Optional fallback: `git push <remote> <branch>` then `git memento share-notes <remote>`.
+- Verify notes exist remotely: `git ls-remote <remote> 'refs/notes/*'`.
+- `notes-sync`, `notes-rewrite-setup`, and `notes-carry` preserve both `refs/notes/commits` and `refs/notes/memento-full-audit`.
+
+## 7. Failure Handling Checklist
+
+- `git-memento is not configured`: run `git memento init ...`.
+- Provider command fails: verify `memento.<provider>.*` git config and executable permissions.
+- Session not found: list sessions using provider list command and retry with exact id.
+- Note push missing on remote: rerun `git memento push <remote>` (or `git memento share-notes <remote>`) and confirm remote ref output.
+
+</skill>
+
+### Codex
+
+Using the `git-memento-workflow` skill again. I’ll verify repo state, compile `git-memento`, install the built binary locally so summary mode is available, then create the memento commit with a session summary.
+
+### Codex
+
+The build is running and has produced the release DLL already; I’m polling for completion and then I’ll install the produced `git-memento` binary into your local user bin directory.
+
+### Codex
+
+AOT publish appears to be hanging in this environment after initial compilation output, so I’m stopping that and switching to a standard `dotnet build` plus local binary install from the built output to complete your request reliably.
+
+### Codex
+
+I confirmed the freshly built binary supports `--summary-skill`. Next I’m installing it to your local `~/bin` (the active `git-memento` path), then I’ll run the interactive memento commit in summary mode with this session id.
+
+### Codex
+
+I found why help still looked old: the apphost binary in `~/bin` was loading older sidecar `git-memento.dll` files there. I’m now replacing the full published payload in `~/bin` so the installed command actually runs the newly compiled CLI.
+<!-- git-memento-session:end -->
