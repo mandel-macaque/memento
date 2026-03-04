@@ -8,17 +8,127 @@ on:
 
 permissions:
   contents: read
+  checks: read
   issues: write
   pull-requests: write
 
 jobs:
   enforce-memento-notes:
     runs-on: ubuntu-latest
+    env:
+      CARRY_CHECK_NAME: ${{ vars.MEMENTO_CARRY_CHECK_NAME || '' }}
+      CARRY_WAIT_ATTEMPTS: "36"
+      CARRY_WAIT_INTERVAL_MS: "10000"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Detect PR-origin push
+        if: github.event_name == 'push'
+        id: pr_origin
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const commitSha = context.sha;
+            const response = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner,
+              repo,
+              commit_sha: commitSha
+            });
+            const prs = response.data || [];
+            const isPrOrigin = prs.length > 0;
+            core.setOutput("is_pr_origin", isPrOrigin ? "true" : "false");
+            core.info(
+              isPrOrigin
+                ? `Commit ${commitSha} is associated with PR(s): ${prs.map((p) => `#${p.number}`).join(", ")}.`
+                : `Commit ${commitSha} is not associated with any pull request.`
+            );
+
+      - name: Wait for note carry check on PR-origin push
+        if: github.event_name == 'push' && steps.pr_origin.outputs.is_pr_origin == 'true' && env.CARRY_CHECK_NAME != ''
+        uses: actions/github-script@v7
+        env:
+          CARRY_CHECK_NAME: ${{ env.CARRY_CHECK_NAME }}
+          CARRY_WAIT_ATTEMPTS: ${{ env.CARRY_WAIT_ATTEMPTS }}
+          CARRY_WAIT_INTERVAL_MS: ${{ env.CARRY_WAIT_INTERVAL_MS }}
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const sha = context.sha;
+            const expectedName = process.env.CARRY_CHECK_NAME || "carry-notes";
+            const maxAttempts = Number.parseInt(process.env.CARRY_WAIT_ATTEMPTS || "36", 10);
+            const waitMs = Number.parseInt(process.env.CARRY_WAIT_INTERVAL_MS || "10000", 10);
+
+            const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+            for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+              const { data } = await github.rest.checks.listForRef({
+                owner,
+                repo,
+                ref: sha,
+                per_page: 100
+              });
+
+              const matched = (data.check_runs || []).filter((run) =>
+                run.name.toLowerCase().includes(expectedName.toLowerCase())
+              );
+
+              if (matched.length > 0) {
+                // Reruns keep older failed check runs; only the latest run per check name should gate.
+                const latestByName = new Map();
+                for (const run of matched) {
+                  const existing = latestByName.get(run.name);
+                  if (!existing || run.id > existing.id) {
+                    latestByName.set(run.name, run);
+                  }
+                }
+                const latestRuns = Array.from(latestByName.values());
+                const incomplete = latestRuns.filter((run) => run.status !== "completed");
+                if (incomplete.length > 0) {
+                  core.info(
+                    `Carry check found but still running (${attempt}/${maxAttempts}): ${incomplete
+                      .map((run) => `${run.name} [${run.status}]`)
+                      .join(", ")}`
+                  );
+                } else {
+                  const unsuccessful = latestRuns.filter((run) => run.conclusion !== "success");
+                  if (unsuccessful.length > 0) {
+                    core.setFailed(
+                      `Carry check completed without success: ${unsuccessful
+                        .map((run) => `${run.name} [${run.conclusion}]`)
+                        .join(", ")}`
+                    );
+                    return;
+                  }
+                  core.info(
+                    `Carry check succeeded: ${latestRuns.map((run) => run.name).join(", ")}`
+                  );
+                  return;
+                }
+              } else {
+                core.info(
+                  `Waiting for carry check containing '${expectedName}' on ${sha} (${attempt}/${maxAttempts}).`
+                );
+              }
+
+              if (attempt < maxAttempts) {
+                await sleep(waitMs);
+              }
+            }
+
+            core.setFailed(
+              `Timed out waiting for carry check containing '${expectedName}' on ${sha}.`
+            );
+
+      - name: Skip carry wait when no carry check is configured
+        if: github.event_name == 'push' && steps.pr_origin.outputs.is_pr_origin == 'true' && env.CARRY_CHECK_NAME == ''
+        shell: bash
+        run: |
+          echo "PR-origin push detected, but MEMENTO_CARRY_CHECK_NAME is not set."
+          echo "Skipping carry wait and proceeding directly to gate."
 
       - name: Install git-memento
         uses: ./install

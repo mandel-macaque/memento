@@ -23,9 +23,23 @@ type SessionRef =
     { Id: string
       Title: string option }
 
+type SummaryGenerationLimits =
+    { MaxMessageChars: int option
+      MaxTranscriptChars: int option
+      MaxPromptChars: int option
+      RequireFullSession: bool }
+
 type Command =
-    | Commit of sessionId: string * messages: string list * summarySkill: string option
-    | Amend of sessionId: string option * messages: string list * summarySkill: string option
+    | Commit of
+        sessionId: string *
+        messages: string list *
+        summarySkill: string option *
+        summaryLimits: SummaryGenerationLimits
+    | Amend of
+        sessionId: string option *
+        messages: string list *
+        summarySkill: string option *
+        summaryLimits: SummaryGenerationLimits
     | Audit of range: string option * strict: bool * outputFormat: string
     | Doctor of remote: string * outputFormat: string
     | ShareNotes of remote: string

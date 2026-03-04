@@ -6,8 +6,8 @@ module CliArgs =
     let usage =
         "Usage:\n"
         + "  git memento init [codex|claude]\n"
-        + "  git memento commit <session-id> [-m \"commit message\"]... [--summary-skill <skill|default>]\n"
-        + "  git memento amend [session-id] [-m \"commit message\"]... [--summary-skill <skill|default>]\n"
+        + "  git memento commit <session-id> [-m \"commit message\"]... [--summary-skill <skill|default>] [--summary-max-message-chars <n>] [--summary-max-transcript-chars <n>] [--summary-max-prompt-chars <n>] [--summary-require-full-session]\n"
+        + "  git memento amend [session-id] [-m \"commit message\"]... [--summary-skill <skill|default>] [--summary-max-message-chars <n>] [--summary-max-transcript-chars <n>] [--summary-max-prompt-chars <n>] [--summary-require-full-session]\n"
         + "  git memento audit [--range <A..B>] [--strict] [--format <text|json>]\n"
         + "  git memento doctor [remote] [--format <text|json>]\n"
         + "  git memento push [remote]\n"
@@ -20,9 +20,29 @@ module CliArgs =
 
     module Parsing =
         let inline private isBlank (value: string) = String.IsNullOrWhiteSpace value
+        let private defaultSummaryLimits () =
+            { MaxMessageChars = None
+              MaxTranscriptChars = None
+              MaxPromptChars = None
+              RequireFullSession = false }
 
         let private toNonEmptyOption (value: string) =
             if isBlank value then None else Some value
+
+        let private parsePositiveInt (flagName: string) (raw: string) =
+            let value = raw.Trim()
+            if isBlank value then
+                Error $"Flag {flagName} requires a non-empty value."
+            else
+                match Int32.TryParse(value) with
+                | true, parsed when parsed > 0 -> Ok parsed
+                | _ -> Error $"Flag {flagName} requires a positive integer value."
+
+        let private hasSummaryLimitOverrides (limits: SummaryGenerationLimits) =
+            limits.MaxMessageChars.IsSome
+            || limits.MaxTranscriptChars.IsSome
+            || limits.MaxPromptChars.IsSome
+            || limits.RequireFullSession
 
         let private parseOptionalRemote
             (commandName: string)
@@ -55,7 +75,7 @@ module CliArgs =
         let parseCommit (args: string array) : Result<Command, string> =
             if args.Length < 2 then
                 Error
-                    "Missing <session-id>. Usage: git memento commit <session-id> [-m \"commit message\"]... [--summary-skill <skill|default>]"
+                    "Missing <session-id>. Usage: git memento commit <session-id> [-m \"commit message\"]... [--summary-skill <skill|default>] [--summary-max-message-chars <n>] [--summary-max-transcript-chars <n>] [--summary-max-prompt-chars <n>] [--summary-require-full-session]"
             else
                 let sessionId = args[1].Trim()
                 if isBlank sessionId then
@@ -65,9 +85,10 @@ module CliArgs =
                         (i: int)
                         (messagesRev: string list)
                         (summarySkill: string option)
-                        : Result<string list * string option, string> =
+                        (summaryLimits: SummaryGenerationLimits)
+                        : Result<string list * string option * SummaryGenerationLimits, string> =
                         if i >= args.Length then
-                            Ok(List.rev messagesRev, summarySkill)
+                            Ok(List.rev messagesRev, summarySkill, summaryLimits)
                         else
                             let current = args[i]
                             if current = "-m" || current = "--message" then
@@ -75,12 +96,12 @@ module CliArgs =
                                     Error "Flag -m/--message requires a non-empty commit message."
                                 else
                                     match toNonEmptyOption args[i + 1] with
-                                    | Some message -> loop (i + 2) (message :: messagesRev) summarySkill
+                                    | Some message -> loop (i + 2) (message :: messagesRev) summarySkill summaryLimits
                                     | None -> Error "Flag -m/--message requires a non-empty commit message."
                             elif current.StartsWith("--message=", StringComparison.Ordinal) then
                                 let inlineValue = current.Substring("--message=".Length)
                                 match toNonEmptyOption inlineValue with
-                                | Some message -> loop (i + 1) (message :: messagesRev) summarySkill
+                                | Some message -> loop (i + 1) (message :: messagesRev) summarySkill summaryLimits
                                 | None -> Error "Flag -m/--message requires a non-empty commit message."
                             elif current = "--summary-skill" then
                                 if i + 1 >= args.Length then
@@ -92,7 +113,7 @@ module CliArgs =
                                     elif summarySkill.IsSome then
                                         Error "Flag --summary-skill can only be provided once."
                                     else
-                                        loop (i + 2) messagesRev (Some value)
+                                        loop (i + 2) messagesRev (Some value) summaryLimits
                             elif current.StartsWith("--summary-skill=", StringComparison.Ordinal) then
                                 let value = current.Substring("--summary-skill=".Length).Trim()
                                 if isBlank value then
@@ -100,7 +121,86 @@ module CliArgs =
                                 elif summarySkill.IsSome then
                                     Error "Flag --summary-skill can only be provided once."
                                 else
-                                    loop (i + 1) messagesRev (Some value)
+                                    loop (i + 1) messagesRev (Some value) summaryLimits
+                            elif current = "--summary-max-message-chars" then
+                                if i + 1 >= args.Length then
+                                    Error "Flag --summary-max-message-chars requires a value."
+                                else
+                                    match parsePositiveInt "--summary-max-message-chars" args[i + 1] with
+                                    | Error err -> Error err
+                                    | Ok value ->
+                                        loop
+                                            (i + 2)
+                                            messagesRev
+                                            summarySkill
+                                            { summaryLimits with
+                                                MaxMessageChars = Some value }
+                            elif current.StartsWith("--summary-max-message-chars=", StringComparison.Ordinal) then
+                                let value = current.Substring("--summary-max-message-chars=".Length)
+                                match parsePositiveInt "--summary-max-message-chars" value with
+                                | Error err -> Error err
+                                | Ok parsed ->
+                                    loop
+                                        (i + 1)
+                                        messagesRev
+                                        summarySkill
+                                        { summaryLimits with
+                                            MaxMessageChars = Some parsed }
+                            elif current = "--summary-max-transcript-chars" then
+                                if i + 1 >= args.Length then
+                                    Error "Flag --summary-max-transcript-chars requires a value."
+                                else
+                                    match parsePositiveInt "--summary-max-transcript-chars" args[i + 1] with
+                                    | Error err -> Error err
+                                    | Ok value ->
+                                        loop
+                                            (i + 2)
+                                            messagesRev
+                                            summarySkill
+                                            { summaryLimits with
+                                                MaxTranscriptChars = Some value }
+                            elif current.StartsWith("--summary-max-transcript-chars=", StringComparison.Ordinal) then
+                                let value = current.Substring("--summary-max-transcript-chars=".Length)
+                                match parsePositiveInt "--summary-max-transcript-chars" value with
+                                | Error err -> Error err
+                                | Ok parsed ->
+                                    loop
+                                        (i + 1)
+                                        messagesRev
+                                        summarySkill
+                                        { summaryLimits with
+                                            MaxTranscriptChars = Some parsed }
+                            elif current = "--summary-max-prompt-chars" then
+                                if i + 1 >= args.Length then
+                                    Error "Flag --summary-max-prompt-chars requires a value."
+                                else
+                                    match parsePositiveInt "--summary-max-prompt-chars" args[i + 1] with
+                                    | Error err -> Error err
+                                    | Ok value ->
+                                        loop
+                                            (i + 2)
+                                            messagesRev
+                                            summarySkill
+                                            { summaryLimits with
+                                                MaxPromptChars = Some value }
+                            elif current.StartsWith("--summary-max-prompt-chars=", StringComparison.Ordinal) then
+                                let value = current.Substring("--summary-max-prompt-chars=".Length)
+                                match parsePositiveInt "--summary-max-prompt-chars" value with
+                                | Error err -> Error err
+                                | Ok parsed ->
+                                    loop
+                                        (i + 1)
+                                        messagesRev
+                                        summarySkill
+                                        { summaryLimits with
+                                            MaxPromptChars = Some parsed }
+                            elif current = "--summary-require-full-session" then
+                                loop
+                                    (i + 1)
+                                    messagesRev
+                                    summarySkill
+                                    { summaryLimits with
+                                        RequireFullSession = true }
                             elif current.StartsWith("-m", StringComparison.Ordinal) then
                                 let inlineValue = current.AsSpan(2).ToString()
                                 let normalizedInlineValue =
@@ -110,12 +210,18 @@ module CliArgs =
                                         inlineValue
 
                                 match toNonEmptyOption normalizedInlineValue with
-                                | Some message -> loop (i + 1) (message :: messagesRev) summarySkill
+                                | Some message -> loop (i + 1) (message :: messagesRev) summarySkill summaryLimits
                                 | None -> Error "Flag -m/--message requires a non-empty commit message."
                             else
                                 Error $"Unknown argument: {current}"
 
-                    loop 2 [] None |> Result.map (fun (messages, skill) -> Command.Commit(sessionId, messages, skill))
+                    loop 2 [] None (defaultSummaryLimits ())
+                    |> Result.bind (fun (messages, skill, limits) ->
+                        if skill.IsNone && hasSummaryLimitOverrides limits then
+                            Error
+                                "Summary limit flags require --summary-skill. Add --summary-skill <skill|default> to enable summary mode."
+                        else
+                            Ok(Command.Commit(sessionId, messages, skill, limits)))
 
         let parseAmend (args: string array) : Result<Command, string> =
             let parseMessages (startIndex: int) =
@@ -123,9 +229,10 @@ module CliArgs =
                     (i: int)
                     (messagesRev: string list)
                     (summarySkill: string option)
-                    : Result<string list * string option, string> =
+                    (summaryLimits: SummaryGenerationLimits)
+                    : Result<string list * string option * SummaryGenerationLimits, string> =
                     if i >= args.Length then
-                        Ok(List.rev messagesRev, summarySkill)
+                        Ok(List.rev messagesRev, summarySkill, summaryLimits)
                     else
                         let current = args[i]
                         if current = "-m" || current = "--message" then
@@ -133,12 +240,12 @@ module CliArgs =
                                 Error "Flag -m/--message requires a non-empty commit message."
                             else
                                 match toNonEmptyOption args[i + 1] with
-                                | Some message -> loop (i + 2) (message :: messagesRev) summarySkill
+                                | Some message -> loop (i + 2) (message :: messagesRev) summarySkill summaryLimits
                                 | None -> Error "Flag -m/--message requires a non-empty commit message."
                         elif current.StartsWith("--message=", StringComparison.Ordinal) then
                             let inlineValue = current.Substring("--message=".Length)
                             match toNonEmptyOption inlineValue with
-                            | Some message -> loop (i + 1) (message :: messagesRev) summarySkill
+                            | Some message -> loop (i + 1) (message :: messagesRev) summarySkill summaryLimits
                             | None -> Error "Flag -m/--message requires a non-empty commit message."
                         elif current = "--summary-skill" then
                             if i + 1 >= args.Length then
@@ -150,7 +257,7 @@ module CliArgs =
                                 elif summarySkill.IsSome then
                                     Error "Flag --summary-skill can only be provided once."
                                 else
-                                    loop (i + 2) messagesRev (Some value)
+                                    loop (i + 2) messagesRev (Some value) summaryLimits
                         elif current.StartsWith("--summary-skill=", StringComparison.Ordinal) then
                             let value = current.Substring("--summary-skill=".Length).Trim()
                             if isBlank value then
@@ -158,7 +265,86 @@ module CliArgs =
                             elif summarySkill.IsSome then
                                 Error "Flag --summary-skill can only be provided once."
                             else
-                                loop (i + 1) messagesRev (Some value)
+                                loop (i + 1) messagesRev (Some value) summaryLimits
+                        elif current = "--summary-max-message-chars" then
+                            if i + 1 >= args.Length then
+                                Error "Flag --summary-max-message-chars requires a value."
+                            else
+                                match parsePositiveInt "--summary-max-message-chars" args[i + 1] with
+                                | Error err -> Error err
+                                | Ok value ->
+                                    loop
+                                        (i + 2)
+                                        messagesRev
+                                        summarySkill
+                                        { summaryLimits with
+                                            MaxMessageChars = Some value }
+                        elif current.StartsWith("--summary-max-message-chars=", StringComparison.Ordinal) then
+                            let value = current.Substring("--summary-max-message-chars=".Length)
+                            match parsePositiveInt "--summary-max-message-chars" value with
+                            | Error err -> Error err
+                            | Ok parsed ->
+                                loop
+                                    (i + 1)
+                                    messagesRev
+                                    summarySkill
+                                    { summaryLimits with
+                                        MaxMessageChars = Some parsed }
+                        elif current = "--summary-max-transcript-chars" then
+                            if i + 1 >= args.Length then
+                                Error "Flag --summary-max-transcript-chars requires a value."
+                            else
+                                match parsePositiveInt "--summary-max-transcript-chars" args[i + 1] with
+                                | Error err -> Error err
+                                | Ok value ->
+                                    loop
+                                        (i + 2)
+                                        messagesRev
+                                        summarySkill
+                                        { summaryLimits with
+                                            MaxTranscriptChars = Some value }
+                        elif current.StartsWith("--summary-max-transcript-chars=", StringComparison.Ordinal) then
+                            let value = current.Substring("--summary-max-transcript-chars=".Length)
+                            match parsePositiveInt "--summary-max-transcript-chars" value with
+                            | Error err -> Error err
+                            | Ok parsed ->
+                                loop
+                                    (i + 1)
+                                    messagesRev
+                                    summarySkill
+                                    { summaryLimits with
+                                        MaxTranscriptChars = Some parsed }
+                        elif current = "--summary-max-prompt-chars" then
+                            if i + 1 >= args.Length then
+                                Error "Flag --summary-max-prompt-chars requires a value."
+                            else
+                                match parsePositiveInt "--summary-max-prompt-chars" args[i + 1] with
+                                | Error err -> Error err
+                                | Ok value ->
+                                    loop
+                                        (i + 2)
+                                        messagesRev
+                                        summarySkill
+                                        { summaryLimits with
+                                            MaxPromptChars = Some value }
+                        elif current.StartsWith("--summary-max-prompt-chars=", StringComparison.Ordinal) then
+                            let value = current.Substring("--summary-max-prompt-chars=".Length)
+                            match parsePositiveInt "--summary-max-prompt-chars" value with
+                            | Error err -> Error err
+                            | Ok parsed ->
+                                loop
+                                    (i + 1)
+                                    messagesRev
+                                    summarySkill
+                                    { summaryLimits with
+                                        MaxPromptChars = Some parsed }
+                        elif current = "--summary-require-full-session" then
+                            loop
+                                (i + 1)
+                                messagesRev
+                                summarySkill
+                                { summaryLimits with
+                                    RequireFullSession = true }
                         elif current.StartsWith("-m", StringComparison.Ordinal) then
                             let inlineValue = current.AsSpan(2).ToString()
                             let normalizedInlineValue =
@@ -168,31 +354,39 @@ module CliArgs =
                                     inlineValue
 
                             match toNonEmptyOption normalizedInlineValue with
-                            | Some message -> loop (i + 1) (message :: messagesRev) summarySkill
+                            | Some message -> loop (i + 1) (message :: messagesRev) summarySkill summaryLimits
                             | None -> Error "Flag -m/--message requires a non-empty commit message."
                         else
                             Error $"Unknown argument: {current}"
 
-                loop startIndex [] None
+                loop startIndex [] None (defaultSummaryLimits ())
 
             if args.Length = 1 then
-                Ok(Command.Amend(None, [], None))
+                Ok(Command.Amend(None, [], None, defaultSummaryLimits ()))
             else
                 let firstArg = args[1]
                 if firstArg.StartsWith("-", StringComparison.Ordinal) then
                     parseMessages 1
-                    |> Result.bind (fun (messages, skill) ->
+                    |> Result.bind (fun (messages, skill, limits) ->
                         if skill.IsSome then
                             Error "Flag --summary-skill requires an explicit session id with amend."
+                        elif hasSummaryLimitOverrides limits then
+                            Error
+                                "Summary limit flags require --summary-skill with an explicit amend session id."
                         else
-                            Ok(Command.Amend(None, messages, None)))
+                            Ok(Command.Amend(None, messages, None, defaultSummaryLimits ())))
                 else
                     let sessionId = firstArg.Trim()
                     if isBlank sessionId then
                         Error "Session id cannot be empty."
                     else
                         parseMessages 2
-                        |> Result.map (fun (messages, skill) -> Command.Amend(Some sessionId, messages, skill))
+                        |> Result.bind (fun (messages, skill, limits) ->
+                            if skill.IsNone && hasSummaryLimitOverrides limits then
+                                Error
+                                    "Summary limit flags require --summary-skill. Add --summary-skill <skill|default> to enable summary mode."
+                            else
+                                Ok(Command.Amend(Some sessionId, messages, skill, limits)))
 
         let private parseFormatValue (value: string) =
             let normalized = value.Trim().ToLowerInvariant()

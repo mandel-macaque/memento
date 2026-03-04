@@ -56,6 +56,14 @@ When `-m` is omitted, `git commit` opens your default editor.
 - `default` maps to the repository skill at `skills/session-summary-default/SKILL.md`.
 - The default summary skill is always applied as a baseline; if a user-provided summary skill conflicts with it, user-provided instructions take precedence.
 
+Summary sizing flags (only valid when `--summary-skill` is set):
+- `--summary-max-message-chars <n>` overrides per-message truncation limit (default `2000`).
+- `--summary-max-transcript-chars <n>` overrides transcript truncation limit (default `24000`).
+- `--summary-max-prompt-chars <n>` overrides prompt truncation limit (default `32000`).
+- `--summary-require-full-session` fails summary generation if any truncation would occur.
+
+When summary command execution fails and truncation occurred, the CLI now reports which limit was hit and suggests which summary flags to increase.
+
 You can verify both notes after a summary run:
 
 ```bash
@@ -357,6 +365,10 @@ Local workflow in this repository:
 
 - `.github/workflows/memento-note-comments.yml`
 - `.github/workflows/memento-note-gate.yml`
+  - On `push` to `main`, gate checks PR association for `github.sha`.
+  - Direct pushes run gate immediately.
+  - PR-origin pushes wait for a carry check run only when repository variable `MEMENTO_CARRY_CHECK_NAME` is set.
+  - If `MEMENTO_CARRY_CHECK_NAME` is not set, PR-origin pushes proceed directly to gate.
 
 ### Publish This Action To GitHub Marketplace
 
