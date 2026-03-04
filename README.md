@@ -1,19 +1,146 @@
 # git-memento
 
-`git-memento` is a Git extension that records the AI coding session used to produce a commit.
+`git-memento` is a Git extension that records the AI coding session used to produce a commit. It attaches AI conversation transcripts as git notes, creating an audit trail for AI-assisted development.
 
-It runs a commit and then stores a cleaned markdown conversation as a git note on the new commit.
+## Table of Contents
 
-## Goal
+- [What is git-memento?](#what-is-git-memento)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [First-time setup](#first-time-setup)
+  - [Your first memento commit](#your-first-memento-commit)
+  - [Verify the note](#verify-the-note)
+  - [Share with your team](#share-with-your-team)
+- [Core Commands](#core-commands)
+- [Advanced Features](#advanced-features)
+- [CI/CD Integration](#cicd-integration)
+- [Build and Install](#build-and-install)
+- [Testing](#testing)
+- [Contributing](#contributing)
+- [License](#license)
 
-- Create commits with normal Git flow (`-m` or editor).
-- Attach the AI session trace to the commit (`git notes`).
-- Keep provider support extensible (Codex first, others later).
-- Produce human-readable markdown notes.
+## What is git-memento?
 
-## Command
+git-memento solves a critical problem in AI-assisted development: when an AI assistant produces a commit, the conversation that led to that change is typically lost. Team members see *what* changed but not *why* the AI was asked to change it, what alternatives were considered, or what constraints were given.
 
-Initialize per-repository memento settings:
+git-memento:
+- Creates commits with normal Git flow (`-m` or editor)
+- Attaches the AI session transcript to the commit using `git notes`
+- Produces human-readable markdown notes
+- Keeps provider support extensible (Codex and Claude Code supported)
+- Works seamlessly with your existing Git workflow
+
+**Who is this for?** Development teams using AI coding assistants (Codex, Claude Code) who want to maintain transparency, support code review, meet compliance requirements, or preserve context for debugging and onboarding.
+
+## Getting Started
+
+### Prerequisites
+
+Before using git-memento, you need:
+
+- Git installed and configured (`git config user.name` and `user.email` set)
+- An AI provider CLI installed:
+  - **Codex**: Install via `npm install -g @codexcli/cli` or your provider's instructions
+  - **Claude Code**: Install from [claude.ai/code](https://claude.ai/code)
+
+### Installation
+
+Install git-memento from the latest GitHub release:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/mandel-macaque/memento/main/install.sh | sh
+```
+
+The installer will:
+1. Detect your OS and architecture
+2. Download the appropriate release binary
+3. Install to `~/.local/bin` (or your configured install directory)
+4. Prompt you to add the directory to your `PATH` if needed
+
+**Alternative**: You can also [build from source](#build-aot) if you prefer.
+
+After installation, verify git-memento is available:
+
+```bash
+git memento --version
+git memento help
+```
+
+### First-time setup
+
+Initialize git-memento for your repository. This stores provider configuration in local git metadata (`.git/config`):
+
+```bash
+# For Codex
+git memento init codex
+
+# For Claude Code
+git memento init claude
+```
+
+You only need to run `init` once per repository. The configuration is stored locally and won't affect other repositories.
+
+### Your first memento commit
+
+1. **Make your changes** as you normally would
+2. **Stage your files**:
+   ```bash
+   git add .
+   ```
+
+3. **Create a commit with an attached AI session note**:
+   ```bash
+   git memento commit <session-id> -m "Your commit message"
+   ```
+
+   - Replace `<session-id>` with your AI session ID
+   - For **Codex**: Find session IDs with `codex sessions list --json`
+   - For **Claude Code**: Use the session ID from your Claude session
+
+   Example:
+   ```bash
+   git memento commit abc123 -m "Add user authentication feature"
+   ```
+
+### Verify the note
+
+Check that the AI session transcript was attached to your commit:
+
+```bash
+# Show the commit
+git log -1 --pretty=fuller
+
+# Show the attached note
+git notes show HEAD
+```
+
+You should see a markdown-formatted conversation with your AI provider showing the messages exchanged during the session.
+
+### Share with your team
+
+Push your commit and sync the notes to your remote repository:
+
+```bash
+git memento push
+```
+
+This command:
+- Pushes your commits to the remote
+- Syncs `refs/notes/*` to the remote
+- Configures fetch mappings so teammates can retrieve notes
+
+Your team members can fetch the notes with:
+
+```bash
+git memento notes-sync
+```
+
+**You're now up and running!** Continue reading for more advanced features and commands.
+
+## Core Commands
+
+### Initialize per-repository
 
 ```bash
 git memento init
@@ -23,47 +150,47 @@ git memento init claude
 
 `init` stores configuration in local git metadata (`.git/config`) under `memento.*`.
 
+### Create commits with notes
+
 ```bash
 git memento commit <session-id> -m "Normal commit message"
 git memento commit <session-id> -m "Subject line" -m "Body paragraph"
 git memento commit <session-id> --summary-skill default -m "Subject line"
+```
+
+You can pass `-m` multiple times, and each value is forwarded to `git commit` in order. When `-m` is omitted, `git commit` opens your default editor.
+
+### Amend commits
+
+```bash
 git memento amend -m "Amended subject"
 git memento amend <new-session-id> -m "Amended subject" -m "Amended body"
 git memento amend <new-session-id> --summary-skill session-summary-default -m "Amended subject"
-git memento audit --range main..HEAD --strict
-git memento doctor
 ```
 
-Or:
+`amend` runs `git commit --amend`:
+- Without a session id, it copies the note(s) from the previous HEAD onto the amended commit
+- With a session id, it copies previous note(s) and appends the new fetched session as an additional session entry
+- A single commit note can contain sessions from different AI providers
 
-```bash
-git memento commit <session-id>
-```
-
-You can pass `-m` multiple times, and each value is forwarded to `git commit` in order.
-When `-m` is omitted, `git commit` opens your default editor.
-
-`amend` runs `git commit --amend`.
-- Without a session id, it copies the note(s) from the previous HEAD onto the amended commit.
-- With a session id, it copies previous note(s) and appends the new fetched session as an additional session entry.
-- A single commit note can contain sessions from different AI providers.
+### Summary mode
 
 `--summary-skill <skill|default>` (for `commit` and `amend <session-id>`) changes note behavior:
-- The default notes ref (`refs/notes/commits`) stores a summary record instead of the full transcript.
-- The full session is stored in `refs/notes/memento-full-audit`.
-- The CLI prints the generated summary and asks for confirmation.
-- If rejected, you must provide a prompt to regenerate.
-- `default` maps to the repository skill at `skills/session-summary-default/SKILL.md`.
-- The default summary skill is always applied as a baseline; if a user-provided summary skill conflicts with it, user-provided instructions take precedence.
+- The default notes ref (`refs/notes/commits`) stores a summary record instead of the full transcript
+- The full session is stored in `refs/notes/memento-full-audit`
+- The CLI prints the generated summary and asks for confirmation
+- If rejected, you must provide a prompt to regenerate
+- `default` maps to the repository skill at `skills/session-summary-default/SKILL.md`
+- The default summary skill is always applied as a baseline; if a user-provided summary skill conflicts with it, user-provided instructions take precedence
 
-You can verify both notes after a summary run:
+Verify both notes after a summary run:
 
 ```bash
 git notes show <commit-hash>
 git notes --ref refs/notes/memento-full-audit show <commit-hash>
 ```
 
-Share notes with the repository remote (default: `origin`):
+### Share notes with remote
 
 ```bash
 git memento share-notes
@@ -72,16 +199,16 @@ git memento share-notes upstream
 
 This pushes `refs/notes/*` and configures local `remote.<name>.fetch` so notes can be fetched by teammates.
 
-Push your branch and sync notes to the same remote in one command (default: `origin`):
+### Push branch and sync notes
 
 ```bash
 git memento push
 git memento push upstream
 ```
 
-This runs `git push <remote>` and then performs the same notes sync as `share-notes`.
+This runs `git push <remote>` and then performs the same notes sync as `share-notes`. Default remote is `origin`.
 
-Sync and merge notes from a remote safely (default remote: `origin`, default strategy: `cat_sort_uniq`):
+### Sync notes from remote
 
 ```bash
 git memento notes-sync
@@ -90,13 +217,47 @@ git memento notes-sync upstream --strategy union
 ```
 
 This command:
-- Ensures notes fetch mapping is configured.
-- Creates backup refs under `refs/notes/memento-backups/<timestamp>/...`.
-- Fetches remote notes into `refs/notes/remote/<remote>/*`.
-- Merges remote notes into local notes and pushes synced notes back to the remote.
-- Syncs both `refs/notes/commits` and `refs/notes/memento-full-audit`.
+- Ensures notes fetch mapping is configured
+- Creates backup refs under `refs/notes/memento-backups/<timestamp>/...`
+- Fetches remote notes into `refs/notes/remote/<remote>/*`
+- Merges remote notes into local notes and pushes synced notes back to the remote
+- Syncs both `refs/notes/commits` and `refs/notes/memento-full-audit`
 
-Configure automatic note carry-over for rewritten commits (`rebase` / `commit --amend`):
+Default remote is `origin`, default strategy is `cat_sort_uniq`.
+
+### Audit note coverage
+
+```bash
+git memento audit --range main..HEAD
+git memento audit --range origin/main..HEAD --strict --format json
+```
+
+Audit note coverage and note metadata in a commit range:
+- Reports commits with missing notes (`missing-note <sha>`)
+- Validates note metadata markers (`- Provider:` and `- Session ID:`)
+- In `--strict` mode, invalid note structure fails the command
+
+### Repository diagnostics
+
+```bash
+git memento doctor
+git memento doctor upstream --format json
+```
+
+Run repository diagnostics for provider config, notes refs, and remote sync posture.
+
+### Show help and version
+
+```bash
+git memento help
+git memento --version
+```
+
+## Advanced Features
+
+### Configure automatic note carry-over
+
+For rewritten commits (`rebase` / `commit --amend`):
 
 ```bash
 git memento notes-rewrite-setup
@@ -108,46 +269,17 @@ This sets local git config:
 - `notes.rewrite.rebase=true`
 - `notes.rewrite.amend=true`
 
-Carry notes from a rewritten range (for squash/rewrite flows) onto a new target commit:
+### Carry notes from rewritten range
+
+For squash/rewrite flows onto a new target commit:
 
 ```bash
 git memento notes-carry --onto <new-commit> --from-range <base>..<head>
 ```
 
-This reads notes from commits in `<base>..<head>` and appends provenance blocks to `<new-commit>`.
-It carries both `refs/notes/commits` and `refs/notes/memento-full-audit`.
+This reads notes from commits in `<base>..<head>` and appends provenance blocks to `<new-commit>`. It carries both `refs/notes/commits` and `refs/notes/memento-full-audit`.
 
-Audit note coverage and note metadata in a commit range:
-
-```bash
-git memento audit --range main..HEAD
-git memento audit --range origin/main..HEAD --strict --format json
-```
-
-- Reports commits with missing notes (`missing-note <sha>`).
-- Validates note metadata markers (`- Provider:` and `- Session ID:`).
-- In `--strict` mode, invalid note structure fails the command.
-
-Run repository diagnostics for provider config, notes refs, and remote sync posture:
-
-```bash
-git memento doctor
-git memento doctor upstream --format json
-```
-
-Show command help:
-
-```bash
-git memento help
-```
-
-Show installed tool version (major.minor + commit metadata when available):
-
-```bash
-git memento --version
-```
-
-## Provider Configuration
+### Provider configuration
 
 Provider defaults can come from env vars, and `init` persists the selected provider + values in local git config:
 
@@ -172,87 +304,34 @@ Summary args template placeholders:
 - `{effectiveSkillPath}`: user skill path when provided, otherwise default skill path
 
 Security behavior:
-- Session transcript is treated as untrusted data.
-- Summary prompt explicitly instructs the model not to follow instructions embedded in transcript content.
+- Session transcript is treated as untrusted data
+- Summary prompt explicitly instructs the model not to follow instructions embedded in transcript content
 
 Set `MEMENTO_AI_PROVIDER=claude` to use Claude Code.
 
-Runtime behavior:
-- If the repository is not configured yet, `commit`, `amend <session-id>`, `push`, `share-notes`, `notes-sync`, `notes-rewrite-setup`, and `notes-carry` fail with a message to run `git memento init` first.
+### Runtime behavior
+
+- If the repository is not configured yet, `commit`, `amend <session-id>`, `push`, `share-notes`, `notes-sync`, `notes-rewrite-setup`, and `notes-carry` fail with a message to run `git memento init` first
 - Stored git metadata keys include:
   - `memento.provider`
   - `memento.codex.bin`, `memento.codex.getArgs`, `memento.codex.listArgs`, `memento.codex.summary.bin`, `memento.codex.summary.args`
   - `memento.claude.bin`, `memento.claude.getArgs`, `memento.claude.listArgs`, `memento.claude.summary.bin`, `memento.claude.summary.args`
 
-If a session id is not found, `git-memento` asks Codex for available sessions and prints them.
+If a session id is not found, `git-memento` asks the provider for available sessions and prints them.
 
-## Build (AOT)
+### Notes format
 
-Requires `.NET SDK 10` and native toolchain dependencies for NativeAOT.
+- Notes are written with `git notes add -f -m "<markdown>" <commit-hash>`
+- Multi-session notes use explicit delimiters:
+  - `<!-- git-memento-sessions:v1 -->`
+  - `<!-- git-memento-note-version:1 -->`
+  - `<!-- git-memento-session:start -->`
+  - `<!-- git-memento-session:end -->`
+- Legacy single-session notes remain supported and are upgraded to the versioned multi-session envelope when amend needs to append a new session
+- Conversation markdown labels user messages with your git alias (`git config user.name`) and assistant messages with provider name
+- Serilog debug logs are enabled in `DEBUG` builds
 
-### macOS
-
-```bash
-dotnet publish src/GitMemento.Cli/GitMemento.Cli.fsproj -c Release -r osx-arm64 -p:PublishAot=true
-```
-
-### Linux
-
-```bash
-dotnet publish src/GitMemento.Cli/GitMemento.Cli.fsproj -c Release -r linux-x64 -p:PublishAot=true
-```
-
-### Windows (PowerShell)
-
-```powershell
-dotnet publish src/GitMemento.Cli/GitMemento.Cli.fsproj -c Release -r win-x64 -p:PublishAot=true
-```
-
-## Local Install as Git Tool
-
-Git discovers commands named `git-<name>` in `PATH`.
-
-1. Publish for your platform.
-2. Copy the produced executable to a directory in your `PATH`.
-3. Ensure the binary name is `git-memento` (or `git-memento.exe` on Windows).
-
-Then run:
-
-```bash
-git memento commit <session-id> -m "message"
-```
-
-## Curl Install
-
-Install from latest GitHub release:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/mandel-macaque/memento/main/install.sh | sh
-```
-
-## Release Automation
-
-- Release assets are built with NativeAOT (`PublishAot=true`) and packaged as a single executable per platform.
-- If the workflow runs from a tag push (for example `v1.2.3`), that tag is used as the GitHub release tag/name.
-- If the workflow runs from `main` without a tag, the release tag becomes `<Version>-<shortSha>` (for example `1.0.0-a1b2c3d4`).
-- `install.sh` always downloads from `releases/latest`, so the installer follows the latest published GitHub release.
-
-## Install Script CI Coverage
-
-CI runs install smoke tests on Linux, macOS, and Windows that verify:
-
-- `install.sh` downloads the latest release asset for the current OS/architecture.
-- The binary is installed for the current user into the configured install directory.
-- `git memento --version` and `git memento help` both execute after installation.
-
-## Test
-
-```bash
-dotnet test GitMemento.slnx
-npm run test:js
-```
-
-## Commit Note Comments + CI Gate (GitHub Action)
+## CI/CD Integration
 
 This repository includes a reusable marketplace action with three modes:
 
@@ -262,12 +341,12 @@ This repository includes a reusable marketplace action with three modes:
 
 Action definition:
 
-- `action.yml` at repository root.
-- `install/action.yml` for reusable git-memento installation.
+- `action.yml` at repository root
+- `install/action.yml` for reusable git-memento installation
 - Renderer source: `src/note-comment-renderer.ts`
 - Runtime artifact committed for marketplace consumers: `dist/note-comment-renderer.js`
 
-Example workflow:
+### Example: Post commit comments
 
 ```yaml
 name: memento-note-comments
@@ -389,7 +468,7 @@ Installer action example:
     memento-repo: mandel-macaque/memento
 ```
 
-Local workflow in this repository:
+### Action inputs
 
 - `.github/workflows/memento-note-comments.yml`
 - `.github/workflows/memento-note-gate.yml`
@@ -398,7 +477,7 @@ Local workflow in this repository:
   - Carries notes from PR source commits onto the merge commit.
   - Pushes updated `refs/notes/*` so merged commits keep note visibility in downstream checks.
 
-### Publish This Action To GitHub Marketplace
+### Publish this action to GitHub Marketplace
 
 1. Build and commit the action renderer artifact:
 
@@ -408,7 +487,7 @@ npm run build:action
 git add src/note-comment-renderer.ts dist/note-comment-renderer.js
 ```
 
-2. Ensure `action.yml` and `install/action.yml` are in the default branch and README documents usage.
+2. Ensure `action.yml` and `install/action.yml` are in the default branch and README documents usage
 3. Create and push a semantic version tag:
 
 ```bash
@@ -419,18 +498,88 @@ git push -f origin v1
 ```
 
 4. In GitHub, open your repository page:
-   - `Releases` -> `Draft a new release` -> choose `v1.0.0` -> publish.
-5. Open the `Marketplace` (GitHub Store) publishing flow from the repository and submit listing metadata.
-6. Keep the major tag (`v1`) updated to the latest compatible release.
+   - `Releases` -> `Draft a new release` -> choose `v1.0.0` -> publish
+5. Open the `Marketplace` (GitHub Store) publishing flow from the repository and submit listing metadata
+6. Keep the major tag (`v1`) updated to the latest compatible release
 
-## Notes
+Local workflow in this repository:
 
-- Notes are written with `git notes add -f -m "<markdown>" <commit-hash>`.
-- Multi-session notes use explicit delimiters:
-  - `<!-- git-memento-sessions:v1 -->`
-  - `<!-- git-memento-note-version:1 -->`
-  - `<!-- git-memento-session:start -->`
-  - `<!-- git-memento-session:end -->`
-- Legacy single-session notes remain supported and are upgraded to the versioned multi-session envelope when amend needs to append a new session.
-- Conversation markdown labels user messages with your git alias (`git config user.name`) and assistant messages with provider name.
-- Serilog debug logs are enabled in `DEBUG` builds.
+- `.github/workflows/memento-note-comments.yml`
+- `.github/workflows/memento-note-gate.yml`
+- `.github/workflows/memento-notes-merge-carry.yml`
+
+## Build and Install
+
+### Build (AOT)
+
+Requires `.NET SDK 10` and native toolchain dependencies for NativeAOT.
+
+#### macOS
+
+```bash
+dotnet publish src/GitMemento.Cli/GitMemento.Cli.fsproj -c Release -r osx-arm64 -p:PublishAot=true
+```
+
+#### Linux
+
+```bash
+dotnet publish src/GitMemento.Cli/GitMemento.Cli.fsproj -c Release -r linux-x64 -p:PublishAot=true
+```
+
+#### Windows (PowerShell)
+
+```powershell
+dotnet publish src/GitMemento.Cli/GitMemento.Cli.fsproj -c Release -r win-x64 -p:PublishAot=true
+```
+
+### Local install as Git tool
+
+Git discovers commands named `git-<name>` in `PATH`.
+
+1. Publish for your platform
+2. Copy the produced executable to a directory in your `PATH`
+3. Ensure the binary name is `git-memento` (or `git-memento.exe` on Windows)
+
+Then run:
+
+```bash
+git memento commit <session-id> -m "message"
+```
+
+### Release automation
+
+- Release assets are built with NativeAOT (`PublishAot=true`) and packaged as a single executable per platform
+- If the workflow runs from a tag push (for example `v1.2.3`), that tag is used as the GitHub release tag/name
+- If the workflow runs from `main` without a tag, the release tag becomes `<Version>-<shortSha>` (for example `1.0.0-a1b2c3d4`)
+- `install.sh` always downloads from `releases/latest`, so the installer follows the latest published GitHub release
+
+### Install script CI coverage
+
+CI runs install smoke tests on Linux, macOS, and Windows that verify:
+
+- `install.sh` downloads the latest release asset for the current OS/architecture
+- The binary is installed for the current user into the configured install directory
+- `git memento --version` and `git memento help` both execute after installation
+
+## Testing
+
+```bash
+dotnet test GitMemento.slnx
+npm run test:js
+```
+
+## Contributing
+
+Contributions are welcome! To contribute:
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests to ensure everything works
+5. Submit a pull request
+
+For development setup, see [Build (AOT)](#build-aot).
+
+## License
+
+See [LICENSE](LICENSE) file for details.
