@@ -173,12 +173,36 @@ jobs:
       - name: Install git-memento
         uses: ./install
         with:
-          memento-repo: mandel-macaque/memento
           verify: "false"
 
       - name: Verify git memento extension
         shell: bash
         run: |
           set -eu
+          if ! printf "%s" "$PATH" | tr ';:' '\n' | grep -F "git-memento-bin" >/dev/null 2>&1; then
+            echo "Expected install directory to be in PATH, but no PATH entry contained git-memento-bin."
+            exit 1
+          fi
+          resolved_bin="$(command -v git-memento || true)"
+          if [ -z "$resolved_bin" ]; then
+            resolved_bin="$(command -v git-memento.exe || true)"
+          fi
+          if [ -z "$resolved_bin" ]; then
+            echo "git-memento is not discoverable via PATH."
+            exit 1
+          fi
+          echo "Resolved git-memento binary: $resolved_bin"
           git memento --version
           git memento help
+
+  install-script-path-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Test install.sh PATH messaging
+        shell: bash
+        run: |
+          set -eu
+          bash tests/install/install-script-path-tests.sh
