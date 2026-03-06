@@ -1,0 +1,128 @@
+<!-- git-memento-sessions:v1 -->
+
+<!-- git-memento-note-version:1 -->
+
+<!-- git-memento-session:start -->
+# Git Memento Session
+
+- Provider: Codex
+- Session ID: 019cc51c-f97a-7283-a498-d1c66e0d5a0f
+- Session Title: # AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
+### Available skills
+- git-memento-workflow: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes. (file: /Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- skill-creator: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. (file: /Users/mandel/.codex/skills/.system/skill-creator/SKILL.md)
+- skill-installer: Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos). (file: /Users/mandel/.codex/skills/.system/skill-installer/SKILL.md)
+### How to use skills
+- Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths.
+- Trigger rules: If the user names a skill (with `$SkillName` or plain text) OR the task clearly matches a skill's description shown above, you must use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned.
+- Missing/blocked: If a named skill isn't in the list or the path can't be read, say so briefly and continue with the best fallback.
+- How to use a skill (progressive disclosure):
+  1) After deciding to use a skill, open its `SKILL.md`. Read only enough to follow the workflow.
+  2) When `SKILL.md` references relative paths (e.g., `scripts/foo.py`), resolve them relative to the skill directory listed above first, and only consider other paths if needed.
+  3) If `SKILL.md` points to extra folders such as `references/`, load only the specific files needed for the request; don't bulk-load everything.
+  4) If `scripts/` exist, prefer running or patching them instead of retyping large code blocks.
+  5) If `assets/` or templates exist, reuse them instead of recreating from scratch.
+- Coordination and sequencing:
+  - If multiple skills apply, choose the minimal set that covers the request and state the order you'll use them.
+  - Announce which skill(s) you're using and why (one short line). If you skip an obvious skill, say why.
+- Context hygiene:
+  - Keep context small: summarize long sections instead of pasting them; only load extra files when needed.
+  - Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
+  - When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
+- Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+</INSTRUCTIONS>
+- Committer: Manuel de la Pena
+- Captured At (UTC): 2026-03-06T21:52:02.2248840+00:00
+
+## Conversation
+
+### Manuel de la Pena
+
+# AGENTS.md instructions for /Users/mandel/Work/memento
+
+<INSTRUCTIONS>
+## Skills
+A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
+### Available skills
+- git-memento-workflow: Use git-memento to initialize repository-level AI provider settings, create commits that attach AI session transcripts as git notes, and sync notes to remote. Trigger this skill when users ask to create or troubleshoot memento commits, configure providers (Codex or Claude), verify note attachment, or share notes with team remotes. (file: /Users/mandel/.codex/skills/git-memento-workflow/SKILL.md)
+- skill-creator: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. (file: /Users/mandel/.codex/skills/.system/skill-creator/SKILL.md)
+- skill-installer: Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos). (file: /Users/mandel/.codex/skills/.system/skill-installer/SKILL.md)
+### How to use skills
+- Discovery: The list above is the skills available in this session (name + description + file path). Skill bodies live on disk at the listed paths.
+- Trigger rules: If the user names a skill (with `$SkillName` or plain text) OR the task clearly matches a skill's description shown above, you must use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned.
+- Missing/blocked: If a named skill isn't in the list or the path can't be read, say so briefly and continue with the best fallback.
+- How to use a skill (progressive disclosure):
+1) After deciding to use a skill, open its `SKILL.md`. Read only enough to follow the workflow.
+2) When `SKILL.md` references relative paths (e.g., `scripts/foo.py`), resolve them relative to the skill directory listed above first, and only consider other paths if needed.
+3) If `SKILL.md` points to extra folders such as `references/`, load only the specific files needed for the request; don't bulk-load everything.
+4) If `scripts/` exist, prefer running or patching them instead of retyping large code blocks.
+5) If `assets/` or templates exist, reuse them instead of recreating from scratch.
+- Coordination and sequencing:
+- If multiple skills apply, choose the minimal set that covers the request and state the order you'll use them.
+- Announce which skill(s) you're using and why (one short line). If you skip an obvious skill, say why.
+- Context hygiene:
+- Keep context small: summarize long sections instead of pasting them; only load extra files when needed.
+- Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
+- When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
+- Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+</INSTRUCTIONS>
+
+### Manuel de la Pena
+
+<environment_context>
+<cwd>/Users/mandel/Work/memento</cwd>
+<shell>zsh</shell>
+</environment_context>
+
+### Manuel de la Pena
+
+Look at the status  checks of the current branch PR (using gh) if they are failing, download the logs using gh, grep them and fix the issues. Then push and check again. Do this look until we get a pass.
+
+### Codex
+
+I’ll inspect the current branch PR checks with `gh`, identify any failing jobs, pull the failing run logs, and then patch the code to fix failures before pushing and re-checking until green. I’m starting by querying PR status and checks now.
+
+### Codex
+
+I found one failing check: `enforce-memento-notes` on PR `#6`. Next I’m downloading that job log and grepping for the concrete failure reason.
+
+### Codex
+
+I’ve isolated the failure: CI is failing because commit `3b78238ffac2771124a62abee9aa98574c26875f` is missing a note in `refs/notes/commits`. I’m now using the `git-memento-workflow` skill to apply the repo’s expected note-attachment workflow and repair this cleanly.
+
+### Codex
+
+I loaded the workflow instructions and will now run preflight plus note inspection to determine the safest repair path (likely `git memento amend` to carry/attach notes and then push notes).
+
+### Codex
+
+Preflight is clean and confirms provider config is present; the target merge commit has no note locally, matching CI. I’m now resolving the active Codex session id and checking existing note structure so I can attach a valid note format instead of a raw `git notes add`.
+
+### Codex
+
+I found `CODEX_THREAD_ID`, so I can attach a valid session note through `git memento amend` on `HEAD` (the missing merge commit). I’ll check push semantics first so we handle the rewritten commit safely.
+
+### Codex
+
+I’m now amending `HEAD` via `git memento amend` with the current session id to attach the missing note while preserving the existing merge commit message. After that I’ll run a local strict audit before pushing.
+
+### Codex
+
+The amend succeeded and produced a new `HEAD` commit with an attached session note. I’m verifying strict audit locally, then I’ll force-push branch + notes and re-check CI.
+
+### Codex
+
+Local strict audit is currently noisy because my local `origin/main` is stale relative to CI’s PR base. I’m syncing `origin/main` and notes, then rerunning the exact strict audit range that CI computes.
+
+### Codex
+
+The fetch updated `origin/main`, but notes sync hit a non-fast-forward on `refs/notes/commits`. I’ll run `git memento notes-sync` to reconcile notes refs safely, then rerun strict audit.
+
+### Codex
+
+After syncing notes, strict audit now isolates exactly one problem: the new amended commit `1cdb389...` still has no note in `refs/notes/commits` (the previous local note was dropped during notes reconciliation). I’m re-attaching it with one more `git memento amend`, then I’ll push branch and notes together.
+<!-- git-memento-session:end -->
