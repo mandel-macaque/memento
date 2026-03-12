@@ -41,6 +41,12 @@ let private writeExecutable path content =
     let chmod = ProcessCommandRunner() :> ICommandRunner
     chmod.RunCaptureAsync("chmod", [ "+x"; path ]).Result |> ignore
 
+let private defaultSummaryLimits =
+    { MaxMessageChars = None
+      MaxTranscriptChars = None
+      MaxPromptChars = None
+      RequireFullSession = false }
+
 let private buildFakeGitScript (stateDir: string) =
     let script =
         """#!/bin/sh
@@ -388,7 +394,7 @@ let ``integration commit flow writes note using fake git and codex binaries`` ()
     let output = CaptureOutput()
     let workflow = CommitWorkflow(git, provider, output :> IUserOutput)
 
-    let result = workflow.ExecuteAsync("good-session", [ "ship it" ], None).Result
+    let result = workflow.ExecuteAsync("good-session", [ "ship it" ], None, defaultSummaryLimits).Result
 
     Assert.Equal(CommandResult.Completed, result)
     let commitMessages = File.ReadAllLines(Path.Combine(stateDir, "commit-messages"))
@@ -435,7 +441,7 @@ let ``integration commit flow forwards multiple -m message parts`` () =
     let output = CaptureOutput()
     let workflow = CommitWorkflow(git, provider, output :> IUserOutput)
 
-    let result = workflow.ExecuteAsync("good-session", [ "subject"; "body paragraph" ], None).Result
+    let result = workflow.ExecuteAsync("good-session", [ "subject"; "body paragraph" ], None, defaultSummaryLimits).Result
 
     Assert.Equal(CommandResult.Completed, result)
     let commitMessages = File.ReadAllLines(Path.Combine(stateDir, "commit-messages"))
@@ -476,11 +482,11 @@ let ``integration amend flow copies existing note when no new session is provide
     let output = CaptureOutput()
     let commitWorkflow = CommitWorkflow(git, provider, output :> IUserOutput)
 
-    let commitResult = commitWorkflow.ExecuteAsync("good-session", [ "initial" ], None).Result
+    let commitResult = commitWorkflow.ExecuteAsync("good-session", [ "initial" ], None, defaultSummaryLimits).Result
     Assert.Equal(CommandResult.Completed, commitResult)
 
     let amendWorkflow = AmendWorkflow(git, None, output :> IUserOutput)
-    let amendResult = amendWorkflow.ExecuteAsync(None, [ "amended" ], None).Result
+    let amendResult = amendWorkflow.ExecuteAsync(None, [ "amended" ], None, defaultSummaryLimits).Result
 
     Assert.Equal(CommandResult.Completed, amendResult)
     Assert.Equal("true", File.ReadAllText(Path.Combine(stateDir, "commit-amend-mode")))
@@ -525,11 +531,11 @@ let ``integration amend flow appends a new session to copied note`` () =
     let output = CaptureOutput()
     let commitWorkflow = CommitWorkflow(git, provider, output :> IUserOutput)
 
-    let commitResult = commitWorkflow.ExecuteAsync("good-session", [ "initial" ], None).Result
+    let commitResult = commitWorkflow.ExecuteAsync("good-session", [ "initial" ], None, defaultSummaryLimits).Result
     Assert.Equal(CommandResult.Completed, commitResult)
 
     let amendWorkflow = AmendWorkflow(git, Some provider, output :> IUserOutput)
-    let amendResult = amendWorkflow.ExecuteAsync(Some "amend-session", [ "amended" ], None).Result
+    let amendResult = amendWorkflow.ExecuteAsync(Some "amend-session", [ "amended" ], None, defaultSummaryLimits).Result
 
     Assert.Equal(CommandResult.Completed, amendResult)
     let note = File.ReadAllText(Path.Combine(stateDir, "note.md"))

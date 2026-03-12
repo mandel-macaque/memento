@@ -26,6 +26,7 @@ type AmendWorkflow(git: IGitService, provider: IAiSessionProvider option, output
         (session: SessionData)
         (userSkill: string option)
         (userPrompt: string option)
+        (summaryLimits: SummaryGenerationLimits)
         : Task<Result<string, string>> =
         task {
             match provider with
@@ -35,7 +36,11 @@ type AmendWorkflow(git: IGitService, provider: IAiSessionProvider option, output
                     ai.SummarizeSessionAsync(
                         { Session = session
                           UserSkill = userSkill
-                          UserPrompt = userPrompt }
+                          UserPrompt = userPrompt
+                          MaxMessageChars = summaryLimits.MaxMessageChars
+                          MaxTranscriptChars = summaryLimits.MaxTranscriptChars
+                          MaxPromptChars = summaryLimits.MaxPromptChars
+                          RequireFullSession = summaryLimits.RequireFullSession }
                     )
 
                 match summaryResult with
@@ -53,13 +58,14 @@ type AmendWorkflow(git: IGitService, provider: IAiSessionProvider option, output
                         if String.IsNullOrWhiteSpace retryPrompt then
                             return Error "Summary was rejected and no retry prompt was provided."
                         else
-                            return! confirmSummaryAsync session userSkill (Some(retryPrompt.Trim()))
+                            return! confirmSummaryAsync session userSkill (Some(retryPrompt.Trim())) summaryLimits
         }
 
     let tryFetchSessionEntries
         (sessionId: string)
         (committer: string)
         (summarySkill: string option)
+        (summaryLimits: SummaryGenerationLimits)
         : Task<Result<string * string option, string>> =
         task {
             match provider with
@@ -81,7 +87,7 @@ type AmendWorkflow(git: IGitService, provider: IAiSessionProvider option, output
                         return Ok(fullConversationMarkdown, None)
                     | Some _ ->
                         let userSkill = resolveUserSkill summarySkill
-                        let! confirmedSummaryResult = confirmSummaryAsync session userSkill None
+                        let! confirmedSummaryResult = confirmSummaryAsync session userSkill None summaryLimits
                         match confirmedSummaryResult with
                         | Error err -> return Error err
                         | Ok confirmedSummary ->
@@ -116,7 +122,10 @@ type AmendWorkflow(git: IGitService, provider: IAiSessionProvider option, output
         }
 
     member _.ExecuteAsync
-        (sessionId: string option, commitMessages: string list, summarySkill: string option)
+        (sessionId: string option,
+         commitMessages: string list,
+         summarySkill: string option,
+         summaryLimits: SummaryGenerationLimits)
         : Task<CommandResult> =
         task {
             Log.Debug("Validating git repository")
@@ -158,7 +167,7 @@ type AmendWorkflow(git: IGitService, provider: IAiSessionProvider option, output
                                         Task.FromResult(Ok None)
                                 | Some id ->
                                     task {
-                                        let! entryResult = tryFetchSessionEntries id committer summarySkill
+                                        let! entryResult = tryFetchSessionEntries id committer summarySkill summaryLimits
                                         return entryResult |> Result.map Some
                                     }
 

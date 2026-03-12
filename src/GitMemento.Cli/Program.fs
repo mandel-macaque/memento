@@ -96,7 +96,7 @@ let main args =
                     | CommandResult.Failed message ->
                         Console.Error.WriteLine(message)
                         1
-            | Command.Commit(sessionId, messages, summarySkill) ->
+            | Command.Commit(sessionId, messages, summarySkill, summaryLimits) ->
                 match MementoConfig.requireConfigured git with
                 | Error configError ->
                     Console.Error.WriteLine(configError)
@@ -109,16 +109,16 @@ let main args =
                     | Ok settings ->
                         let provider = AiProviderFactory.createFromSettings runner settings
                         let workflow = CommitWorkflow(git, provider, output)
-                        workflow.ExecuteAsync(sessionId, messages, summarySkill).Result
+                        workflow.ExecuteAsync(sessionId, messages, summarySkill, summaryLimits).Result
                         |> function
                             | CommandResult.Completed -> 0
                             | CommandResult.Failed message ->
                                 Console.Error.WriteLine(message)
                                 1
-            | Command.Amend(sessionId, messages, summarySkill) ->
+            | Command.Amend(sessionId, messages, summarySkill, summaryLimits) ->
                 let workflowWithProvider (provider: IAiSessionProvider option) =
                     let workflow = AmendWorkflow(git, provider, output)
-                    workflow.ExecuteAsync(sessionId, messages, summarySkill).Result
+                    workflow.ExecuteAsync(sessionId, messages, summarySkill, summaryLimits).Result
                     |> function
                         | CommandResult.Completed -> 0
                         | CommandResult.Failed message ->

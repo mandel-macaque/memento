@@ -16,7 +16,11 @@ type ProviderSettings =
 type SummaryRequest =
     { Session: SessionData
       UserSkill: string option
-      UserPrompt: string option }
+      UserPrompt: string option
+      MaxMessageChars: int option
+      MaxTranscriptChars: int option
+      MaxPromptChars: int option
+      RequireFullSession: bool }
 
 type IAiSessionProvider =
     abstract member Name: string
@@ -144,9 +148,9 @@ module private SessionJson =
 
 type CliJsonProvider(providerName: string, settings: ProviderSettings, runner: ICommandRunner) =
     let defaultSummarySkill = "session-summary-default"
-    let maxMessageChars = 2000
-    let maxTranscriptChars = 24000
-    let maxPromptChars = 32000
+    let defaultMaxMessageChars = 2000
+    let defaultMaxTranscriptChars = 24000
+    let defaultMaxPromptChars = 32000
 
     let sanitizePrompt (value: string) =
         value.Replace("\r", " ").Replace("\n", " \\n ").Replace("\"", "'").Trim()
@@ -156,6 +160,21 @@ type CliJsonProvider(providerName: string, settings: ProviderSettings, runner: I
             value
         else
             value.AsSpan(0, maxLength).ToString() + "..."
+
+    let truncateWithMetadata (maxLength: int) (value: string) =
+        if String.IsNullOrWhiteSpace value || value.Length <= maxLength then
+            value, false, value.Length
+        else
+            value.AsSpan(0, maxLength).ToString() + "...", true, value.Length
+
+    let resolvedMaxMessageChars (request: SummaryRequest) =
+        request.MaxMessageChars |> Option.defaultValue defaultMaxMessageChars
+
+    let resolvedMaxTranscriptChars (request: SummaryRequest) =
+        request.MaxTranscriptChars |> Option.defaultValue defaultMaxTranscriptChars
+
+    let resolvedMaxPromptChars (request: SummaryRequest) =
+        request.MaxPromptChars |> Option.defaultValue defaultMaxPromptChars
 
     let resolveSkillPath (skillName: string) =
         let trimmed = skillName.Trim()
@@ -179,7 +198,11 @@ type CliJsonProvider(providerName: string, settings: ProviderSettings, runner: I
         let user = getUserSkillPath request
         if String.IsNullOrWhiteSpace user then defaultSkillPath else user
 
-    let renderTranscript (session: SessionData) =
+    let renderTranscript (request: SummaryRequest) (session: SessionData) =
+        let maxMessageChars = resolvedMaxMessageChars request
+        let maxTranscriptChars = resolvedMaxTranscriptChars request
+        let mutable truncatedMessageCount = 0
+
         let lines =
             session.Messages
             |> List.mapi (fun index message ->
@@ -190,7 +213,13 @@ type CliJsonProvider(providerName: string, settings: ProviderSettings, runner: I
                     | MessageRole.System -> "System"
                     | MessageRole.Tool -> "Tool"
 
-                let content = TextCleaning.cleanBlock message.Content |> truncate maxMessageChars
+                let content, wasTruncated, _ =
+                    TextCleaning.cleanBlock message.Content
+                    |> truncateWithMetadata maxMessageChars
+
+                if wasTruncated then
+                    truncatedMessageCount <- truncatedMessageCount + 1
+
                 $"[{index + 1}] {roleLabel}: {content}")
 
         let sb = Text.StringBuilder(maxTranscriptChars + 128)
@@ -209,12 +238,16 @@ type CliJsonProvider(providerName: string, settings: ProviderSettings, runner: I
         if truncated then
             sb.AppendLine("[... transcript truncated due to size limits ...]") |> ignore
 
-        sb.ToString().Trim()
+        sb.ToString().Trim(), truncatedMessageCount, truncated, maxMessageChars, maxTranscriptChars
 
     let buildSummaryPrompt (request: SummaryRequest) =
         let titleText = request.Session.Title |> Option.defaultValue "(untitled)"
+        let maxPromptChars = resolvedMaxPromptChars request
+        let renderedTranscript, truncatedMessageCount, transcriptTruncated, maxMessageChars, maxTranscriptChars =
+            renderTranscript request request.Session
+
         let transcript =
-            let rendered = renderTranscript request.Session
+            let rendered = renderedTranscript
             if String.IsNullOrWhiteSpace rendered then
                 "_No conversation messages were found for this session._"
             else
@@ -237,7 +270,17 @@ type CliJsonProvider(providerName: string, settings: ProviderSettings, runner: I
                 $"{basePrompt}\n\nAdditional user guidance:\n{userPrompt.Trim()}"
             | _ -> basePrompt
 
-        truncate maxPromptChars promptWithUserGuidance
+        let truncatedPrompt, promptTruncated, originalPromptLength =
+            truncateWithMetadata maxPromptChars promptWithUserGuidance
+
+        truncatedPrompt,
+        truncatedMessageCount,
+        transcriptTruncated,
+        promptTruncated,
+        maxMessageChars,
+        maxTranscriptChars,
+        maxPromptChars,
+        originalPromptLength
 
     interface IAiSessionProvider with
         member _.Name = providerName
@@ -278,34 +321,68 @@ type CliJsonProvider(providerName: string, settings: ProviderSettings, runner: I
 
         member _.SummarizeSessionAsync(request: SummaryRequest) =
             task {
-                let prompt = buildSummaryPrompt request |> sanitizePrompt
-                let userSkillPath = getUserSkillPath request
-                let effectiveSkillPath = getEffectiveSkillPath request
-                let args =
-                    settings.SummaryArgs
-                        .Replace("{skill}", request.UserSkill |> Option.defaultValue defaultSummarySkill)
-                        .Replace("{defaultSkillPath}", defaultSkillPath)
-                        .Replace("{userSkillPath}", userSkillPath)
-                        .Replace("{effectiveSkillPath}", effectiveSkillPath)
-                        .Replace("{sessionId}", request.Session.Id)
-                        .Replace("{prompt}", prompt)
-                    |> CommandLine.splitArgs
+                let (promptTemplate,
+                     truncatedMessageCount,
+                     transcriptTruncated,
+                     promptTruncated,
+                     maxMessageChars,
+                     maxTranscriptChars,
+                     maxPromptChars,
+                     originalPromptLength) =
+                    buildSummaryPrompt request
 
-                let! result = runner.RunCaptureAsync(settings.SummaryExecutable, args)
-                if result.ExitCode <> 0 then
-                    return
-                        Error(
+                let anyTruncation = truncatedMessageCount > 0 || transcriptTruncated || promptTruncated
+
+                let truncationHint =
+                    let details = ResizeArray<string>()
+                    if truncatedMessageCount > 0 then
+                        details.Add($"messages truncated: {truncatedMessageCount} (limit {maxMessageChars} chars/message)")
+                    if transcriptTruncated then
+                        details.Add($"transcript truncated (limit {maxTranscriptChars} chars)")
+                    if promptTruncated then
+                        details.Add($"prompt truncated from {originalPromptLength} to {maxPromptChars} chars")
+
+                    if details.Count = 0 then
+                        String.Empty
+                    else
+                        "Summary input exceeded current limits. "
+                        + String.Join("; ", details)
+                        + ". Increase limits with --summary-max-message-chars, --summary-max-transcript-chars, and/or --summary-max-prompt-chars."
+
+                if request.RequireFullSession && anyTruncation then
+                    return Error($"Unable to generate full-session summary. {truncationHint}")
+                else
+                    let prompt = promptTemplate |> sanitizePrompt
+                    let userSkillPath = getUserSkillPath request
+                    let effectiveSkillPath = getEffectiveSkillPath request
+                    let args =
+                        settings.SummaryArgs
+                            .Replace("{skill}", request.UserSkill |> Option.defaultValue defaultSummarySkill)
+                            .Replace("{defaultSkillPath}", defaultSkillPath)
+                            .Replace("{userSkillPath}", userSkillPath)
+                            .Replace("{effectiveSkillPath}", effectiveSkillPath)
+                            .Replace("{sessionId}", request.Session.Id)
+                            .Replace("{prompt}", prompt)
+                        |> CommandLine.splitArgs
+
+                    let! result = runner.RunCaptureAsync(settings.SummaryExecutable, args)
+                    if result.ExitCode <> 0 then
+                        let baseError =
                             if String.IsNullOrWhiteSpace result.StdErr then
                                 result.StdOut
                             else
                                 result.StdErr
-                        )
-                else
-                    let summary = result.StdOut.Trim()
-                    if String.IsNullOrWhiteSpace summary then
-                        return Error "Summary command completed but returned empty output."
+
+                        if anyTruncation then
+                            return Error($"{baseError}{Environment.NewLine}{truncationHint}")
+                        else
+                            return Error baseError
                     else
-                        return Ok summary
+                        let summary = result.StdOut.Trim()
+                        if String.IsNullOrWhiteSpace summary then
+                            return Error "Summary command completed but returned empty output."
+                        else
+                            return Ok summary
             }
 
 module AiProviderFactory =

@@ -35,13 +35,18 @@ type CommitWorkflow(git: IGitService, provider: IAiSessionProvider, output: IUse
         (session: SessionData)
         (userSkill: string option)
         (userPrompt: string option)
+        (summaryLimits: SummaryGenerationLimits)
         : Task<Result<string, string>> =
         task {
             let! summaryResult =
                 provider.SummarizeSessionAsync(
                     { Session = session
                       UserSkill = userSkill
-                      UserPrompt = userPrompt }
+                      UserPrompt = userPrompt
+                      MaxMessageChars = summaryLimits.MaxMessageChars
+                      MaxTranscriptChars = summaryLimits.MaxTranscriptChars
+                      MaxPromptChars = summaryLimits.MaxPromptChars
+                      RequireFullSession = summaryLimits.RequireFullSession }
                 )
 
             match summaryResult with
@@ -59,7 +64,7 @@ type CommitWorkflow(git: IGitService, provider: IAiSessionProvider, output: IUse
                     if String.IsNullOrWhiteSpace retryPrompt then
                         return Error "Summary was rejected and no retry prompt was provided."
                     else
-                        return! confirmSummaryAsync session userSkill (Some(retryPrompt.Trim()))
+                        return! confirmSummaryAsync session userSkill (Some(retryPrompt.Trim())) summaryLimits
         }
 
     let printSessionNotFound (sessionId: string) (sessions: SessionRef list) =
@@ -75,7 +80,9 @@ type CommitWorkflow(git: IGitService, provider: IAiSessionProvider, output: IUse
                 | Some title -> output.Error($"- {item.Id} ({title})")
                 | None -> output.Error($"- {item.Id}"))
 
-    member _.ExecuteAsync(sessionId: string, commitMessages: string list, summarySkill: string option) : Task<CommandResult> =
+    member _.ExecuteAsync
+        (sessionId: string, commitMessages: string list, summarySkill: string option, summaryLimits: SummaryGenerationLimits)
+        : Task<CommandResult> =
         task {
             Log.Debug("Validating git repository")
             let! repoCheck = git.EnsureInRepositoryAsync()
@@ -117,7 +124,7 @@ type CommitWorkflow(git: IGitService, provider: IAiSessionProvider, output: IUse
                         | Some _ ->
                             task {
                                 let userSkill = resolveUserSkill summarySkill
-                                let! confirmedSummaryResult = confirmSummaryAsync session userSkill None
+                                let! confirmedSummaryResult = confirmSummaryAsync session userSkill None summaryLimits
                                 match confirmedSummaryResult with
                                 | Error err -> return Error err
                                 | Ok confirmedSummary ->
