@@ -58,7 +58,7 @@ jobs:
           script: |
             const { owner, repo } = context.repo;
             const sha = context.sha;
-            const expectedName = process.env.CARRY_CHECK_NAME || "carry-notes";
+            const expectedName = process.env.CARRY_CHECK_NAME;
             const maxAttempts = Number.parseInt(process.env.CARRY_WAIT_ATTEMPTS || "36", 10);
             const waitMs = Number.parseInt(process.env.CARRY_WAIT_INTERVAL_MS || "10000", 10);
 
